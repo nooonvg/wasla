@@ -24,6 +24,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -315,14 +316,6 @@ def bot_grants(role: str, audience: str) -> set[str]:
 
 # ── الأدلة ──────────────────────────────────────────────────────────────────
 
-def path_regex(entry_path: str) -> re.Pattern[str]:
-    """مسار المدخل → نمط يطابق نداءه في ملف اختبار (`:x` ⇒ قطعة واحدة، `${A}` مقبول)."""
-    parts = []
-    for seg in entry_path.split("/"):
-        parts.append(r"[^/\s\"'`?]+" if seg.startswith(":") else re.escape(seg))
-    return re.compile("/".join(parts) + r"(?![\w-])")
-
-
 def in_ci_package(f: Path) -> bool:
     """ملف `*.test.ts(x)` داخل حزمة مساحة عمل لها سكربت `test` — أي أن CI يشغّله."""
     if not re.search(r"\.(test|spec)\.(ts|tsx)$", f.name):
@@ -339,16 +332,236 @@ def in_ci_package(f: Path) -> bool:
     return False
 
 
-def case_is_live_test(src: str, case: str) -> bool:
-    """العنوان حالة `it(`/`test(` فعلية — لا تعليق ولا `it.skip`/`it.todo`."""
-    q = r"[\"'`]" + re.escape(case) + r"[\"'`]"
-    live = re.search(r"(?<![\w.])(?:it|test)\(\s*" + q, src)
-    dead = re.search(r"(?:it|test)\.(?:skip|todo)\(\s*" + q, src)
-    return bool(live) and not dead
+# ── حقائق الحالات من محلل TypeScript (scripts/checks/lib/ts_evidence.cjs) ─────
+
+TS_HELPER = Path(__file__).resolve().parent / "ts_evidence.cjs"
+_TS: dict[str, dict] = {}
+_TS_ERROR: str | None = None
+EQ_STATUS_REJECT = {400, 403, 404, 409, 422}
+
+
+def prefetch_cases(files: list[str]) -> None:
+    """يحلّل كل ملفات الأدلة بنداء Node واحد. تعذّر المحلل ⇒ فشل مغلق في كل دليل."""
+    global _TS_ERROR
+    files = sorted({f for f in files if (ROOT / f).is_file()})
+    if not files:
+        return
+    try:
+        out = subprocess.run(["node", str(TS_HELPER), *files], cwd=ROOT, capture_output=True,
+                             text=True, timeout=180)
+        data = json.loads(out.stdout or "{}")
+    except Exception as exc:  # node غائب أو مخرج غير JSON
+        _TS_ERROR = f"محلل TypeScript تعذّر: {exc}"
+        return
+    if not data.get("ok"):
+        _TS_ERROR = data.get("error") or "محلل TypeScript تعذّر"
+        return
+    _TS.update(data["files"])
+
+
+def find_case(file: str, case: str, allow_conditional: bool = False) -> tuple[dict | None, str | None]:
+    """حالة `it()`/`test()` واحدة حيّة بعنوانها الحرفي في شجرة الملف — أو سبب الرفض.
+
+    `allow_conditional` لدليل وجود مدخل مغلق فقط (اختبار تكامل `skipIf` يشغّله CI على PostgreSQL)؛
+    دليل الفتح (`proves`) لا يقبل حالة مشروطة أبدًا.
+    """
+    if _TS_ERROR:
+        return None, f"[فشل مغلق] {_TS_ERROR}"
+    info = _TS.get(file)
+    if info is None:
+        return None, "الملف لم يُحلَّل"
+    if info.get("error"):
+        return None, f"تعذّر تحليل الملف: {info['error']}"
+    hits = [c for c in info["cases"] if c["title"] == case]
+    if not hits:
+        return None, "لا حالة it()/test() بهذا العنوان في شجرة الملف (التعليق والنص لا يُعدّان)"
+    if len(hits) > 1:
+        return None, f"العنوان ملتبس: {len(hits)} حالات بالعنوان نفسه"
+    c = hits[0]
+    if c["dead"]:
+        return None, f"الحالة متخطّاة ({'/'.join(c['mods'])}) — skip/todo لا تُعدّ"
+    if c["conditional"] and not allow_conditional:
+        return None, f"الحالة مشروطة ({'/'.join(c['mods'])}) — دليل الفتح لا يكون مشروطًا"
+    if not c["has_body"]:
+        return None, "الحالة بلا جسم دالة"
+    return c, None
+
+
+def _snake_to_camel(k: str) -> str:
+    head, *rest = k.split("_")
+    return head + "".join(x.title() for x in rest)
+
+
+def url_slots(req: dict, entry_path: str):
+    """أجزاء `url` المحلولة ⇒ (قيم مواضع المعاملات، نصوص الاستعلام، فجوات الاستعلام) أو None."""
+    segs: list[list[dict]] = [[]]
+    q_lits: list[str] = []
+    q_holes: list[dict] = []
+    in_q = False
+    for part in req["url"]:
+        if "lit" in part:
+            text = part["lit"]
+            if in_q:
+                q_lits.append(text)
+                continue
+            if "?" in text:
+                text, q = text.split("?", 1)
+                in_q = True
+                q_lits.append(q)
+            for i, x in enumerate(text.split("/")):
+                if i > 0:
+                    segs.append([])
+                if x:
+                    segs[-1].append({"lit": x})
+        else:
+            (q_holes if in_q else segs[-1]).append(part["hole"])
+    route = entry_path.split("/")
+    if len(segs) != len(route):
+        return None
+    slots: dict[str, list[dict]] = {}
+    for rs, us in zip(route, segs):
+        if rs.startswith(":"):
+            if not us:
+                return None
+            slots[rs[1:]] = us
+        elif rs == "":
+            if us:
+                return None
+        elif not (len(us) == 1 and us[0].get("lit") == rs):
+            return None
+    return slots, q_lits, q_holes
+
+
+def _vals(items) -> tuple[set[str], set[str]]:
+    ids: set[str] = set()
+    lits: set[str] = set()
+    for it in items:
+        if "lit" in it:
+            lits.add(it["lit"])
+        else:
+            ids |= set(it.get("ids", []))
+            lits |= set(it.get("lits", []))
+    return ids, lits
+
+
+def _disjoint(a: tuple[set, set], b: tuple[set, set]) -> bool:
+    return not (a[0] & b[0]) and not (a[1] & b[1])
+
+
+def owner_param(entry_path: str) -> str | None:
+    params = [x[1:] for x in entry_path.split("/") if x.startswith(":")]
+    owned = [x for x in params if re.search(r"publicid", x, re.I)]
+    return (owned or params or [None])[0]
+
+
+def prove_e18(c: dict, e: dict) -> list[str]:
+    """داخل الحالة: طلب للمسار نفسه، جلسة A ≠ مورد B، المستقبل off، و404 على الطلب نفسه."""
+    why = [] if c["mode_off"] else ["الحالة لا تضبط WASLA_USER_ASSERTION_MODE=off داخل جسمها"]
+    own = owner_param(e["path"])
+    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
+    if not reqs:
+        return why + [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
+    best: list[str] | None = None
+    for r in reqs:
+        w: list[str] = []
+        slots, _, _ = url_slots(r, e["path"])
+        b = _vals(slots.get(own, [])) if own else (set(), set())
+        if not r["identity"]:
+            w.append("الطلب لا يحمل هوية جلسة (obo/session/authorization) في ترويساته")
+        elif not all(_disjoint(b, (set(i["ids"]), set(i["lits"]))) for i in r["identity"]):
+            w.append(f"هوية الجلسة تساوي مورد :{own} — ليست الجلسة A على المورد B")
+        if not r["res"]:
+            w.append("نتيجة الطلب لا تُسنَد إلى متغير يُتحقق منه")
+        elif 404 not in r["statuses"]:
+            w.append("لا expect(<النتيجة>.statusCode).toBe(404) على الطلب نفسه")
+        if not w:
+            return why
+        best = w if best is None or len(w) < len(best) else best
+    return why + (best or [])
+
+
+def prove_e19(c: dict, e: dict) -> list[str]:
+    """داخل الحالة: حقل هوية من §7.2 لهوية أخرى في جسم الطلب نفسه، ثم رفض أو قيمة محفوظة لا تستولي."""
+    why = [] if c["mode_off"] else ["الحالة لا تضبط WASLA_USER_ASSERTION_MODE=off داخل جسمها"]
+    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
+    if not reqs:
+        return why + [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
+    best: list[str] | None = None
+    for r in reqs:
+        w: list[str] = []
+        fields = [f for f in r["payload"] if f["key"] in E19_IDENTITY_FIELDS]
+        if not fields:
+            w.append(f"جسم الطلب لا يرسل أي حقل هوية من §7.2 {list(E19_IDENTITY_FIELDS)}")
+        if not r["identity"]:
+            w.append("الطلب لا يحمل هوية جلسة في ترويساته")
+        foreign = [f for f in fields
+                   if all(_disjoint((set(f["ids"]), set(f["lits"])), (set(i["ids"]), set(i["lits"]))) for i in r["identity"])]
+        if fields and r["identity"] and not foreign:
+            w.append("حقل الهوية في الجسم يساوي هوية الجلسة — ليس هوية أخرى")
+        rejected = bool(r["res"]) and any(st in EQ_STATUS_REJECT for st in r["statuses"])
+        kept = False
+        for f in foreign:
+            names = {f["key"], _snake_to_camel(f["key"])}
+            fv = (set(f["ids"]), set(f["lits"]))
+            for x in c["expects"]:
+                if x["status_of"] or not x["expected"]:
+                    continue
+                if not names & (set(x["arg_props"]) | set(x["arg_strs"]) | set(x["arg_ids"])):
+                    continue
+                ev = (set(x["expected"]["ids"]), set(x["expected"]["lits"]))
+                if (not x["negated"] and x["matcher"] in ("toBe", "toEqual", "toStrictEqual") and _disjoint(ev, fv)) or \
+                   (x["negated"] and not _disjoint(ev, fv)):
+                    kept = True
+        if not (rejected or kept):
+            w.append("لا تحقق من رفض الطلب (400/403/404/409/422) ولا من أن القيمة المحفوظة ليست هوية الجسم")
+        if not w:
+            return why
+        best = w if best is None or len(w) < len(best) else best
+    return why + (best or [])
+
+
+def prove_e20_params(c: dict, e: dict) -> list[str]:
+    """داخل الحالة: لكل معامل من E-20 طلب للمسار يحمله، و400 على نتيجته نفسها."""
+    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
+    if not reqs:
+        return [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
+    missing = []
+    for p in E20_FORBIDDEN_PARAMS:
+        ok = False
+        for r in reqs:
+            _, q_lits, q_holes = url_slots(r, e["path"])
+            carries = any(re.search(r"(^|&)" + re.escape(p) + "=", q) for q in q_lits) or p in r["query_keys"]
+            for h in q_holes:
+                for v in h.get("ids", []):
+                    if any(isinstance(x, str) and x.startswith(f"{p}=") for x in r["loop"].get(v, [])):
+                        carries = True
+            if carries and r["res"] and 400 in r["statuses"]:
+                ok = True
+        if not ok:
+            missing.append(p)
+    return [f"لا طلب يحمل {missing} ويتحقق من 400 على نتيجته داخل الحالة"] if missing else []
+
+
+def prove_e20_published(c: dict, e: dict) -> list[str]:
+    """داخل الحالة: طلب للمسار، وتحقق على نتيجته من «published» ومن الظهور (visible)."""
+    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"]) and r["res"]]
+    if not reqs:
+        return [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']} بنتيجة يُتحقق منها"]
+    on = [x for x in c["expects"] if x["on_result"] and not x["status_of"]]
+    why = []
+    if not any("published" in x["arg_strs"] or (x["expected"] and "published" in x["expected"]["lits"]) for x in on):
+        why.append("لا expect على نتيجة الطلب يتحقق من الحالة \"published\"")
+    if not any(any(re.search(r"visib", k, re.I) for k in x["arg_props"] + x["arg_ids"] + x["arg_strs"]) for x in on):
+        why.append("لا expect على نتيجة الطلب يتحقق من الظهور (visible)")
+    return why
+
+
+PROVERS = {"E-18": prove_e18, "E-19": prove_e19,
+           "E-20:params": prove_e20_params, "E-20:published-only": prove_e20_published}
 
 
 def evidence_for(e: dict, proof: str, tag: str, need_off: bool) -> list[str]:
-    """أخطاء دليل `proof` للمسار نفسه؛ قائمة فارغة = دليل صريح مستوفٍ."""
+    """أخطاء دليل `proof` للمسار نفسه؛ قائمة فارغة = حالة حيّة تثبت الادعاء داخل جسمها."""
     route = f"{e['method']} {e['path']}"
     cands = [t for t in e.get("evidence_tests", []) if proof in (t.get("proves") or [])]
     if not cands:
@@ -358,33 +571,22 @@ def evidence_for(e: dict, proof: str, tag: str, need_off: bool) -> list[str]:
         why: list[str] = []
         if t.get("route") != route:
             why.append(f"route={t.get('route')!r} لا يساوي {route!r}")
+        if need_off and t.get("receiver_mode") != "off":
+            why.append(f"receiver_mode={t.get('receiver_mode')!r} لا 'off'")
         f = ROOT / str(t.get("file", ""))
         if not f.is_file():
             why.append(f"الملف غير موجود: {t.get('file')}")
         else:
-            src = f.read_text(encoding="utf-8")
             if not in_ci_package(f):
                 why.append("الملف ليس ملف اختبار في حزمة يشغّلها CI")
-            if not t.get("case") or not case_is_live_test(src, t["case"]):
-                why.append("الحالة ليست it()/test() حيّة في الملف")
-            if not path_regex(e["path"]).search(src):
-                why.append("الملف لا ينادي المسار نفسه")
-            if need_off:
-                if t.get("receiver_mode") != "off":
-                    why.append(f"receiver_mode={t.get('receiver_mode')!r} لا 'off'")
-                if "WASLA_USER_ASSERTION_MODE" not in src or not re.search(r"[\"'`]off[\"'`]", src):
-                    why.append("الملف لا يضبط WASLA_USER_ASSERTION_MODE=off")
-            if proof == "E-19" and not any(re.search(r"\b" + k + r"\b", src) for k in E19_IDENTITY_FIELDS):
-                why.append(f"لا يرسل أي حقل هوية من §7.2 {list(E19_IDENTITY_FIELDS)}")
-            if proof == "E-20:params":
-                missing = [p for p in E20_FORBIDDEN_PARAMS if p not in src]
-                if missing:
-                    why.append(f"لا يختبر رفض المعاملات {missing}")
-                if "400" not in src:
-                    why.append("لا يؤكد 400 من الحد")
+            c, err = find_case(str(t.get("file")), str(t.get("case", "")))
+            if err:
+                why.append(err)
+            else:
+                why += PROVERS[proof](c, e)
         if not why:
             return []
-        problems.append(f"{t.get('file')}: " + "؛ ".join(why))
+        problems.append(f"{t.get('file')} «{str(t.get('case',''))[:50]}»: " + "؛ ".join(why))
     return problems
 
 
@@ -519,8 +721,10 @@ def check_surface(surface: str, app_calls: set[tuple[str, str, str]]) -> None:
             f = ROOT / str(t.get("file", ""))
             if not f.is_file():
                 fail(f"[EA-EVID-FILE] {tag}: ملف الدليل غير موجود: {t.get('file')}")
-            elif t.get("case") and not case_is_live_test(f.read_text(encoding="utf-8"), t["case"]):
-                fail(f"[EA-EVID-CASE] {tag}: الحالة ليست it()/test() حيّة في {t['file']}: {t['case'][:60]}…")
+            else:
+                _, err = find_case(str(t.get("file")), str(t.get("case", "")), allow_conditional=True)
+                if err:
+                    fail(f"[EA-EVID-CASE] {tag}: {t['file']} «{str(t.get('case',''))[:50]}»: {err}")
 
         # ── التطبيق ينادي المسار (الفحص 24) ─────────────────────────────
         called = any(app == surface and method == e["method"]
@@ -540,6 +744,13 @@ def main() -> int:
         fail(f"قوائم مفقودة: {missing}")
 
     app_calls = load_app_calls()
+    ev_files: list[str] = []
+    for surface in SURFACES:
+        p = ALLOWLIST_DIR / f"{surface}.json"
+        if p.exists():
+            for e in json.loads(p.read_text(encoding="utf-8")).get("entries", []):
+                ev_files += [str(t.get("file", "")) for t in e.get("evidence_tests", []) or [] if isinstance(t, dict)]
+    prefetch_cases(ev_files)
     for surface in SURFACES:
         if f"{surface}.json" in files:
             check_surface(surface, app_calls)

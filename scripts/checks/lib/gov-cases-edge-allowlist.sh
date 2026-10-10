@@ -98,20 +98,73 @@ _ea_pass() { t "$1" pass bash "$EA"; }
 # كتابةُ دليلٍ اصطناعيٍّ في /tmp. $1=ملف $2=محتوى
 _ea_write() { mkdir -p "$(dirname "$1")"; printf '%s\n' "$2" > "$1"; }
 
+# الأدلة الاصطناعية: كل ادعاء داخل حالته نفسها (المحلل يقرأ جسم الحالة وحده — CLM-0523).
+# المتغيّرات المسمّاة «hollow/unrelated/mention/…» حالاتٌ حيّةٌ في الملف نفسه لا تُثبت ادعاءها.
 E18_SRC='import { describe, expect, it } from "vitest";
-process.env.WASLA_USER_ASSERTION_MODE = "off";
+const A = "cust-session-a";
+const B = "cust-resource-b";
+// it("E-18 commented synthetic: session A reading B profile → 404", async () => {});
+const decoy = `it("E-18 string synthetic: session A reading B profile → 404", async () => {})`;
 describe("synthetic owner-scope evidence (governance mutation only)", () => {
   it("E-18 synthetic: session A reading B profile → 404", async () => {
-    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile` });
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
     expect(res.statusCode).toBe(404);
   });
+  it("E-18 PUT synthetic: session A writing B profile → 404", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "PUT", url: `/customers/${B}/profile`, headers: { obo: A }, payload: { display_name: "x" } });
+    expect(res.statusCode).toBe(404);
+  });
+  it("E-18 hollow synthetic: titled right, no request and no 404", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    expect(true).toBe(true);
+  });
+  it("E-18 same-identity synthetic: session B reading B profile → 404", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: B } });
+    expect(res.statusCode).toBe(404);
+  });
+  it("E-18 other-request synthetic: 404 asserted on a different response", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    const other = await app.inject({ method: "GET", url: `/health`, headers: { obo: A } });
+    expect(res.statusCode).toBe(200);
+    expect(other.statusCode).toBe(404);
+  });
   it("E-19 synthetic: body field naming B → 403", async () => {
-    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, payload: { wasla_public_id: B } });
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
+    expect(res.statusCode).toBe(403);
+  });
+  it("E-19 stored synthetic: body field naming B is not stored", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
+    const stored = res.json();
+    expect(stored.waslaPublicId).toBe(A);
+  });
+  it("E-19 mention synthetic: names wasla_public_id but never sends it", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const field = "wasla_public_id";
+    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { display_name: field } });
+    expect(res.statusCode).toBe(403);
+  });
+  it("E-19 unchecked synthetic: sends B but asserts nothing about it", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
+    expect(res.statusCode).toBe(200);
+  });
+  it("E-19 GET synthetic: GET body field naming B → 403", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
     expect(res.statusCode).toBe(403);
   });
   it.skip("E-18 skipped synthetic: session A reading B profile → 404", async () => {
-    await app.inject({ method: "GET", url: `/customers/${B}/profile` });
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    expect(res.statusCode).toBe(404);
   });
+  it.todo("E-18 todo synthetic: session A reading B profile → 404");
 });'
 
 E20_SRC='import { describe, expect, it } from "vitest";
@@ -122,9 +175,33 @@ describe("synthetic public-read evidence (governance mutation only)", () => {
       expect(res.statusCode).toBe(400);
     }
   });
+  it("E-20 partial synthetic: only three of the four parameters → 400", async () => {
+    for (const q of ["state=draft", "moderation_state=pending", "visible_only=false"]) {
+      const res = await edge.inject({ method: "GET", url: `/search/products?${q}` });
+      expect(res.statusCode).toBe(400);
+    }
+    const note = "owner_public_id 400";
+  });
+  it("E-20 not-400 synthetic: all four parameters but asserts 200", async () => {
+    for (const q of ["state=draft", "moderation_state=pending", "visible_only=false", "owner_public_id=x"]) {
+      const res = await edge.inject({ method: "GET", url: `/search/products?${q}` });
+      expect(res.statusCode).toBe(200);
+    }
+  });
   it("E-20 synthetic: response holds published visible rows only", async () => {
     const res = await edge.inject({ method: "GET", url: `/search/products` });
-    expect(res.json().items.every((p) => p.state === "published")).toBe(true);
+    const items = res.json().items;
+    expect(items.every((p) => p.state === "published" && p.visible === true)).toBe(true);
+  });
+  it("E-20 status-only synthetic: published visible (named, not checked)", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    // every row is published and visible
+    expect(res.statusCode).toBe(200);
+  });
+  it("E-20 published-not-visible synthetic: checks state only", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.every((p) => p.state === "published")).toBe(true);
   });
 });'
 
@@ -188,9 +265,30 @@ _ea_write "$EA_E18" "$E18_SRC"
 _ea_mut "d=load(CUST); $_O_OPEN_E18; entry(d,'GET','/customers/:waslaPublicId/profile')['evidence_tests'][-1]['case']='E-18 skipped synthetic: session A reading B profile → 404'; save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])" \
   && _ea_door "دليلُ E-18 حالةُ it.skip" EA-O-E18; _ea_restore
 
+# ═══ ربطُ الدليلِ بجسمِ الحالةِ نفسِها (محلل TypeScript · CLM-0523) ═══════════
+# كلُّ طفرةٍ تشيرُ إلى حالةٍ في الملفِّ نفسِه الذي يحوي حالةً مستوفيةً — فلا تكفي
+# العناصرُ المتفرّقةُ في الملفّ، ولا عنوانٌ صحيحٌ بلا جسمٍ يُثبت.
+_ea_e18_case() { # <وصف> <عنوان الحالة>
+  _ea_write "$EA_E18" "$E18_SRC"
+  _ea_mut "d=load(CUST); $_O_OPEN_E18; entry(d,'GET','/customers/:waslaPublicId/profile')['evidence_tests'][-1]['case']='$2'; save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])" \
+    && _ea_door "$1" EA-O-E18; _ea_restore
+}
+_ea_e18_case "E-18 حيٌّ بعنوانٍ صحيحٍ بلا طلبٍ ولا 404 (والملفُّ فيه حالةٌ مستوفية)" "E-18 hollow synthetic: titled right, no request and no 404"
+_ea_e18_case "E-18 والجلسةُ هي المورد (B على B)" "E-18 same-identity synthetic: session B reading B profile → 404"
+_ea_e18_case "E-18 و404 على طلبٍ آخرَ لا على طلبِ المسار" "E-18 other-request synthetic: 404 asserted on a different response"
+_ea_e18_case "حالةٌ مزعومةٌ في تعليق" "E-18 commented synthetic: session A reading B profile → 404"
+_ea_e18_case "حالةٌ مزعومةٌ داخلَ سلسلةٍ نصية" "E-18 string synthetic: session A reading B profile → 404"
+_ea_e18_case "حالةُ it.todo" "E-18 todo synthetic: session A reading B profile → 404"
+# المستقبلُ off في مستوى الوحدةِ لا في الحالة: لا يُقبل.
+_ea_write "$EA_E18" "${E18_SRC/describe(\"synthetic/process.env.WASLA_USER_ASSERTION_MODE = \"off\";
+describe(\"synthetic}"
+_EA_TMP="$(sed '/^    process.env.WASLA_USER_ASSERTION_MODE = "off";$/d' "$EA_E18")"; _ea_write "$EA_E18" "$_EA_TMP"
+_ea_mut "d=load(CUST); $_O_OPEN_E18; save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])" \
+  && _ea_door "المستقبلُ off في مستوى الوحدةِ لا داخلَ الحالة" EA-O-E18; _ea_restore
+
 _O_PUT="e=entry(d,'PUT','/customers/:waslaPublicId/profile'); e['production_open']=True; "
 _O_PUT+="e['evidence_tests'].append({'file':'$EA_E18','case':'$E18_CASE','proves':['E-18'],'route':'GET /customers/:waslaPublicId/profile','receiver_mode':'off'}); "
-_O_PUT+="e['evidence_tests'][-1]['route']='PUT /customers/:waslaPublicId/profile'"
+_O_PUT+="e['evidence_tests'][-1]['route']='PUT /customers/:waslaPublicId/profile'; e['evidence_tests'][-1]['case']='E-18 PUT synthetic: session A writing B profile → 404'"
 _ea_write "$EA_E18" "$E18_SRC"
 _ea_mut "d=load(CUST); $_O_PUT; save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:write'])" \
   && _ea_door "فتحُ O يقبلُ عقدُه جسمًا (PUT) بـE-18 وبلا E-19" EA-O-E19 EA-O-E18; _ea_restore
@@ -210,7 +308,7 @@ _ea_mut "$_GET_BODY; d=load(CUST); $_O_OPEN_E18; e['accepts_body']=True; save(CU
   && _ea_door "فتحُ GET يقرأُ معالجُه جسمًا بـE-18 وبلا E-19" EA-O-E19 EA-O-E18; _ea_restore
 
 _ea_write "$EA_E18" "$E18_SRC"
-_ea_mut "$_GET_BODY; d=load(CUST); $_O_OPEN_E18; e['accepts_body']=True; e['evidence_tests'].append({'file':'$EA_E18','case':'$E19_CASE','proves':['E-19'],'route':'GET /customers/:waslaPublicId/profile','receiver_mode':'off'}); save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])" \
+_ea_mut "$_GET_BODY; d=load(CUST); $_O_OPEN_E18; e['accepts_body']=True; e['evidence_tests'].append({'file':'$EA_E18','case':'E-19 GET synthetic: GET body field naming B → 403','proves':['E-19'],'route':'GET /customers/:waslaPublicId/profile','receiver_mode':'off'}); save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])" \
   && _ea_pass "ضابطٌ موجب: GET يقبلُ عقدُه جسمًا يُفتحُ بـE-18 وE-19"; _ea_restore
 
 _ea_mut "$_GET_BODY" \
@@ -236,6 +334,17 @@ _ea_write "$EA_E18" "${E18_SRC//wasla_public_id: B/note: B}"
 _ea_mut "d=load(CUST); $_O_PUT; e['evidence_tests'].append({'file':'$EA_E18','case':'$E19_CASE','proves':['E-19'],'route':'PUT /customers/:waslaPublicId/profile','receiver_mode':'off'}); save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:write'])" \
   && _ea_door "دليلُ E-19 لا يرسلُ أيَّ حقلِ هويةٍ من §7.2" EA-O-E19 EA-O-E18; _ea_restore
 
+_ea_e19_case() { # <وصف> <عنوان الحالة> <pass|door>
+  _ea_write "$EA_E18" "$E18_SRC"
+  if _ea_mut "d=load(CUST); $_O_PUT; e['evidence_tests'].append({'file':'$EA_E18','case':'$2','proves':['E-19'],'route':'PUT /customers/:waslaPublicId/profile','receiver_mode':'off'}); save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:write'])"; then
+    if [[ "$3" == pass ]]; then _ea_pass "$1"; else _ea_door "$1" EA-O-E19 EA-O-E18; fi
+  fi
+  _ea_restore
+}
+_ea_e19_case "E-19 يذكرُ حقلَ الهويةِ ولا يرسلُه في الجسم" "E-19 mention synthetic: names wasla_public_id but never sends it" door
+_ea_e19_case "E-19 يرسلُ هويةً أخرى ولا يتحققُ من رفضٍ ولا من المحفوظ" "E-19 unchecked synthetic: sends B but asserts nothing about it" door
+_ea_e19_case "ضابطٌ موجب: E-19 بقيمةٍ محفوظةٍ = هويةُ الجلسة لا الجسم" "E-19 stored synthetic: body field naming B is not stored" pass
+
 # ═══ الفئةُ P: E-20 بشقّيه ═══════════════════════════════════════════════
 _P_PARAMS="{'file':'$EA_E20','case':'$E20P_CASE','proves':['E-20:params'],'route':'GET /search/products'}"
 _P_PUB="{'file':'$EA_E20','case':'$E20R_CASE','proves':['E-20:published-only'],'route':'GET /search/products'}"
@@ -254,6 +363,16 @@ _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']
 _ea_write "$EA_E20" "${E20_SRC//visible_only/vis_only}"
 _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[$_P_PARAMS,$_P_PUB]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])" \
   && _ea_door "دليلُ E-20 لا يختبرُ رفضَ visible_only" EA-P-E20; _ea_restore
+
+_ea_e20_case() { # <وصف> <عنوان المعاملات> <عنوان المنشور>
+  _ea_write "$EA_E20" "$E20_SRC"
+  _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[{'file':'$EA_E20','case':'$2','proves':['E-20:params'],'route':'GET /search/products'},{'file':'$EA_E20','case':'$3','proves':['E-20:published-only'],'route':'GET /search/products'}]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])" \
+    && _ea_door "$1" EA-P-E20; _ea_restore
+}
+_ea_e20_case "E-20 يتحققُ من 400 لثلاثةِ معاملاتٍ من أربعة" "E-20 partial synthetic: only three of the four parameters → 400" "$E20R_CASE"
+_ea_e20_case "E-20 يرسلُ المعاملاتِ الأربعةَ ويتحققُ من 200 لا 400" "E-20 not-400 synthetic: all four parameters but asserts 200" "$E20R_CASE"
+_ea_e20_case "«المنشور فقط» مذكورٌ في تعليقٍ والتحققُ من الرمزِ وحدَه" "$E20P_CASE" "E-20 status-only synthetic: published visible (named, not checked)"
+_ea_e20_case "«المنشور فقط» بلا تحققٍ من الظهور" "$E20P_CASE" "E-20 published-not-visible synthetic: checks state only"
 
 _ea_write "$EA_E20" "$E20_SRC"
 _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[$_P_PARAMS,$_P_PUB]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])" \
@@ -293,6 +412,19 @@ _ea_mut "d=load(CUST); d['entries'].append({'method':'GET','path':'/customers/:w
   && _ea_door "مسارٌ لا يناديه التطبيق (الفحص 24)" EA-CALL; _ea_restore
 _ea_mut "d=load(CUST); d['entries'].append({'method':'GET','path':'/subscriptions/plans','service':'subscriptions','class':'N','required_scopes':['subscriptions:plans:read'],'accepts_body':False,'production_open':False,'evidence_tests':[],'blocked_until':'x'}); save(CUST,d)" \
   && _ea_door "مدخلٌ خارجَ اللقطةِ التاريخية" EA-SNAPSHOT-NEW; _ea_restore
+
+# ═══ المحلّلُ غائبٌ ⇒ فشلٌ مغلق (لا رجوعَ إلى مطابقةٍ نصيّة) ═══════════════
+_EA_FAKE=/tmp/ea_fake_node; rm -rf "$_EA_FAKE"; mkdir -p "$_EA_FAKE"
+printf '#!/bin/sh\nexit 127\n' > "$_EA_FAKE/node"; chmod +x "$_EA_FAKE/node"
+_ea_door_env() { local d="$1" c="$2"; local out rc ok=1
+  out="$(PATH="$_EA_FAKE:$PATH" bash "$EA" 2>&1)"; rc=$?
+  (( rc != 0 )) && grep -qF "✗ edge-allowlist-guard" <<<"$out" && grep -qF "[$c]" <<<"$out" && grep -qF "فشل مغلق" <<<"$out" || ok=0
+  if (( ok )); then printf '  \033[32m✓\033[0m %-62s (الحارسُ 28 أسقطَ بالبابِ %s)\n' "$d" "$c"; ((PASS++))
+  else printf '  \033[31m✗\033[0m %-62s متوقعٌ فشلٌ مغلقٌ بالبابِ [%s] (rc=%d)\n' "$d" "$c" "$rc"; printf '%s\n' "$out" | tail -4 | sed 's/^/      /'; ((FAIL++)); fi; }
+_ea_door_env "node غائبٌ ⇒ كلُّ دليلٍ يفشلُ مغلقًا" EA-EVID-CASE
+printf '#!/bin/sh\nprintf %%s %s\n' "'{\"ok\":false,\"error\":\"typescript غير متاح\"}'" > "$_EA_FAKE/node"
+_ea_door_env "typescript غائبٌ ⇒ كلُّ دليلٍ يفشلُ مغلقًا" EA-EVID-CASE
+rm -rf "$_EA_FAKE"
 
 # الاستعادةُ صادقة: الأصلُ يمرُّ ولا أثرَ اصطناعيًّا باقٍ.
 t "الأصلُ يمرُّ بعدَ كلِّ الطفراتِ (الاستعادةُ صادقة)" pass bash "$EA"

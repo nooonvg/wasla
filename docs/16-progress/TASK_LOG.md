@@ -1,3 +1,15 @@
+# 2026-10-10 — CLM-0521 + CLM-0523 — الحارس 28: دليل الفتح يُقرأ من جسم الحالة المسمّاة بمحلل TypeScript
+
+- **Work Item(s):** M3-09
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Done (بانتظار مراجعة CODEOWNERS جديدة ودمج PR #679)
+- **Risk(s):** RISK-0042 → open (لا تغيير)
+- **What / Why:** ملاحظة المراجع: كان الحارس يقبل عناصر E-18/E-19/E-20 متفرّقة في ملف الاختبار، والعنوان بمطابقة نصية، فيمرّ دليل شكلي أو غير مرتبط بالمسار. صار كل ادعاء يُقرأ من جسم الحالة المسمّاة نفسها بشجرة TypeScript.
+- **Changed (units):** `scripts/checks/lib/ts_evidence.cjs` (جديد، CLM-0523)، `scripts/checks/lib/edge_allowlist_guard.py` (مثبتات E-18/E-19/E-20 على حقائق الحالة؛ حذف المطابقة النصية؛ فشل مغلق)، `scripts/checks/lib/gov-cases-edge-allowlist.sh` (65 حالة)، `.github/workflows/ci.yml` و`.gitlab-ci.yml` (تثبيت الاعتماديات في وظيفة الحوكمة، CLM-0523)، `docs/12-testing/EDGE_ALLOWLIST.md`، دليل CLM-0521 §3.8.
+- **Not changed:** قاعدة E-18/E-19، والمداخل الـ29 (كلها مغلقة)، وChannel Edge، والتطبيقات، والإنتاج، وRender، والأسرار، و`BASELINE.json` (لا عدّاد ساكن تغيّر).
+- **Tests:** الحالات الـ65 محليًا 65/0، والإثبات العكسي في §3.8. الحزمة الكاملة وحكم CI في §4.
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-10T000000Z-clm-0521-edge-allowlist-guard/README.md` §3.8 · §4
+
 # 2026-10-10 — CLM-0521 — قاعدة E-18/E-19 النهائية: E-19 يتبع عقد قبول الجسم لا الطريقة
 
 - **Work Item(s):** M3-09
