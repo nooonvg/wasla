@@ -147,6 +147,12 @@ jobs:
           corepack prepare "pnpm@${PNPM_VERSION}" --activate
           echo "node   $(node --version)"
           echo "pnpm   $(pnpm --version)"
+      # (CLM-0523) الحارسُ 28 يحلّلُ حالاتِ أدلّةِ E-18/E-19/E-20 بمحلّلِ TypeScript
+      # الفعليِّ (`scripts/checks/lib/ts_evidence.cjs` ⇐ `typescript` من اعتماديّاتِ
+      # الجذر). وبلا تثبيتٍ يفشلُ الحارسُ مغلقًا — فهذا إعطاءُ الفحصِ بيئتَهُ
+      # لا تعطيلُهُ (ADR-023 §6)، والأمرُ نفسُهُ حرفًا في وظيفةِ `verify`.
+      - name: install
+        run: pnpm install --frozen-lockfile
       - name: verify-governance
         env:
           GH_TOKEN: ${{ github.token }}
@@ -217,6 +223,12 @@ jobs:
           corepack prepare "pnpm@${PNPM_VERSION}" --activate
           echo "node   $(node --version)"
           echo "pnpm   $(pnpm --version)"
+      # (CLM-0523) `verify.sh` يشغّلُ بوّابةَ الحوكمةِ وفيها الحارسُ 28، وهوَ يحلّلُ
+      # أدلّتَه بـ`typescript` (scripts/checks/lib/ts_evidence.cjs). و`VERIFY_SKIP_NODE=1`
+      # يتخطّى الأنواعَ والاختباراتِ وحدَها ولا يُعفي الحارسَ من بيئتِه: قِيسَ في
+      # التشغيلِ 38069490474 أنَّه فشلَ مغلقًا هنا بلا تثبيت. الأمرُ نفسُه في governance-guard.
+      - name: install
+        run: pnpm install --frozen-lockfile
       # CLM-0415: judge the PR's own diff, as governance-guard already does
       # (`GITHUB_BASE_REF`). Without the range, verify.sh compared origin/main..HEAD,
       # so a PR stacked on another open PR failed the claim-scope check on files

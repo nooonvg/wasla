@@ -83,6 +83,8 @@ governance-guard:
     - apk add --no-cache bash git python3 coreutils findutils grep sed
     - corepack enable
     - corepack prepare pnpm@9 --activate
+    # (CLM-0523) نظيرُ خطوةِ install في ci.yml: الحارسُ 28 يحتاجُ `typescript`.
+    - pnpm install --frozen-lockfile
     - |
       TARGET="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-${CI_DEFAULT_BRANCH:-main}}"
       git fetch origin "$TARGET:refs/remotes/origin/$TARGET" --depth=50 2>/dev/null || true
