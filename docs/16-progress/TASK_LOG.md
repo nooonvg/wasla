@@ -4,6 +4,7 @@
 - **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
 - **Status:** In Progress (حجز فقط؛ لا كود بعد)
 - **Risk(s):** RISK-0042 → open (لا تغيير)
+- **Kind:** state-correction — سجلات فقط تحت CLM-0524 قبل كتابة الكود: توثيق أحكام ما بعد دمج PR #679 والتزام الدمج `b8d30983697cc5974fed86aed5200041d80f3d1b` (WASLA CI 38082613296 success 40/40؛ Roadmap freshness 38082613418 success؛ Render deploy 38082613286 success، 24 خدمة `live=b8d3098`)، وإعلان نطاق الجزء 2 وحجز فرع العمل `feat/clm-0524-channel-edge-part2` (حزمة `packages/channel-edge`، وتركيبها في `bots/customer-bot` و`bots/driver-bot`، وتهيئة جلسة `apps/customer-mini-app` و`apps/driver-mini-app`، وحزمة `packages/app-edge-e2e`). لا كود بيد هذا الإدخال؛ التنفيذ يأتي كدفعة تنفيذية لاحقة على الفرع نفسه تحت الحجز نفسه.
 - **What / Why:** دُمج PR #679 (CLM-0521 + CLM-0522 + CLM-0523) بعد إعادة قراءة البوابات مباشرة قبل الدمج:
   - الرأس `6e861dc4`، وموافقة @xuuux-voox على الرأس نفسه، و42 فحصًا ناجحًا، والحالة `CLEAN`/`MERGEABLE`، والمداخل الـ29 كلها `production_open=false`.
   - الدمج عبر حماية الفرع بـ`--match-head-commit`، والتزام الدمج `b8d30983697cc5974fed86aed5200041d80f3d1b`.
