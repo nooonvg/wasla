@@ -454,16 +454,50 @@ def owner_param(entry_path: str) -> str | None:
     return (owned or params or [None])[0]
 
 
-def prove_e18(c: dict, e: dict) -> list[str]:
-    """داخل الحالة: طلب للمسار نفسه، جلسة A ≠ مورد B، المستقبل off، و404 على الطلب نفسه."""
-    why = [] if c["mode_off"] else ["الحالة لا تضبط WASLA_USER_ASSERTION_MODE=off داخل جسمها"]
-    own = owner_param(e["path"])
-    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
+def _before(a: list[int], b: list[int]) -> bool:
+    """الجملة ذات المسار a تسبق ذات المسار b في جسم الحالة (لا احتواء)."""
+    for x, y in zip(a, b):
+        if x != y:
+            return x < y
+    return False
+
+
+def _exec_why(r: dict, what: str, allow_loop: bool = False) -> list[str]:
+    ex = r["exec"]
+    if ex["strict"] or (allow_loop and ex["loop_ok"]):
+        return []
+    return [f"{what} داخل فرع لا يُضمن تنفيذه ({'، '.join(ex['why'])})"]
+
+
+def _mode_why(r: dict) -> list[str]:
+    return [] if r["mode_off_before"] else [
+        f"WASLA_USER_ASSERTION_MODE=off لا يُضبط مضمونًا قبل الطلب داخل الحالة ({r['mode_why']})"]
+
+
+def _route_requests(c: dict, e: dict) -> list[dict]:
+    return [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
+
+
+def _best(c: dict, e: dict, per_request) -> list[str]:
+    reqs = _route_requests(c, e)
     if not reqs:
-        return why + [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
+        return [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
     best: list[str] | None = None
     for r in reqs:
-        w: list[str] = []
+        w = per_request(r)
+        if not w:
+            return []
+        best = w if best is None or len(w) < len(best) else best
+    return best or []
+
+
+def prove_e18(c: dict, e: dict) -> list[str]:
+    """داخل الحالة: طلب مضمون التنفيذ للمسار نفسه، بعد ضبط off مضمون قبله، جلسة A ≠ مورد B،
+    و404 مضمون التحقق على نتيجة الطلب نفسه بعده (CLM-0523: الدلالات التنفيذية)."""
+    own = owner_param(e["path"])
+
+    def one(r: dict) -> list[str]:
+        w = _exec_why(r, "الطلب") + _mode_why(r)
         slots, _, _ = url_slots(r, e["path"])
         b = _vals(slots.get(own, [])) if own else (set(), set())
         if not r["identity"]:
@@ -473,22 +507,17 @@ def prove_e18(c: dict, e: dict) -> list[str]:
         if not r["res"]:
             w.append("نتيجة الطلب لا تُسنَد إلى متغير يُتحقق منه")
         elif 404 not in r["statuses"]:
-            w.append("لا expect(<النتيجة>.statusCode).toBe(404) على الطلب نفسه")
-        if not w:
-            return why
-        best = w if best is None or len(w) < len(best) else best
-    return why + (best or [])
+            w.append("لا expect(<النتيجة>.statusCode).toBe(404) مضمون التنفيذ بعد الطلب نفسه")
+        return w
+    return _best(c, e, one)
 
 
 def prove_e19(c: dict, e: dict) -> list[str]:
-    """داخل الحالة: حقل هوية من §7.2 لهوية أخرى في جسم الطلب نفسه، ثم رفض أو قيمة محفوظة لا تستولي."""
-    why = [] if c["mode_off"] else ["الحالة لا تضبط WASLA_USER_ASSERTION_MODE=off داخل جسمها"]
-    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
-    if not reqs:
-        return why + [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
-    best: list[str] | None = None
-    for r in reqs:
-        w: list[str] = []
+    """داخل الحالة: طلب مضمون بعد off مضمون، وفي جسمه حقل هوية من §7.2 لهوية أخرى، ثم رفض أو
+    قيمة محفوظة لا تستولي — تحقق مضمون التنفيذ بعد الطلب."""
+
+    def one(r: dict) -> list[str]:
+        w = _exec_why(r, "الطلب") + _mode_why(r)
         fields = [f for f in r["payload"] if f["key"] in E19_IDENTITY_FIELDS]
         if not fields:
             w.append(f"جسم الطلب لا يرسل أي حقل هوية من §7.2 {list(E19_IDENTITY_FIELDS)}")
@@ -504,7 +533,7 @@ def prove_e19(c: dict, e: dict) -> list[str]:
             names = {f["key"], _snake_to_camel(f["key"])}
             fv = (set(f["ids"]), set(f["lits"]))
             for x in c["expects"]:
-                if x["status_of"] or not x["expected"]:
+                if x["status_of"] or not x["expected"] or not x["exec"]["strict"] or not _before(r["path"], x["path"]):
                     continue
                 if not names & (set(x["arg_props"]) | set(x["arg_strs"]) | set(x["arg_ids"])):
                     continue
@@ -513,19 +542,18 @@ def prove_e19(c: dict, e: dict) -> list[str]:
                    (x["negated"] and not _disjoint(ev, fv)):
                     kept = True
         if not (rejected or kept):
-            w.append("لا تحقق من رفض الطلب (400/403/404/409/422) ولا من أن القيمة المحفوظة ليست هوية الجسم")
-        if not w:
-            return why
-        best = w if best is None or len(w) < len(best) else best
-    return why + (best or [])
+            w.append("لا تحقق مضمون التنفيذ بعد الطلب من رفضه (400/403/404/409/422) ولا من أن القيمة المحفوظة ليست هوية الجسم")
+        return w
+    return _best(c, e, one)
 
 
 def prove_e20_params(c: dict, e: dict) -> list[str]:
-    """داخل الحالة: لكل معامل من E-20 طلب للمسار يحمله، و400 على نتيجته نفسها."""
-    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"])]
+    """داخل الحالة: لكل معامل من E-20 طلب للمسار يحمله، و400 على نتيجته نفسها. يُقبل تكرار
+    for…of على مصفوفة حرفية غير فارغة محلولة كلها؛ وأي فرع آخر يُسقط الطلب أو التحقق."""
+    reqs = _route_requests(c, e)
     if not reqs:
         return [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']}"]
-    missing = []
+    missing, branch = [], []
     for p in E20_FORBIDDEN_PARAMS:
         ok = False
         for r in reqs:
@@ -535,25 +563,44 @@ def prove_e20_params(c: dict, e: dict) -> list[str]:
                 for v in h.get("ids", []):
                     if any(isinstance(x, str) and x.startswith(f"{p}=") for x in r["loop"].get(v, [])):
                         carries = True
-            if carries and r["res"] and 400 in r["statuses"]:
+            if not carries:
+                continue
+            if _exec_why(r, "الطلب", allow_loop=True):
+                branch.append(p)
+                continue
+            if r["res"] and 400 in r["statuses_loop"]:
                 ok = True
         if not ok:
             missing.append(p)
-    return [f"لا طلب يحمل {missing} ويتحقق من 400 على نتيجته داخل الحالة"] if missing else []
+    if not missing:
+        return []
+    note = f" (طلبات {sorted(set(branch))} داخل فرع لا يُضمن تنفيذه)" if branch else ""
+    return [f"لا طلب مضمون التنفيذ يحمل {missing} ويتحقق مضمونًا من 400 على نتيجته داخل الحالة{note}"]
 
 
 def prove_e20_published(c: dict, e: dict) -> list[str]:
-    """داخل الحالة: طلب للمسار، وتحقق على نتيجته من «published» ومن الظهور (visible)."""
-    reqs = [r for r in c["requests"] if r["method"] == e["method"] and url_slots(r, e["path"]) and r["res"]]
+    """داخل الحالة (CLM-0523 · ب): تحقق مضمون على عناصر نتيجة الطلب يفرض الشرط الإيجابي
+    «منشور ∧ مرئي» على كل عنصر — `every(p ⇒ state==="published" ∧ visible)` صادقة، أو
+    `some(¬منشور ∨ ¬مرئي)` كاذبة، أو `filter(¬…)` فارغة — مع إثبات أن القائمة نفسها غير فارغة
+    (وإلا صدق «الكل» على الفراغ). ذكر الخاصيتين أو `toBe(false)` أو توقع منفي لا يكفي."""
+    reqs = [r for r in _route_requests(c, e) if r["res"]]
     if not reqs:
         return [f"الحالة لا تنفّذ طلب {e['method']} إلى {e['path']} بنتيجة يُتحقق منها"]
-    on = [x for x in c["expects"] if x["on_result"] and not x["status_of"]]
-    why = []
-    if not any("published" in x["arg_strs"] or (x["expected"] and "published" in x["expected"]["lits"]) for x in on):
-        why.append("لا expect على نتيجة الطلب يتحقق من الحالة \"published\"")
-    if not any(any(re.search(r"visib", k, re.I) for k in x["arg_props"] + x["arg_ids"] + x["arg_strs"]) for x in on):
-        why.append("لا expect على نتيجة الطلب يتحقق من الظهور (visible)")
-    return why
+    best: list[str] | None = None
+    for r in reqs:
+        w = _exec_why(r, "الطلب")
+        after = [x for x in c["expects"] if x["on_result"] and x["exec"]["strict"] and _before(r["path"], x["path"])]
+        proofs = [x["published"] for x in after if x.get("published") and x["published"]["ok"]]
+        if not proofs:
+            w.append("لا expect مضمون على عناصر نتيجة الطلب يفرض أن كلها منشورة (state===\"published\") ومرئية (visible===true)")
+        else:
+            items = {pr["items"] for pr in proofs}
+            if not any(x.get("nonempty_of") in items for x in after):
+                w.append(f"لا expect مضمون يُثبت أن القائمة المفحوصة {sorted(items)} غير فارغة (الكل يصدق على الفراغ)")
+        if not w:
+            return []
+        best = w if best is None or len(w) < len(best) else best
+    return best or []
 
 
 PROVERS = {"E-18": prove_e18, "E-19": prove_e19,

@@ -1,3 +1,15 @@
+# 2026-10-10 — CLM-0523 — الحارس 28: الدلالات التنفيذية ومعنى «المنشور فقط» في محلل الأدلة
+
+- **Work Item(s):** M3-09
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Done (بانتظار مراجعة CODEOWNERS جديدة ودمج PR #679)
+- **Risk(s):** RISK-0042 → open (لا تغيير)
+- **What / Why:** ملاحظة المراجع: وجود طلب أو توقع في شجرة الحالة لا يثبت تنفيذه إن كان خلف فرع. وضبط `off` يجب أن يسبق الطلب. ودليل «المنشور فقط» كان يكتفي بالكلمتين. صار المحلل يشترط ضمان التنفيذ والترتيب، ويقيّم المسنَد على عناصر النتيجة: منشور ∧ مرئي لكل عنصر، وقائمة غير فارغة.
+- **Changed (units):** `scripts/checks/lib/ts_evidence.cjs` (CLM-0523)، `scripts/checks/lib/edge_allowlist_guard.py`، `scripts/checks/lib/gov-cases-edge-allowlist.sh` (89 حالة)، `docs/12-testing/EDGE_ALLOWLIST.md`، دليل CLM-0521 §3.9.
+- **Not changed:** قاعدة E-18/E-19، والمداخل الـ29 (كلها مغلقة)، وقبول `/stores` المشروط دليلَ وجود فقط، والإنتاج، و`BASELINE.json`.
+- **Tests:** الحالات الـ89 محليًا 89/0، والإثبات العكسي في §3.9. الحزمة الكاملة وحكم CI في §4.
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-10T000000Z-clm-0521-edge-allowlist-guard/README.md` §3.9 · §4
+
 # 2026-10-10 — CLM-0521 + CLM-0523 — الحارس 28: دليل الفتح يُقرأ من جسم الحالة المسمّاة بمحلل TypeScript
 
 - **Work Item(s):** M3-09

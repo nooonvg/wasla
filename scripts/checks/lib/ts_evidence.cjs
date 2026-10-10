@@ -94,11 +94,18 @@ function analyzeFile(file) {
   return { cases };
 }
 
+// ── دلالات التنفيذ (CLM-0523 · تدعيم) ────────────────────────────────────────
+// تحليل محافظ: عملية الدليل (طلب، expect، ضبط المستقبل) «مضمونة التنفيذ» فقط إن كان
+// الطريق إليها من جسم الحالة خطيًا: لا if/?:/&&/||/??/?. ولا switch/catch ولا دالة
+// متداخلة (callback) ولا حلقة — إلا for…of على مصفوفة حرفية غير فارغة محلولة كلها
+// (يُسجَّل «loop_ok» منفصلًا، ويقبله E-20:params وحده). و`if (true)` وحده يُثبَت.
+// وأي `return`/`break`/`continue`/`.skip()` يسبق العملية في كتلة محيطة يُسقط الضمان.
+
 function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
   const dead = allMods.some((m) => m === "skip" || m === "todo");
   const conditional = allMods.some((m) => m === "skipIf" || m === "runIf" || m === "each");
   const facts = { title, live: !!fn && !dead && !conditional, dead, conditional, mods: allMods,
-                  has_body: !!fn, mode_off: false, requests: [], expects: [] };
+                  has_body: !!fn, mode_off: false, mode_sets: [], requests: [], expects: [] };
   if (!fn) return facts;
   const body = fn.body;
   const local = new Map();
@@ -111,7 +118,6 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
     }
     return n;
   };
-  // معرّفات ونصوص شجرة بعد حل الثوابت (لمقارنة الهويات).
   const idsLits = (n, out = { ids: new Set(), lits: new Set() }, depth = 0) => {
     if (!n || depth > 8) return out;
     n = unwrap(n);
@@ -127,7 +133,88 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
   };
   const pack = (n) => { const r = idsLits(n); return { ids: [...r.ids], lits: [...r.lits], text: n.getText(sf) }; };
 
-  // url ⇒ أجزاء: نص حرفي أو موضع { ids, lits, text }
+  const isFnLike = (n) => ts.isArrowFunction(n) || ts.isFunctionExpression(n) || ts.isFunctionDeclaration(n) ||
+    ts.isMethodDeclaration(n) || ts.isGetAccessor(n) || ts.isSetAccessor(n);
+
+  const constArray = (expr) => {
+    const arr = resolve(expr);
+    if (!arr || !ts.isArrayLiteralExpression(arr) || arr.elements.length === 0) return null;
+    const vals = arr.elements.map((e) => {
+      const r = resolve(e);
+      return r && (ts.isStringLiteral(r) || ts.isNoSubstitutionTemplateLiteral(r)) ? r.text :
+             r && ts.isNumericLiteral(r) ? Number(r.text) : undefined;
+    });
+    return vals.every((v) => v !== undefined) ? vals : null;
+  };
+
+  // يحوي `return`/`break`/`continue`/`*.skip()` خارج الدوال المتداخلة؟
+  const hasEarlyExit = (n) => {
+    let found = false;
+    const v = (x) => {
+      if (found || isFnLike(x)) return;
+      if (ts.isReturnStatement(x) || ts.isBreakStatement(x) || ts.isContinueStatement(x)) { found = true; return; }
+      if (ts.isCallExpression(x) && ts.isPropertyAccessExpression(x.expression) && x.expression.name.text === "skip") { found = true; return; }
+      ts.forEachChild(x, v);
+    };
+    v(n);
+    return found;
+  };
+
+  // { strict, loop_ok, why[] } — هل تُنفَّذ العقدة حتمًا متى نُفِّذت الحالة؟
+  const execInfo = (n) => {
+    const why = [];
+    let loopOnly = true;
+    let child = n, p = n.parent;
+    while (p && child !== body) {
+      if (ts.isIfStatement(p) && child !== p.expression) {
+        const c = unwrap(p.expression);
+        if (!(c && c.kind === ts.SyntaxKind.TrueKeyword && child === p.thenStatement)) why.push("if");
+      } else if (ts.isConditionalExpression(p) && child !== p.condition) {
+        why.push("?:");
+      } else if (ts.isBinaryExpression(p) && child === p.right &&
+                 [ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken, ts.SyntaxKind.QuestionQuestionToken,
+                  ts.SyntaxKind.AmpersandAmpersandEqualsToken, ts.SyntaxKind.BarBarEqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken]
+                   .includes(p.operatorToken.kind)) {
+        why.push("&&/||/??");
+      } else if ((ts.isCallExpression(p) || ts.isPropertyAccessExpression(p) || ts.isElementAccessExpression(p)) && p.questionDotToken) {
+        why.push("?.");
+      } else if (ts.isCaseClause(p) || ts.isDefaultClause(p)) {
+        why.push("switch");
+      } else if (ts.isCatchClause(p)) {
+        why.push("catch");
+      } else if (ts.isForOfStatement(p) && child === p.statement) {
+        if (constArray(p.expression)) loopOnly = loopOnly && true; else why.push("حلقة على قيم غير ثابتة أو فارغة");
+        why.push("@loop");
+      } else if ((ts.isForStatement(p) || ts.isForInStatement(p) || ts.isWhileStatement(p) || ts.isDoStatement(p)) && child !== p.expression) {
+        why.push("حلقة");
+      } else if (isFnLike(p)) {
+        why.push("دالة متداخلة (callback)");
+      }
+      if (ts.isBlock(p) || ts.isCaseClause(p) || ts.isDefaultClause(p)) {
+        const stmts = p.statements;
+        const i = stmts.indexOf(child);
+        for (let k = 0; k < i; k++) if (hasEarlyExit(stmts[k])) { why.push("return/break/continue/skip يسبقها"); break; }
+      }
+      child = p; p = p.parent;
+    }
+    const real = why.filter((w) => w !== "@loop");
+    return { strict: why.length === 0, loop_ok: real.length === 0, why: real.length ? real : why.includes("@loop") ? ["حلقة ثابتة"] : [] };
+  };
+
+  // مسار الجملة من جسم الحالة (للترتيب): فهارس الجمل المتداخلة.
+  const stmtPath = (n) => {
+    const path = [];
+    let cur = n;
+    while (cur && cur !== body && cur.parent) {
+      const p = cur.parent;
+      if ((ts.isBlock(p) || ts.isSourceFile(p) || ts.isCaseClause(p) || ts.isDefaultClause(p)) && p.statements.indexOf(cur) >= 0) {
+        path.unshift(p.statements.indexOf(cur));
+      }
+      cur = p;
+    }
+    return path;
+  };
+
   const flatten = (n, depth = 0) => {
     const r = resolve(n);
     if (!r || depth > 8) return [{ hole: pack(n) }];
@@ -155,7 +242,6 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
     const r = resolve(n);
     return r && ts.isObjectLiteralExpression(r) ? r.properties : null;
   };
-  // كل خاصية تحمل هوية جلسة داخل الترويسات (عبر وسائط الدوال والكائنات والثوابت).
   const identityProps = (n, out = [], depth = 0) => {
     if (!n || depth > 6) return out;
     const r = resolve(n);
@@ -187,46 +273,152 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
     }
     return out;
   };
-
-  // متغير الحلقة ⇒ قيم مصفوفة حرفية (for (const q of [...]))
   const loopValues = (node) => {
     const vals = {};
     for (let p = node.parent; p && p !== body.parent; p = p.parent) {
       if (ts.isForOfStatement(p) && ts.isVariableDeclarationList(p.initializer)) {
         const d = p.initializer.declarations[0];
-        const arr = resolve(p.expression);
-        if (d && ts.isIdentifier(d.name) && arr && ts.isArrayLiteralExpression(arr)) {
-          vals[d.name.text] = arr.elements.map((e) => {
-            const r = resolve(e);
-            return r && (ts.isStringLiteral(r) || ts.isNoSubstitutionTemplateLiteral(r)) ? r.text : null;
-          });
-        }
+        const arr = constArray(p.expression);
+        if (d && ts.isIdentifier(d.name) && arr) vals[d.name.text] = arr.filter((x) => typeof x === "string");
       }
     }
     return vals;
   };
-
   const resVarOf = (call) => {
     let p = call.parent;
     while (p && (ts.isAwaitExpression(p) || ts.isParenthesizedExpression(p) || ts.isAsExpression(p))) p = p.parent;
     return p && ts.isVariableDeclaration(p) && ts.isIdentifier(p.name) ? p.name.text : null;
   };
 
+  // ── دلالة «المنشور والمرئي» على مسنَد العناصر (CLM-0523 · ب) ────────────
+  const PUB_PROPS = new Set(["state", "status"]);
+  const VIS_PROPS = new Set(["visible", "is_visible", "isVisible"]);
+  const lam = (f) => {
+    f = unwrap(f);
+    if (!f || !(ts.isArrowFunction(f) || ts.isFunctionExpression(f)) || f.parameters.length < 1) return null;
+    const prm = f.parameters[0].name;
+    const names = { item: null, fields: new Map() };
+    if (ts.isIdentifier(prm)) names.item = prm.text;
+    else if (ts.isObjectBindingPattern(prm)) {
+      for (const el of prm.elements) {
+        if (!ts.isIdentifier(el.name)) continue;
+        const key = el.propertyName && ts.isIdentifier(el.propertyName) ? el.propertyName.text : el.name.text;
+        names.fields.set(el.name.text, key);
+      }
+    } else return null;
+    let b = f.body;
+    if (ts.isBlock(b)) {
+      if (b.statements.length !== 1 || !ts.isReturnStatement(b.statements[0]) || !b.statements[0].expression) return null;
+      b = b.statements[0].expression;
+    }
+    return { names, expr: b };
+  };
+  const fieldOf = (e, names) => {   // p.state  أو  state المفكوكة ⇒ اسم الحقل
+    e = unwrap(e);
+    if (ts.isPropertyAccessExpression(e) && ts.isIdentifier(e.expression) && e.expression.text === names.item) return e.name.text;
+    if (ts.isIdentifier(e) && names.fields.has(e.text)) return names.fields.get(e.text);
+    return null;
+  };
+  const isStr = (e, v) => { e = unwrap(e); return e && (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) && e.text === v; };
+  const isTrue = (e) => { e = unwrap(e); return e && e.kind === ts.SyntaxKind.TrueKeyword; };
+  // ذرّة: PUB · VIS · NOTPUB · NOTVIS · null
+  const atom = (e, names) => {
+    e = unwrap(e);
+    if (ts.isPrefixUnaryExpression(e) && e.operator === ts.SyntaxKind.ExclamationToken) {
+      const a = atom(e.operand, names);
+      return a === "PUB" ? "NOTPUB" : a === "VIS" ? "NOTVIS" : null;
+    }
+    const f = fieldOf(e, names);
+    if (f && VIS_PROPS.has(f)) return "VIS";
+    if (ts.isBinaryExpression(e)) {
+      const k = e.operatorToken.kind;
+      const eq = k === ts.SyntaxKind.EqualsEqualsEqualsToken || k === ts.SyntaxKind.EqualsEqualsToken;
+      const ne = k === ts.SyntaxKind.ExclamationEqualsEqualsToken || k === ts.SyntaxKind.ExclamationEqualsToken;
+      if (!eq && !ne) return null;
+      for (const [x, y] of [[e.left, e.right], [e.right, e.left]]) {
+        const fx = fieldOf(x, names);
+        if (fx && PUB_PROPS.has(fx) && isStr(y, "published")) return eq ? "PUB" : "NOTPUB";
+        if (fx && VIS_PROPS.has(fx) && isTrue(y)) return eq ? "VIS" : "NOTVIS";
+      }
+    }
+    return null;
+  };
+  const flat = (e, op) => {
+    e = unwrap(e);
+    return ts.isBinaryExpression(e) && e.operatorToken.kind === op ? [...flat(e.left, op), ...flat(e.right, op)] : [e];
+  };
+  const impliesBoth = (e, names) => {     // المسنَد ⇒ منشور ∧ مرئي
+    const cs = flat(e, ts.SyntaxKind.AmpersandAmpersandToken).map((x) => atom(x, names));
+    return cs.includes("PUB") && cs.includes("VIS");
+  };
+  const coversViolation = (e, names) => { // المسنَد ⊇ ¬منشور ∨ ¬مرئي
+    const u = unwrap(e);
+    if (ts.isPrefixUnaryExpression(u) && u.operator === ts.SyntaxKind.ExclamationToken && impliesBoth(u.operand, names)) return true;
+    const ds = flat(e, ts.SyntaxKind.BarBarToken).map((x) => atom(x, names));
+    return ds.includes("NOTPUB") && ds.includes("NOTVIS");
+  };
+  const publishedProof = (arg, matcher, negated, exp, nargs) => {
+    const a = unwrap(arg);
+    const isFalse = (x) => { x = x && unwrap(x); return x && x.kind === ts.SyntaxKind.FalseKeyword; };
+    const isZero = (x) => { x = x && unwrap(x); return x && ts.isNumericLiteral(x) && Number(x.text) === 0; };
+    const isEmptyArr = (x) => { x = x && unwrap(x); return x && ts.isArrayLiteralExpression(x) && x.elements.length === 0; };
+    const EQ = ["toBe", "toEqual", "toStrictEqual"];
+    const call = (x, m) => ts.isCallExpression(x) && ts.isPropertyAccessExpression(x.expression) && x.expression.name.text === m && x.arguments[0] ? x : null;
+    if (negated) return null;
+    let c, L, kind;
+    if ((c = call(a, "every")) && ((EQ.includes(matcher) && isTrue(exp)) || (matcher === "toBeTruthy" && nargs === 0))) {
+      L = lam(c.arguments[0]); kind = "every";
+      return { kind, items: c.expression.expression.getText(sf), ok: !!L && impliesBoth(L.expr, L.names) };
+    }
+    if ((c = call(a, "some")) && ((EQ.includes(matcher) && isFalse(exp)) || (matcher === "toBeFalsy" && nargs === 0))) {
+      L = lam(c.arguments[0]); kind = "none-some";
+      return { kind, items: c.expression.expression.getText(sf), ok: !!L && coversViolation(L.expr, L.names) };
+    }
+    if ((c = call(a, "filter")) && ((matcher === "toHaveLength" && isZero(exp)) || (EQ.includes(matcher) && isEmptyArr(exp)))) {
+      L = lam(c.arguments[0]); kind = "none-filter";
+      return { kind, items: c.expression.expression.getText(sf), ok: !!L && coversViolation(L.expr, L.names) };
+    }
+    if (ts.isPropertyAccessExpression(a) && a.name.text === "length" && (c = call(unwrap(a.expression), "filter")) && EQ.includes(matcher) && isZero(exp)) {
+      L = lam(c.arguments[0]); kind = "none-filter";
+      return { kind, items: c.expression.expression.getText(sf), ok: !!L && coversViolation(L.expr, L.names) };
+    }
+    return null;
+  };
+  const nonEmptyOf = (arg, matcher, negated, exp) => {   // يُثبت أن القائمة غير فارغة
+    const a = unwrap(arg);
+    const num = exp && unwrap(exp) && ts.isNumericLiteral(unwrap(exp)) ? Number(unwrap(exp).text) : null;
+    if (ts.isPropertyAccessExpression(a) && a.name.text === "length") {
+      const t = a.expression.getText(sf);
+      if (!negated && matcher === "toBeGreaterThan" && num !== null && num >= 0) return t;
+      if (!negated && matcher === "toBeGreaterThanOrEqual" && num !== null && num >= 1) return t;
+      if (negated && ["toBe", "toEqual"].includes(matcher) && num === 0) return t;
+      if (!negated && ["toBe", "toEqual"].includes(matcher) && num !== null && num > 0) return t;
+    }
+    if (matcher === "toHaveLength") {
+      if (!negated && num !== null && num > 0) return a.getText(sf);
+      if (negated && num === 0) return a.getText(sf);
+    }
+    return null;
+  };
+
+  const MODE_KEYS = new Set(["WASLA_USER_ASSERTION_MODE", "[USER_ASSERTION_MODE_ENV]"]);
   const walk = (n) => {
-    // المستقبل off داخل الحالة: process.env.WASLA_USER_ASSERTION_MODE = "off" أو { WASLA_USER_ASSERTION_MODE: "off" }
     if (ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
       const l = n.left, r = resolve(n.right);
       const lname = ts.isPropertyAccessExpression(l) ? l.name.text :
         ts.isElementAccessExpression(l) && ts.isStringLiteral(l.argumentExpression) ? l.argumentExpression.text :
         ts.isElementAccessExpression(l) && ts.isIdentifier(l.argumentExpression) ? `[${l.argumentExpression.text}]` : null;
-      if ((lname === "WASLA_USER_ASSERTION_MODE" || lname === "[USER_ASSERTION_MODE_ENV]") && r && ts.isStringLiteral(r) && r.text === "off") facts.mode_off = true;
+      if (lname && MODE_KEYS.has(lname)) {
+        facts.mode_sets.push({ value: r && ts.isStringLiteral(r) ? r.text : null, path: stmtPath(n), exec: execInfo(n) });
+      }
     }
     if (ts.isPropertyAssignment(n)) {
       const k = propName(n), r = resolve(n.initializer);
-      if ((k === "WASLA_USER_ASSERTION_MODE" || k === "[USER_ASSERTION_MODE_ENV]") && r && ts.isStringLiteral(r) && r.text === "off") facts.mode_off = true;
+      if (k && MODE_KEYS.has(k)) {
+        facts.mode_sets.push({ value: r && ts.isStringLiteral(r) ? r.text : null, path: stmtPath(n), exec: execInfo(n) });
+      }
     }
     if (ts.isCallExpression(n)) {
-      // طلب: fn({ url, method?, headers?, payload|body? })
       const props = n.arguments[0] ? objProps(n.arguments[0]) : null;
       const urlP = props && props.find((p) => ts.isPropertyAssignment(p) && propName(p) === "url");
       if (urlP) {
@@ -243,11 +435,11 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
           payload: payload ? payloadFields(payload.initializer) : [],
           query_keys: query && objProps(query.initializer) ? objProps(query.initializer).map(propName).filter(Boolean) : [],
           res: resVarOf(n),
-          statuses: [],
+          path: stmtPath(n),
+          exec: execInfo(n),
           pos: n.getStart(sf),
         });
       }
-      // expect(X).[not.]matcher(Y)
       if (ts.isPropertyAccessExpression(n.expression)) {
         const matcher = n.expression.name.text;
         let e = n.expression.expression, negated = false;
@@ -269,9 +461,12 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
             matcher, negated,
             status_of: ts.isPropertyAccessExpression(a) && STATUS_PROPS.has(a.name.text) && ts.isIdentifier(a.expression) ? a.expression.text : null,
             expected_num: expR && ts.isNumericLiteral(expR) ? Number(expR.text) : null,
-            expected_bool: expR && (expR.kind === ts.SyntaxKind.TrueKeyword) ? true : expR && expR.kind === ts.SyntaxKind.FalseKeyword ? false : null,
             expected: exp ? pack(exp) : null,
             arg_ids: [...raw.ids], arg_strs: [...raw.strs], arg_props: [...raw.props],
+            published: publishedProof(arg, matcher, negated, expR, n.arguments.length),
+            nonempty_of: nonEmptyOf(arg, matcher, negated, expR),
+            path: stmtPath(n),
+            exec: execInfo(n),
             pos: n.getStart(sf),
           });
         }
@@ -281,22 +476,36 @@ function caseFacts(title, ownMods, allMods, fn, moduleConsts, sf) {
   };
   walk(body);
 
-  // ربط الحالات بالطلب: expect(res.statusCode).toBe(n) — المتغير نفسه في الحالة نفسها.
+  const before = (a, b) => {   // الجملة a تسبق b (لا احتواء)
+    for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] < b[i];
+    return false;
+  };
   for (const r of facts.requests) {
+    // ضبط المستقبل: آخر ضبط يسبق الطلب يجب أن يكون "off" مضمون التنفيذ، ولا ضبط مشروط بعده.
+    const prior = facts.mode_sets.filter((m) => before(m.path, r.path));
+    const last = prior[prior.length - 1];
+    r.mode_off_before = !!last && last.value === "off" && last.exec.strict;
+    r.mode_why = !prior.length ? (facts.mode_sets.length ? "ضبط المستقبل يأتي بعد الطلب أو في جملته نفسها" : "لا ضبط للمستقبل في الحالة")
+      : !last.exec.strict ? `آخر ضبط للمستقبل قبل الطلب مشروط (${last.exec.why.join("، ")})`
+      : last.value !== "off" ? `آخر ضبط للمستقبل قبل الطلب = ${JSON.stringify(last.value)}` : null;
+    r.statuses = [];        // تحقق مضمون بعد الطلب على نتيجته
+    r.statuses_loop = [];   // يقبل حلقة ثابتة (E-20:params)
     if (!r.res) continue;
     for (const x of facts.expects) {
-      if (x.status_of === r.res && EQ_MATCHERS.has(x.matcher) && !x.negated && x.expected_num !== null) r.statuses.push(x.expected_num);
+      if (x.status_of !== r.res || !["toBe", "toEqual", "toStrictEqual"].includes(x.matcher) || x.negated || x.expected_num === null) continue;
+      if (!before(r.path, x.path)) continue;
+      if (x.exec.strict) r.statuses.push(x.expected_num);
+      if (x.exec.loop_ok) r.statuses_loop.push(x.expected_num);
     }
   }
-  // المشتقات من نتيجة الطلب: res ثم كل const يعتمد عليه (نقطة ثابتة).
+  facts.mode_off = facts.requests.some((r) => r.mode_off_before);
+
   const derived = new Set(facts.requests.map((r) => r.res).filter(Boolean));
   let grew = true;
   while (grew) {
     grew = false;
     for (const [k, init] of local) {
       if (derived.has(k)) continue;
-      const s = idsLits(init);
-      // لا نتبع حل الثوابت هنا: نريد الاعتماد المباشر على متغير النتيجة.
       const direct = new Set();
       const sc = (x) => { if (ts.isIdentifier(x)) direct.add(x.text); ts.forEachChild(x, sc); };
       sc(init);

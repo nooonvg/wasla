@@ -159,6 +159,63 @@ describe("synthetic owner-scope evidence (governance mutation only)", () => {
     const res = await app.inject({ method: "GET", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
     expect(res.statusCode).toBe(403);
   });
+  it("E-18 if-false synthetic: request and 404 inside if (false)", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    if (false) {
+      const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+      expect(res.statusCode).toBe(404);
+    }
+  });
+  it("E-18 off-after synthetic: receiver set to off after the request", async () => {
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    expect(res.statusCode).toBe(404);
+  });
+  it("E-18 off-branch synthetic: receiver set to off only under a flag", async () => {
+    if (process.env.CI) process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    expect(res.statusCode).toBe(404);
+  });
+  it("E-18 reset synthetic: receiver reset to enforce before the request", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    process.env.WASLA_USER_ASSERTION_MODE = "enforce";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    expect(res.statusCode).toBe(404);
+  });
+  it("E-18 early-return synthetic: returns before the request", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    if (!app) return;
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    expect(res.statusCode).toBe(404);
+  });
+  it("E-18 ternary synthetic: 404 asserted only inside ?:", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    res.statusCode === 404 ? expect(res.statusCode).toBe(404) : undefined;
+  });
+  it("E-18 callback synthetic: 404 asserted inside a callback", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+    setTimeout(() => { expect(res.statusCode).toBe(404); }, 0);
+  });
+  it("E-18 if-true synthetic: guarded by a literal if (true)", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    if (true) {
+      const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
+      expect(res.statusCode).toBe(404);
+    }
+  });
+  it("E-19 branch synthetic: rejection asserted only under a condition", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
+    if (res.statusCode !== 200) expect(res.statusCode).toBe(403);
+  });
+  it("E-19 short-circuit synthetic: stored value asserted behind &&", async () => {
+    process.env.WASLA_USER_ASSERTION_MODE = "off";
+    const res = await app.inject({ method: "PUT", url: `/customers/${A}/profile`, headers: { obo: A }, payload: { wasla_public_id: B } });
+    const stored = res.json();
+    stored.ok && expect(stored.waslaPublicId).toBe(A);
+  });
   it.skip("E-18 skipped synthetic: session A reading B profile → 404", async () => {
     process.env.WASLA_USER_ASSERTION_MODE = "off";
     const res = await app.inject({ method: "GET", url: `/customers/${B}/profile`, headers: { obo: A } });
@@ -191,6 +248,7 @@ describe("synthetic public-read evidence (governance mutation only)", () => {
   it("E-20 synthetic: response holds published visible rows only", async () => {
     const res = await edge.inject({ method: "GET", url: `/search/products` });
     const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
     expect(items.every((p) => p.state === "published" && p.visible === true)).toBe(true);
   });
   it("E-20 status-only synthetic: published visible (named, not checked)", async () => {
@@ -201,7 +259,98 @@ describe("synthetic public-read evidence (governance mutation only)", () => {
   it("E-20 published-not-visible synthetic: checks state only", async () => {
     const res = await edge.inject({ method: "GET", url: `/search/products` });
     const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
     expect(items.every((p) => p.state === "published")).toBe(true);
+  });
+  it("E-20 branch-params synthetic: 400 asserted only under a flag", async () => {
+    for (const q of ["state=draft", "moderation_state=pending", "visible_only=false", "owner_public_id=x"]) {
+      const res = await edge.inject({ method: "GET", url: `/search/products?${q}` });
+      if (process.env.STRICT) expect(res.statusCode).toBe(400);
+    }
+  });
+  it("E-20 computed-loop synthetic: parameters from a computed list", async () => {
+    const qs = ["state=draft", "moderation_state=pending", "visible_only=false", "owner_public_id=x"].map((x) => x);
+    for (const q of qs) {
+      const res = await edge.inject({ method: "GET", url: `/search/products?${q}` });
+      expect(res.statusCode).toBe(400);
+    }
+  });
+  it("E-20 unrolled synthetic: one request per parameter → 400", async () => {
+    const r1 = await edge.inject({ method: "GET", url: "/search/products?state=draft" });
+    expect(r1.statusCode).toBe(400);
+    const r2 = await edge.inject({ method: "GET", url: "/search/products?moderation_state=pending" });
+    expect(r2.statusCode).toBe(400);
+    const r3 = await edge.inject({ method: "GET", url: "/search/products?visible_only=false" });
+    expect(r3.statusCode).toBe(400);
+    const r4 = await edge.inject({ method: "GET", url: "/search/products?owner_public_id=x" });
+    expect(r4.statusCode).toBe(400);
+  });
+  it("E-20 inverted synthetic: every row unpublished and invisible", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every((p) => p.state !== "published" && p.visible === false)).toBe(true);
+  });
+  it("E-20 false-matcher synthetic: published and visible asserted false", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every((p) => p.state === "published" && p.visible === true)).toBe(false);
+  });
+  it("E-20 negated synthetic: not.toBe(true) on published and visible", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every((p) => p.state === "published" && p.visible === true)).not.toBe(true);
+  });
+  it("E-20 mention synthetic: both properties named, no condition on rows", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    expect(items[0]).toHaveProperty("state", "published");
+    expect(items[0]).toHaveProperty("visible");
+  });
+  it("E-20 disjunction synthetic: published or visible", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every((p) => p.state === "published" || p.visible)).toBe(true);
+  });
+  it("E-20 weak-violation synthetic: no row with visible === false", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.some((p) => p.state !== "published" || p.visible === false)).toBe(false);
+  });
+  it("E-20 branch-published synthetic: checked only when rows exist", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThan(0);
+    if (items.length) expect(items.every((p) => p.state === "published" && p.visible === true)).toBe(true);
+  });
+  it("E-20 vacuous synthetic: every row published and visible, list may be empty", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.every((p) => p.state === "published" && p.visible === true)).toBe(true);
+  });
+  it("E-20 fixture synthetic: condition checked on a fixture, not on the response", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    expect(res.statusCode).toBe(200);
+    const rows = [{ state: "published", visible: true }];
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((p) => p.state === "published" && p.visible === true)).toBe(true);
+  });
+  it("E-20 none-violate synthetic: no row unpublished or hidden", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items).not.toHaveLength(0);
+    expect(items.some((p) => p.state !== "published" || !p.visible)).toBe(false);
+  });
+  it("E-20 filter synthetic: filtering violators leaves nothing", async () => {
+    const res = await edge.inject({ method: "GET", url: `/search/products` });
+    const items = res.json().items;
+    expect(items.length).toBeGreaterThanOrEqual(1);
+    expect(items.filter(({ state, visible }) => !(state === "published" && visible === true))).toHaveLength(0);
   });
 });'
 
@@ -268,10 +417,12 @@ _ea_mut "d=load(CUST); $_O_OPEN_E18; entry(d,'GET','/customers/:waslaPublicId/pr
 # ═══ ربطُ الدليلِ بجسمِ الحالةِ نفسِها (محلل TypeScript · CLM-0523) ═══════════
 # كلُّ طفرةٍ تشيرُ إلى حالةٍ في الملفِّ نفسِه الذي يحوي حالةً مستوفيةً — فلا تكفي
 # العناصرُ المتفرّقةُ في الملفّ، ولا عنوانٌ صحيحٌ بلا جسمٍ يُثبت.
-_ea_e18_case() { # <وصف> <عنوان الحالة>
+_ea_e18_case() { # <وصف> <عنوان الحالة> [pass]
   _ea_write "$EA_E18" "$E18_SRC"
-  _ea_mut "d=load(CUST); $_O_OPEN_E18; entry(d,'GET','/customers/:waslaPublicId/profile')['evidence_tests'][-1]['case']='$2'; save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])" \
-    && _ea_door "$1" EA-O-E18; _ea_restore
+  if _ea_mut "d=load(CUST); $_O_OPEN_E18; entry(d,'GET','/customers/:waslaPublicId/profile')['evidence_tests'][-1]['case']='$2'; save(CUST,d); ins_grant('customer-bot','customers',['customers:profile:read'])"; then
+    if [[ "${3:-door}" == pass ]]; then _ea_pass "$1"; else _ea_door "$1" EA-O-E18; fi
+  fi
+  _ea_restore
 }
 _ea_e18_case "E-18 حيٌّ بعنوانٍ صحيحٍ بلا طلبٍ ولا 404 (والملفُّ فيه حالةٌ مستوفية)" "E-18 hollow synthetic: titled right, no request and no 404"
 _ea_e18_case "E-18 والجلسةُ هي المورد (B على B)" "E-18 same-identity synthetic: session B reading B profile → 404"
@@ -279,6 +430,15 @@ _ea_e18_case "E-18 و404 على طلبٍ آخرَ لا على طلبِ المس�
 _ea_e18_case "حالةٌ مزعومةٌ في تعليق" "E-18 commented synthetic: session A reading B profile → 404"
 _ea_e18_case "حالةٌ مزعومةٌ داخلَ سلسلةٍ نصية" "E-18 string synthetic: session A reading B profile → 404"
 _ea_e18_case "حالةُ it.todo" "E-18 todo synthetic: session A reading B profile → 404"
+# ── الدلالاتُ التنفيذية (CLM-0523 · أ): الطلبُ والتحققُ وضبطُ off مضمونةُ التنفيذ ومرتّبة.
+_ea_e18_case "E-18 الطلبُ و404 داخلَ if (false)" "E-18 if-false synthetic: request and 404 inside if (false)"
+_ea_e18_case "E-18 والمستقبلُ off بعدَ الطلبِ لا قبلَه" "E-18 off-after synthetic: receiver set to off after the request"
+_ea_e18_case "E-18 والمستقبلُ off داخلَ فرعٍ شرطيّ" "E-18 off-branch synthetic: receiver set to off only under a flag"
+_ea_e18_case "E-18 والمستقبلُ يُعادُ إلى enforce قبلَ الطلب" "E-18 reset synthetic: receiver reset to enforce before the request"
+_ea_e18_case "E-18 و return مشروطٌ يسبقُ الطلب" "E-18 early-return synthetic: returns before the request"
+_ea_e18_case "E-18 و404 داخلَ ?: وحدَه" "E-18 ternary synthetic: 404 asserted only inside ?:"
+_ea_e18_case "E-18 و404 داخلَ دالةٍ متداخلة (callback)" "E-18 callback synthetic: 404 asserted inside a callback"
+_ea_e18_case "ضابطٌ موجب: E-18 داخلَ if (true) الحرفيِّ يُثبَتُ تنفيذُه" "E-18 if-true synthetic: guarded by a literal if (true)" pass
 # المستقبلُ off في مستوى الوحدةِ لا في الحالة: لا يُقبل.
 _ea_write "$EA_E18" "${E18_SRC/describe(\"synthetic/process.env.WASLA_USER_ASSERTION_MODE = \"off\";
 describe(\"synthetic}"
@@ -344,6 +504,8 @@ _ea_e19_case() { # <وصف> <عنوان الحالة> <pass|door>
 _ea_e19_case "E-19 يذكرُ حقلَ الهويةِ ولا يرسلُه في الجسم" "E-19 mention synthetic: names wasla_public_id but never sends it" door
 _ea_e19_case "E-19 يرسلُ هويةً أخرى ولا يتحققُ من رفضٍ ولا من المحفوظ" "E-19 unchecked synthetic: sends B but asserts nothing about it" door
 _ea_e19_case "ضابطٌ موجب: E-19 بقيمةٍ محفوظةٍ = هويةُ الجلسة لا الجسم" "E-19 stored synthetic: body field naming B is not stored" pass
+_ea_e19_case "E-19 والرفضُ لا يُتحقَّقُ منه إلا داخلَ if" "E-19 branch synthetic: rejection asserted only under a condition" door
+_ea_e19_case "E-19 والقيمةُ المحفوظةُ خلفَ && قصيرِ الدائرة" "E-19 short-circuit synthetic: stored value asserted behind &&" door
 
 # ═══ الفئةُ P: E-20 بشقّيه ═══════════════════════════════════════════════
 _P_PARAMS="{'file':'$EA_E20','case':'$E20P_CASE','proves':['E-20:params'],'route':'GET /search/products'}"
@@ -364,15 +526,33 @@ _ea_write "$EA_E20" "${E20_SRC//visible_only/vis_only}"
 _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[$_P_PARAMS,$_P_PUB]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])" \
   && _ea_door "دليلُ E-20 لا يختبرُ رفضَ visible_only" EA-P-E20; _ea_restore
 
-_ea_e20_case() { # <وصف> <عنوان المعاملات> <عنوان المنشور>
+_ea_e20_case() { # <وصف> <عنوان المعاملات> <عنوان المنشور> [pass]
   _ea_write "$EA_E20" "$E20_SRC"
-  _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[{'file':'$EA_E20','case':'$2','proves':['E-20:params'],'route':'GET /search/products'},{'file':'$EA_E20','case':'$3','proves':['E-20:published-only'],'route':'GET /search/products'}]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])" \
-    && _ea_door "$1" EA-P-E20; _ea_restore
+  if _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[{'file':'$EA_E20','case':'$2','proves':['E-20:params'],'route':'GET /search/products'},{'file':'$EA_E20','case':'$3','proves':['E-20:published-only'],'route':'GET /search/products'}]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])"; then
+    if [[ "${4:-door}" == pass ]]; then _ea_pass "$1"; else _ea_door "$1" EA-P-E20; fi
+  fi
+  _ea_restore
 }
 _ea_e20_case "E-20 يتحققُ من 400 لثلاثةِ معاملاتٍ من أربعة" "E-20 partial synthetic: only three of the four parameters → 400" "$E20R_CASE"
 _ea_e20_case "E-20 يرسلُ المعاملاتِ الأربعةَ ويتحققُ من 200 لا 400" "E-20 not-400 synthetic: all four parameters but asserts 200" "$E20R_CASE"
 _ea_e20_case "«المنشور فقط» مذكورٌ في تعليقٍ والتحققُ من الرمزِ وحدَه" "$E20P_CASE" "E-20 status-only synthetic: published visible (named, not checked)"
 _ea_e20_case "«المنشور فقط» بلا تحققٍ من الظهور" "$E20P_CASE" "E-20 published-not-visible synthetic: checks state only"
+# ── الدلالاتُ التنفيذية (CLM-0523 · أ)
+_ea_e20_case "E-20 و400 لا يُتحقَّقُ منه إلا داخلَ if" "E-20 branch-params synthetic: 400 asserted only under a flag" "$E20R_CASE"
+_ea_e20_case "E-20 والمعاملاتُ من قائمةٍ محسوبةٍ لا حرفية" "E-20 computed-loop synthetic: parameters from a computed list" "$E20R_CASE"
+_ea_e20_case "«المنشور فقط» لا يُتحقَّقُ منه إلا داخلَ if" "$E20P_CASE" "E-20 branch-published synthetic: checked only when rows exist"
+_ea_e20_case "ضابطٌ موجب: E-20 بطلبٍ لكلِّ معاملٍ بلا حلقة" "E-20 unrolled synthetic: one request per parameter → 400" "$E20R_CASE" pass
+# ── معنى «المنشور فقط» (CLM-0523 · ب): شرطٌ إيجابيٌّ على كلِّ عنصرٍ معاد
+_ea_e20_case "«المنشور فقط» بشرطٍ معكوس (state !== published ∧ visible === false)" "$E20P_CASE" "E-20 inverted synthetic: every row unpublished and invisible"
+_ea_e20_case "«المنشور فقط» بـtoBe(false)" "$E20P_CASE" "E-20 false-matcher synthetic: published and visible asserted false"
+_ea_e20_case "«المنشور فقط» بتوقعٍ منفيٍّ not.toBe(true)" "$E20P_CASE" "E-20 negated synthetic: not.toBe(true) on published and visible"
+_ea_e20_case "«المنشور فقط» يذكرُ الخاصيتينِ بلا شرطٍ على العناصر" "$E20P_CASE" "E-20 mention synthetic: both properties named, no condition on rows"
+_ea_e20_case "«المنشور فقط» بالفصلِ (published ∨ visible)" "$E20P_CASE" "E-20 disjunction synthetic: published or visible"
+_ea_e20_case "«لا مخالف» بـvisible === false (لا يغطي غيرَ المعرَّف)" "$E20P_CASE" "E-20 weak-violation synthetic: no row with visible === false"
+_ea_e20_case "«المنشور فقط» بلا إثباتِ أنَّ القائمةَ غيرُ فارغة" "$E20P_CASE" "E-20 vacuous synthetic: every row published and visible, list may be empty"
+_ea_e20_case "«المنشور فقط» على مصفوفةٍ ثابتةٍ لا على نتيجةِ الطلب" "$E20P_CASE" "E-20 fixture synthetic: condition checked on a fixture, not on the response"
+_ea_e20_case "ضابطٌ موجب: «لا عنصرَ مخالف» بـsome(…) = false" "$E20P_CASE" "E-20 none-violate synthetic: no row unpublished or hidden" pass
+_ea_e20_case "ضابطٌ موجب: filter(¬(منشور ∧ مرئي)) فارغةٌ بمعاملٍ مفكوك" "$E20P_CASE" "E-20 filter synthetic: filtering violators leaves nothing" pass
 
 _ea_write "$EA_E20" "$E20_SRC"
 _ea_mut "d=load(CUST); e=entry(d,'GET','/search/products'); e['production_open']=True; e['evidence_tests']=[$_P_PARAMS,$_P_PUB]; save(CUST,d); ins_grant('customer-bot','search',['search:products:read'])" \
