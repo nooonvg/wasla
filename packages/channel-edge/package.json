@@ -1,0 +1,35 @@
+{
+  "name": "@wasla/channel-edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WASLA Channel Edge — the authentication-aware edge (ADR-069 Phase 2 Part 2) that exchanges Telegram initData for a user session and then mints a service token + wua1 for the backend call. Wired into customer-bot and driver-bot; disabled by default in production.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@wasla/service-auth": "workspace:*",
+    "@wasla/telegram-adapter": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "fastify": "^5.12.5",
+    "vitest": "^2.1.0"
+  },
+  "peerDependencies": {
+    "fastify": "^5.12.5"
+  },
+  "peerDependenciesMeta": {
+    "fastify": {
+      "optional": false
+    }
+  }
+}

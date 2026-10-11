@@ -204,6 +204,11 @@ _ss_commit "$d"; _ss_expect "$d" block "state-only change with a too-short reaso
 
 # ── the real repository satisfies the guard on its own PR range is proven by check 26 in CI.
 
+# ── G) README.md inside a package (was unmapped before this fix) → mapped as documentation → PASS
+d="$(_ss_base)"; _ss_state "$d" Released Completed
+( cd "$d" && mkdir -p packages/demo/src/__tests__ && printf '# demo\n' > packages/demo/README.md && printf 'test("r", () => {});\n' > packages/demo/src/__tests__/r.test.ts )
+_ss_commit "$d"; _ss_expect "$d" pass "G: README.md inside a package is documentation with state → PASS"
+
 # ── F) merged PR whose branch remains → failure signal (check 27)
 _ss_mb() { # _ss_mb <desc> <want rc 0|1> <expected text> <state tsv> [claims rows] [evidence rows]
   local desc="$1" want="$2" why="$3" tsv="$4" crow="${5:-}" erow="${6:-}" d out rc

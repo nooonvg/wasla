@@ -1,0 +1,31 @@
+{
+  "name": "@wasla/app-edge-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WASLA app-edge E2E — the suite that proves the Channel Edge against real listeners + Postgres + signInitDataForTests with a test bot token (ADR-069 Phase 2 Part 2). Tests only: no runtime code and no exports.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@wasla/bot-runtime": "workspace:*",
+    "@wasla/channel-edge": "workspace:*",
+    "@wasla/contracts-identity": "workspace:*",
+    "@wasla/customer-bot": "workspace:*",
+    "@wasla/driver-bot": "workspace:*",
+    "@wasla/identity-service": "workspace:*",
+    "@wasla/service-auth": "workspace:*",
+    "@wasla/telegram-adapter": "workspace:*",
+    "pg": "^8.23.0",
+    "@types/pg": "^8.23.1",
+    "vitest": "^2.1.0"
+  }
+}

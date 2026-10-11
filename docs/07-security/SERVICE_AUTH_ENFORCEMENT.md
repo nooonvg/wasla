@@ -749,6 +749,7 @@ const ownerScoped = (...scopes: string[]) => ({
 | `packages/load-testing/src/harness.ts` | مِعْوانُ اختبارِ الحملِ والفوضى: يُولِّدُ حملًا متزامنًا ضدَّ staging ويقيسُ SLOs. (CLM-0342 · M4-03) |
 | `packages/incident-ops/src/harness.ts` | مِعْوانُ عمليّاتِ الحوادثِ والاسترجاعِ: يتحقّقُ من صحّةِ الخدماتِ بعدَ الاسترجاع. (CLM-0344 · M4-04) |
 | `services/observability/src/scraper.ts` | مُجمِّعُ مراقبةٍ — يقرأُ /metrics من 14 خدمة (نقطةُ نهايةٍ عامّةٌ بلا مُصادقةٍ لـPrometheus). ليسَ نداءً بينَ الخدماتِ ولا يحملُ رمزَ خدمةٍ. (CLM-0335 · M2-08 Stage B) |
+| `packages/channel-edge/src/create-channel-edge.ts` | حدُّ القناةِ — يوجِّهُ الطلبَ إلى الخدمةِ الخلفيةِ بحمولةِ `X-Wasla-User-Assertion` القادمِ من `exchange` لا بموقِّعِ الخدمةِ المباشرِ؛ الحدُّ لا يُنادي خلفيًّا بلا تأكيدٍ موقَّعٍ من identity (ADR-069 · §2.1-2 · CLM-0524). |
 
 <!-- fetch-exceptions:end -->
 

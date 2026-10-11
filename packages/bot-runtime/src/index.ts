@@ -37,6 +37,7 @@ export { CryptoIdGenerator, SystemClock } from "./system.js";
 
 export {
   CHANNEL_IDENTITY_SCOPES,
+  CHANNEL_SESSION_EDGE_SCOPES,
   IDENTITY_RESOLVE_PATH,
   HttpIdentityBootstrap,
   type FetchLike,

@@ -22,7 +22,8 @@
     "@wasla/bot-runtime": "workspace:*",
     "@wasla/contracts-channel": "workspace:*",
     "@wasla/drivers-service": "workspace:*",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "@wasla/channel-edge": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
