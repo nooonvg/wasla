@@ -30,8 +30,17 @@
         "^(services|packages|apps|bots)/",
         "^(package\\.json|pnpm-lock\\.yaml|pnpm-workspace\\.yaml|tsconfig\\.json|\\.env\\.example)$"
       ],
-      "exclude": ["^(services|packages|apps|bots)/[^/]+/(README|CHANGELOG)\\.md$"],
-      "requires": ["claim_closed", "task_log_entry", "board_row", "roadmap_line", "units_named", "tests"]
+      "exclude": [
+        "^(services|packages|apps|bots)/[^/]+/(README|CHANGELOG)\\.md$"
+      ],
+      "requires": [
+        "claim_closed",
+        "task_log_entry",
+        "board_row",
+        "roadmap_line",
+        "units_named",
+        "tests"
+      ]
     },
     {
       "id": "security",
@@ -45,7 +54,12 @@
         "^scripts/checks/(scan-secrets|validate-secret-[a-z-]+|validate-authz-policy|validate-service-auth-coverage)\\.sh$"
       ],
       "exclude": [],
-      "requires": ["claim_closed", "task_log_entry", "board_row", "risk_sync"]
+      "requires": [
+        "claim_closed",
+        "task_log_entry",
+        "board_row",
+        "risk_sync"
+      ]
     },
     {
       "id": "governance",
@@ -62,7 +76,14 @@
         "^CODEOWNERS$"
       ],
       "exclude": [],
-      "requires": ["claim_closed", "task_log_entry", "board_row", "roadmap_line", "units_named", "guard_documented"]
+      "requires": [
+        "claim_closed",
+        "task_log_entry",
+        "board_row",
+        "roadmap_line",
+        "units_named",
+        "guard_documented"
+      ]
     },
     {
       "id": "deployment",
@@ -74,28 +95,58 @@
         "^\\.github/workflows/(render-deploy|db-backup|dr-|risk-00|service-health)[^/]*\\.yml$"
       ],
       "exclude": [],
-      "requires": ["claim_closed", "task_log_entry", "board_row", "roadmap_line", "units_named", "evidence_field"]
+      "requires": [
+        "claim_closed",
+        "task_log_entry",
+        "board_row",
+        "roadmap_line",
+        "units_named",
+        "evidence_field"
+      ]
     },
     {
       "id": "scripts",
       "description": "Other repository scripts (tooling, generators).",
-      "paths": ["^scripts/"],
+      "paths": [
+        "^scripts/"
+      ],
       "exclude": [],
-      "requires": ["claim_closed", "task_log_entry", "board_row", "roadmap_line", "units_named"]
+      "requires": [
+        "claim_closed",
+        "task_log_entry",
+        "board_row",
+        "roadmap_line",
+        "units_named"
+      ]
     },
     {
       "id": "documentation",
       "description": "Documentation that describes the system (not the progress ledgers).",
-      "paths": ["^docs/", "^(README|CONTRIBUTING)\\.md$"],
+      "paths": [
+        "^docs/",
+        "^(README|CONTRIBUTING)\\.md$",
+        "^(services|packages|apps|bots)/[^/]+/README\\.md$",
+        "^(services|packages|apps|bots)/[^/]+/CHANGELOG\\.md$",
+        "^docs/12-testing/ci-evidence/"
+      ],
       "exclude": [],
-      "requires": ["claim_closed", "task_log_entry", "board_row"]
+      "requires": [
+        "claim_closed",
+        "task_log_entry",
+        "board_row"
+      ]
     },
     {
       "id": "repo-meta",
       "description": "Repository metadata with no runtime effect.",
-      "paths": ["^(\\.gitignore|\\.editorconfig|\\.nvmrc|\\.npmrc|\\.prettierrc[^/]*|LICENSE)$"],
+      "paths": [
+        "^(\\.gitignore|\\.editorconfig|\\.nvmrc|\\.npmrc|\\.prettierrc[^/]*|LICENSE)$"
+      ],
       "exclude": [],
-      "requires": ["claim_closed", "task_log_entry"]
+      "requires": [
+        "claim_closed",
+        "task_log_entry"
+      ]
     },
     {
       "id": "ledger",
@@ -119,6 +170,9 @@
     "بانتظار الدمج",
     "لم يُدمج بعد"
   ],
-  "state_only_kinds": ["state-correction", "owner-decision"],
+  "state_only_kinds": [
+    "state-correction",
+    "owner-decision"
+  ],
   "min_reason_chars": 20
 }

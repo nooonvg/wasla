@@ -75,7 +75,7 @@ BEFORE WORK → WORK → UPDATE PROJECT STATE → VERIFY → PUSH/PR → MERGE �
 | `governance` | `scripts/checks/` · `scripts/hooks/` · `.github/` · `.gitlab*` · `docs/00-rules/` · `docs/15-decisions/` · `CODEOWNERS` | claim · task_log · board · roadmap · units · **guard_documented** |
 | `deployment` | `infra/` · `Dockerfile` · `render.yaml` · سكربتات النشر · سير عمل النشر/النسخ/الاستعادة | claim · task_log · board · roadmap · units · **evidence_field** |
 | `scripts` | باقي `scripts/` | claim · task_log · board · roadmap · units |
-| `documentation` | `docs/` (غير السجلات) · `README.md` · `CONTRIBUTING.md` | claim · task_log · board |
+| `documentation` | `docs/` (غير السجلات) · `README.md` · `CONTRIBUTING.md` · `packages/*/README.md` · `packages/*/CHANGELOG.md` · `docs/12-testing/ci-evidence/` | claim · task_log · board |
 | `repo-meta` | `.gitignore` · `.editorconfig` · … | claim · task_log |
 | `ledger` | `TASK_LOG` · `LAUNCH_EXECUTION_BOARD` · `WORK_CLAIMS` · `WORK_INDEX` · `MASTER_PROGRESS` · `ROADMAP.md` | تغييرٌ من هذه وحدها = تغيير حالة فقط (§9) |
 
