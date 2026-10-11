@@ -1,21 +1,38 @@
 # 2026-10-11 — CLM-0529 — أحكام ما بعد دمج PR #683 (CLM-0528 follow-up · main `82dcbf5c`)
 
-- **Work Item(s):** M0-52 (M0-52)
+- **Work Item(s):** M0-52
 - **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
 - **Status:** Released — الدفعةُ وثائقيةٌ على فرعٍ خاصٍّ بها؛ الدمجُ هوَ الإفراجُ (فحص 27)
-- **Kind:** post-merge-verdict follow-up — دمجٌ بقرارِ المالكِ «أدمجَ تلقائيًّا كلَّ أخضرَ بلا سؤالٍ»
-- **Risk(s):** none — قراءةُ أحكامٍ منَ الـ API الحي لا تغييرَ فيها.
+- **Kind:** state-correction — استبدالُ إدخالِ CLM-0528 بإدخالِ CLM-0529 وحذفُ سطرِ `Work Item(s): M3-09` من إدخالِ CLM-0527 في الدفعةِ المنطويةِ على main؛ قِيسَ الضررُ بمقارنةِ الحاليِّ معَ `git show 82dcbf5c:docs/16-progress/TASK_LOG.md`؛ السجلُ المستهدفُ: TASK_LOG.md فقط
+- **CLM-0530 (state-correction):** استُبدل إدخالُ CLM-0528 الأصليُّ (أحكامُ ما بعد دمجِ PR #682) بإدخالِ CLM-0529 استبدالًا وحُذفَ سطرُ `Work Item(s): M3-09` من إدخالِ CLM-0527 في الدفعةِ المنطويةِ على main؛ قِيسَ الضررُ بمقارنةِ الحاليِّ معَ `git show 82dcbf5c:docs/16-progress/TASK_LOG.md` واستُعيدَ الإدخالانِ حرفاً في CLM-0530. السجلُ المستهدفُ: TASK_LOG.md فقط.
 - **Evidence:** `gh pr merge 683` → mergeCommit `82dcbf5c` (2026-10-11T04:48Z) · WASLA CI [38112713106](https://github.com/skyosv10-art/wasla/actions/runs/38112713106) **success** (0 وظيفة غير ناجحة) · Roadmap freshness [38112713113](https://github.com/skyosv10-art/wasla/actions/runs/38112713113) **success** · Merged branch cleanup [38112713372](https://github.com/skyosv10-art/wasla/actions/runs/38112713372) **success** («verified: `feat/clm-0528-m0-52-merge-verdict` no longer exists»)
 - **Deployment:** none — وثائق فقط؛ Render deploy غير مطلوب.
 - **No-Test-Reason:** سجل توثيقي — لا كودَ ولا سطحَ اختبار؛ التحققُ قراءةُ الأحكامِ منَ الـ API الحي وحوكمةُ السجل.
 - **Changed (units):** `docs/12-testing/ci-evidence/2026-10-11T035500Z-clm-0528-post-merge-verdicts/README.md`, `docs/16-progress/TASK_LOG.md`, `docs/16-progress/WORK_CLAIMS.md`, `docs/16-progress/LAUNCH_EXECUTION_BOARD.md`, `ROADMAP.md`
-- **What / Why:** أُنشئ هذا الإدخال بعد فشل حوكمةِ الدفعةِ الأولى لـPR #684 (لا حجزَ نشط — لا يُقبل دفعٌ بلا مطالبةٍ نشطةٍ بفرعٍ تحتويه)؛ أُصلح السببُ الجذريُّ بإضافةِ صفِّ CLM-0529 إلى WORK_CLAIMS (فرعُ `feat/clm-0529-verdict-followup`).
+- **What / Why:** أُنشئ هذا الإدخال بعد فشل حوكمةِ الدفعةِ الأولى لـPR #684 (لا حجزَ نشط — لا يُقبل دفعٌ بلا مطالبةٍ نشطةٍ بفرعٍ تحتويه)؛ أُصلح السببُ الجذريُّ بإضافةِ صفِّ CLM-0529 إلى WORK_CLAIMS (فرعُ `feat/clm-0529-verdict-followup`). **تصحيحٌ بالإضافة (CLM-0530):** أدى سوءُ تنسيقِ هذا الإدخال إلى أن استُبدل إدخالُ CLM-0528 الأصليُّ (أحكامُ ما بعد دمجِ PR #682) به استبدالًا وحذفَ سطرَ `Work Item(s): M3-09` من إدخالِ CLM-0527؛ استُعيد الإدخالانِ في CLM-0530 حرفاً كما كانا قبل هذا الدفعة.
 - **Next:** دمج هذه الدفعةِ الخضراءِ بقرارِ المالكِ، ثمّ الاندفاعُ مرةً أخرى. البندُ التالي قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9).
+
+# 2026-10-11 — CLM-0528 — أحكام ما بعد دمج PR #682 (CLM-0526 · main `221a2c4b`)
+
+- **Work Item(s):** M0-52
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — سجل توثيقي بلا كود؛ المدمجُ هو الإفراج (فحص 27 · لا فرعَ للمطالبةِ بعدَ الدمج لأنَّ الدفعةَ وثائقيةٌ على فرعٍ خاصٍّ بها)
+- **Kind:** post-merge-verdict — دمجٌ بقرارِ المالكِ «أدمجَ تلقائيًّا كلَّ أخضرَ بلا سؤالٍ»
+- **Risk(s):** none — لا مخاطرة؛ قراءةُ أحكامٍ منَ الـ API الحي لا تغييرَ فيها.
+- **Evidence:** `gh pr merge 682` → mergeCommit `221a2c4b` (2026-10-11T03:42Z) · WASLA CI [38109270230](https://github.com/skyosv10-art/wasla/actions/runs/38109270230) **success** (40/40 وظيفة؛ `map(select(.conclusion!="success")) == []`) · Roadmap freshness [38109270299](https://github.com/skyosv10-art/wasla/actions/runs/38109270299) **success** · Merged branch cleanup [38109270240](https://github.com/skyosv10-art/wasla/actions/runs/38109270240) **success** («verified: `feat/cleanup-clm-0526` no longer exists»)
+- **Deployment:** none — Render deploy لم يُطلق عمدًا: الدفعةُ وثائقيةٌ فقط و`paths-ignore` في `render-deploy.yml` يستثنيها؛ لا إعدادٌ ولا سرٌّ ولا ترحيلٌ غُيّرَ بيدِ هذهِ المطالبةِ.
+- **No-Test-Reason:** سجل توثيقي — لا كودَ ولا سطحَ اختبار؛ التحققُ قراءةُ الأحكامِ منَ الـ API الحي وحوكمةُ السجل.
+- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-11T035500Z-clm-0528-post-merge-verdicts/README.md`, `docs/16-progress/TASK_LOG.md`, `docs/16-progress/WORK_CLAIMS.md`, `docs/16-progress/LAUNCH_EXECUTION_BOARD.md`, `ROADMAP.md`
+- **What / Why:** دُمج PR #682 (CLM-0526 — فئةُ `documentation` في خريطة STATE-SYNC) بقرارِ المالكِ الصريحِ، وقُرئت أحكامُ ما بعدَ الدمجِ على `main` منَ الـ API الحي: WASLA CI نجحَ بـ40/40 وظيفةً ناجحةً و0 فاشلةً، وRoadmap freshness نجح، وحارسُ حذفِ الفروعِ المدموجةِ تحقَّقَ من حذفِ `feat/cleanup-clm-0526`. Render deploy لم يُطلق عمدًا لأنَّ الدفعةَ غيّرت وثائقٍ فقط. لا حجزَ نشطَ بعدَ هذا الإدخال.
+- **Next:** لا حجزَ نشط. البندُ التالي في الخارطة هو قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9): فتحُ `production_open=true` لإحدى قوائمِ السماحِ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27 — لا يبدأُ وكيلٌ هذا بلا قرارٍ مكتوب.
+
+- **إلحاق (2026-10-11 04:48Z · نفس CLM-0528):** أحكامُ دمجِ هذه الدفعةِ نفسِها ([PR #683](https://github.com/skyosv10-art/wasla/pull/683) → main `82dcbf5c`): WASLA CI [38112713106](https://github.com/skyosv10-art/wasla/actions/runs/38112713106) success (0 وظيفة غير ناجحة) · Roadmap freshness [38112713113](https://github.com/skyosv10-art/wasla/actions/runs/38112713113) success · branch cleanup [38112713372](https://github.com/skyosv10-art/wasla/actions/runs/38112713372) success (verified deleted). لا حجزَ نشط. البندُ التالي قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9).
 
 - **إلحاق (2026-10-11 04:48Z · نفس CLM-0528):** أحكامُ دمجِ هذه الدفعةِ نفسِها ([PR #683](https://github.com/skyosv10-art/wasla/pull/683) → main `82dcbf5c`): WASLA CI [38112713106](https://github.com/skyosv10-art/wasla/actions/runs/38112713106) success (0 وظيفة غير ناجحة) · Roadmap freshness [38112713113](https://github.com/skyosv10-art/wasla/actions/runs/38112713113) success · branch cleanup [38112713372](https://github.com/skyosv10-art/wasla/actions/runs/38112713372) success (verified deleted). لا حجزَ نشط. البندُ التالي قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9).
 
 # 2026-10-11 — CLM-0527 — أحكام ما بعد دمج PR #681 (CLM-0525 + CLM-0526)
 
+- **Work Item(s):** M3-09
 - **Kind:** owner-decision — دمجٌ (merge) حسب تفويض المالك «أدمجَ تلقائيًّا كلَّ أخضرَ بلا سؤالٍ»
 - **Status:** Completed — لا حجوزات نشطة بعد هذا
 - **Risk(s):** none — دفعة توثيقية لما بعد الدمج؛ لا كود ولا إنتاج.
