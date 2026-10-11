@@ -1,3 +1,20 @@
+# 2026-10-11 — CLM-0527 — أحكام ما بعد دمج PR #681 (CLM-0525 + CLM-0526)
+
+- **Work Item(s):** M3-09
+- **Kind:** owner-decision — دمجٌ (merge) حسب تفويض المالك «أدمجَ تلقائيًّا كلَّ أخضرَ بلا سؤالٍ»
+- **Status:** Completed — لا حجوزات نشطة بعد هذا
+- **Risk(s):** none — دفعة توثيقية لما بعد الدمج؛ لا كود ولا إنتاج.
+- **Evidence:** `gh pr view 681` → MERGED · mergeCommit `7bf1f57413c71a1ebe504d747d436e6886373bef` (2026-10-11T03:13:37Z) · mergeStateStatus CLEAN · reviewDecision APPROVED
+- **Deployment:** none — DRY-Run من هذه الدفعة؛ لا تفعيل حي ولا تغيير قائمة سماح.
+- **No-Test-Reason:** سجل توثيقي — لا كود ولا سطح اختبار؛ التحقق هو قراءة الأحكام من الـ API الحي وحوكمة السجل.
+- **Changed (units):** `docs/16-progress/TASK_LOG.md`, `docs/16-progress/WORK_CLAIMS.md`.
+- **What / Why:** دُمج PR #681 (30/30 أعمال CI نجحت على رأس `c6b4b3e1`) بقرارٍ صريحٍ من المالك. أحكامُ ما بعد الدمج على `main` (رأس `7bf1f57413c71a1ebe504d747d436e6886373bef`):
+  - WASLA CI (38107699917): success — كلُّ الأبواب نجحت.
+  - Roadmap freshness (38107699912): success.
+  - Render deploy (38107699859): success.
+  - الفرعُ المدموجُ حُذفَ تلقائيًّا (delete-on-merge · لا يظهر في قائمة الفروع).
+- **Next:** لا حجزٌ نشطٌ بعد هذا الإدخال. الخطوةُ التاليةُ في خارطة الطريق هي قرارُ المالك المستقلُّ (ADR-069 §2.6-9): فتحُ `production_open=true` لإحدى القوائمِ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27.
+
 # 2026-10-11 — CLM-0526 — M0-52: فئة `documentation` في خريطة STATE-SYNC (packages/*/README.md و ci-evidence)
 
 - **Work Item(s):** M0-52
