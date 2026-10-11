@@ -1,3 +1,16 @@
+# 2026-10-11 — CLM-0526 — M0-52: فئة `documentation` في خريطة STATE-SYNC (packages/*/README.md و ci-evidence)
+
+- **Work Item(s):** M0-52
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — المدمجُ هو الإفراج (فحص 27)
+- **Risk(s):** none — لا مخاطرة أمنية؛ تصنيف مسارات توثيقية لا يفتح شيئًا ولا يهدم قاعدة.
+- **Evidence:** `bash scripts/checks/test-governance.sh` → 671 ناجح · 0 فاشل · `bash scripts/checks/validate-state-sync.sh origin/main HEAD` → PASS
+- **Deployment:** none — لا تغيير إنتاجي.
+- **No-Test-Reason:** none — حالة الطفرة G في `gov-cases-state-sync.sh` تُثبت السلوك الجديد.
+- **Changed (units):** `scripts/checks/lib/state-sync-map.json`, `scripts/checks/lib/gov-cases-state-sync.sh`, `docs/00-rules/STATE_SYNC_RULE.md`, `docs/16-progress/TASK_LOG.md`, `docs/16-progress/WORK_CLAIMS.md`.
+- **What / Why:** قبل هذه الدفعة، `packages/channel-edge/README.md` كان مسارًا غير مصنَّف (unmapped) — يُوقف الحارس (BLOCK). أُضيفت فئةُ `documentation` لتطابق `packages/*/README.md` و`packages/*/CHANGELOG.md` و`docs/12-testing/ci-evidence/` مع حالة طفرة (G) جديدة تُثبت السلوك. لا حارس جديد ولا سياسة جديدة — فقط تصنيف مسار.
+- **Next:** دفعة CLM-0525 تُدمج بعد هذا.
+
 # 2026-10-11 — CLM-0525 — ADR-069 المرحلة 2 الجزء 2 (دفعة الإنفاذ): حزمة الحد، تركيب البوتين، تهيئة الجلسة، سقالة الأدلة
 
 - **Work Item(s):** M3-09
