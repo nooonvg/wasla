@@ -1,6 +1,6 @@
 # WASLA MARKET — Roadmap
 
-CLM-0528 (2026-10-11): أحكامُ ما بعد دمج PR #682 (CLM-0526) — main `221a2c4b` أخضرُ بالكامل (WASLA CI 38109270230 · 40/40 · Roadmap freshness 38109270299 · branch cleanup verified deleted)؛ Render deploy لم يُطلق عمدًا (docs-only). لا حجز نشط. البندُ التالي في الخارطةِ قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9): فتحُ `production_open=true` لقائمةِ سماحٍ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27.
+CLM-0528 (2026-10-11): أحكامُ ما بعد دمج PR #682 (CLM-0526) — main `221a2c4b` أخضرُ بالكامل (WASLA CI 38109270230 · 40/40 · Roadmap freshness 38109270299 · branch cleanup verified deleted)؛ Render deploy لم يُطلق عمدًا (docs-only). وPR #683 (هذه الدفعة) دُمج أيضًا على `82dcbf5c` بأحكامٍ خضراءٍ (WASLA CI 38112713106 · freshness 38112713113 · branch cleanup verified). لا حجز نشط. البندُ التالي في الخارطةِ قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9): فتحُ `production_open=true` لقائمةِ سماحٍ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27.
 
 CLM-0525 (2026-10-11): ADR-069 المرحلة 2 الجزء 2 — حزمة الحدّ `packages/channel-edge` + تركيب البوتين + تهيئة جلسة التطبيقين + سقالة `packages/app-edge-e2e`. معطَّلة افتراضيًا (fail-closed) · لا تغيير في قوائم السماح ولا إنتاجي حي. راجع `docs/16-progress/TASK_LOG.md`.
 **Repository:** `skyosv10-art/wasla` (this repository is WASLA MARKET)

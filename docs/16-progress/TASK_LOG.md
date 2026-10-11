@@ -12,6 +12,8 @@
 - **What / Why:** دُمج PR #682 (CLM-0526 — فئةُ `documentation` في خريطة STATE-SYNC) بقرارِ المالكِ الصريحِ، وقُرئت أحكامُ ما بعدَ الدمجِ على `main` منَ الـ API الحي: WASLA CI نجحَ بـ40/40 وظيفةً ناجحةً و0 فاشلةً، وRoadmap freshness نجح، وحارسُ حذفِ الفروعِ المدموجةِ تحقَّقَ من حذفِ `feat/cleanup-clm-0526`. Render deploy لم يُطلق عمدًا لأنَّ الدفعةَ غيّرت وثائقٍ فقط. لا حجزَ نشطَ بعدَ هذا الإدخال.
 - **Next:** لا حجزَ نشط. البندُ التالي في الخارطة هو قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9): فتحُ `production_open=true` لإحدى قوائمِ السماحِ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27 — لا يبدأُ وكيلٌ هذا بلا قرارٍ مكتوب.
 
+- **إلحاق (2026-10-11 04:48Z · نفس CLM-0528):** أحكامُ دمجِ هذه الدفعةِ نفسِها ([PR #683](https://github.com/skyosv10-art/wasla/pull/683) → main `82dcbf5c`): WASLA CI [38112713106](https://github.com/skyosv10-art/wasla/actions/runs/38112713106) success (0 وظيفة غير ناجحة) · Roadmap freshness [38112713113](https://github.com/skyosv10-art/wasla/actions/runs/38112713113) success · branch cleanup [38112713372](https://github.com/skyosv10-art/wasla/actions/runs/38112713372) success (verified deleted). لا حجزَ نشط. البندُ التالي قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9).
+
 # 2026-10-11 — CLM-0527 — أحكام ما بعد دمج PR #681 (CLM-0525 + CLM-0526)
 
 - **Work Item(s):** M3-09
