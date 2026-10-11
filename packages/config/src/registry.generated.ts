@@ -32,7 +32,7 @@ export interface EnvVarSpec {
   readonly ownerItem: string;
 }
 
-/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 92 متغيّراً. */
+/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 93 متغيّراً. */
 export const ENV_REGISTRY: readonly EnvVarSpec[] = [
   {
     name: "BILLING_DATABASE_URL",
@@ -121,7 +121,7 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     secret: true,
     default: null,
     scopes: ["runtime"],
-    readerCount: 1,
+    readerCount: 2,
     ownerItem: "M2-04",
   },
   {
@@ -261,7 +261,7 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     secret: true,
     default: null,
     scopes: ["runtime"],
-    readerCount: 1,
+    readerCount: 2,
     ownerItem: "M2-04",
   },
   {
@@ -401,7 +401,7 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     secret: false,
     default: null,
     scopes: ["runtime"],
-    readerCount: 4,
+    readerCount: 6,
     ownerItem: "M2-04",
   },
   {
@@ -731,7 +731,7 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     secret: false,
     default: null,
     scopes: ["runtime", "test"],
-    readerCount: 1,
+    readerCount: 3,
     ownerItem: "M3-04",
   },
   {
@@ -743,6 +743,16 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     scopes: ["test"],
     readerCount: 4,
     ownerItem: "M3-01",
+  },
+  {
+    name: "WASLA_EDGE_ENABLED",
+    type: "string",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["runtime"],
+    readerCount: 2,
+    ownerItem: "M3-09",
   },
   {
     name: "WASLA_OBS_ENVIRONMENT",
@@ -811,7 +821,7 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     secret: false,
     default: null,
     scopes: ["runtime"],
-    readerCount: 5,
+    readerCount: 7,
     ownerItem: "M2-04",
   },
   {
@@ -821,7 +831,7 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     secret: true,
     default: null,
     scopes: ["runtime"],
-    readerCount: 5,
+    readerCount: 7,
     ownerItem: "M2-04",
   },
   {
@@ -1029,6 +1039,7 @@ export const ENV_VAR_NAMES = [
   "SUPPORT_SERVICE_PORT",
   "VITE_API_BASE_URL",
   "VITE_E2E",
+  "WASLA_EDGE_ENABLED",
   "WASLA_OBS_ENVIRONMENT",
   "WASLA_PG_CONNECT_TIMEOUT_MS",
   "WASLA_PG_POOL_MAX",

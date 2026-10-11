@@ -1,3 +1,14 @@
+# 2026-10-11 — CLM-0525 — ADR-069 المرحلة 2 الجزء 2 (دفعة الإنفاذ): حزمة الحد، تركيب البوتين، تهيئة الجلسة، سقالة الأدلة
+
+- **Work Item(s):** M3-09
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** In Progress (السقالة مُعطَّلة افتراضيًا · بلا فتح حي · بلا تغيير قائمة سماح)
+- **Risk(s):** RISK-0042 → open (لا تغيير)
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-10T223000Z-clm-0524-channel-edge-part2/README.md`
+- **Deployment:** none — لا تغيير إنتاجي ولا Render ولا سرّ ولا `WASLA_USER_ASSERTION_MODE=enforce` ولا إعادات كتابة إنتاجية؛ القوائم `allowlist/<surface>.json` لم تُمسَّ (كلها `production_open=false` عمدًا · CLM-0521)
+- **What / Why:** أُنشئت حزمةُ `packages/channel-edge` (`src/create-channel-edge.ts` · `src/types.ts` · `src/index.ts` · `src/__tests__/create-channel-edge.test.ts` · `README.md` · `tsconfig.json` · `vitest.config.ts` · `package.json`) بتركيبِ `POST /edge/session` و`POST /edge/session/logout` والتوجيهِ من قائمةِ السماحِ **فقط** (لا استنتاجَ من الفحصِ 24 · ADR-069 §2.6-6 r2) وحذفِ الترويساتِ الداخليةِ (§2.6-2) واشتقاقِ `obo` من `exchange` وحدهُ (§2.6-1). و`bots/customer-bot/src/edge.ts` و`bots/driver-bot/src/edge.ts` تركيبٌ **معطَّلٌ افتراضيًا** (fail-closed — لا `WASLA_EDGE_ENABLED` في `env-registry` ولا مسارَ يُسجَّلُ حيًّا)، و`apps/customer-mini-app/src/session/session-init.ts` و`apps/driver-mini-app/src/session/session-init.ts` تهيئةُ الجلسةِ من `Telegram.WebApp.initData` في زمنِ التشغيلِ لا خلفَ خطافِ E2E وحدهُ (لا تخزينَ محليًّا · ADR-044 §4)، و`packages/app-edge-e2e` سقالةُ بوّابةِ الأدلةِ E-01..E-27 (لا حالاتٍ حيّةٍ بعدُ — الأدلةُ تتطلّبُ قائمةَ سماحٍ `production_open=true` وهو قرارُ مالكٍ مستقلّ). القياساتُ: `pnpm -r typecheck` 73 حزمةً أخضر · 5/5 وحداتُ الحزمةِ · 2/2 سقالةُ الأدلةِ · `run-tests.sh --print-groups` تُسلسَلُ الحزمةُ (بوّابةٌ · `packages/*-e2e`) · `pnpm-lock.yaml` تغييرٌ واحدٌ فقط (إضافةُ `packages/channel-edge`).
+- **Next:** مراجعةُ CODEOWNERS وفتحُ PR جديدٍ على فرعِ `feat/clm-0525-channel-edge-part2` ثم قراءةُ حكمِ CI الفعليِّ وتوثيقُهُ. لا تفعيلَ حيًّا ولا فتحَ مسارٍ قبلَ قرارِ مالكٍ مستقلٍّ (ADR-069 §2.6-9) — والأدلةُ الحيّةُ (E-01..E-27) تُكتبُ عندَ تفعيلِ القائمةِ لا قبلَهُ.
+
 # 2026-10-10 — CLM-0524 — حجز ADR-069 المرحلة 2 الجزء 2 بعد دمج PR #679
 
 - **Work Item(s):** M3-09

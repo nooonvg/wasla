@@ -56,6 +56,18 @@ export const IDENTITY_RESOLVE_PATH = "/identity/resolve";
  */
 export const CHANNEL_IDENTITY_SCOPES: readonly string[] = ["identity:resolve:write"];
 
+/**
+ * الصلاحيّاتُ الثابتةُ لدورةِ حياةِ جلسةِ المستخدمِ في الحدِّ (`ADR-069` · `CLM-0519`):
+ * إصدارٌ واستبدالٌ وسحبٌ. وهي ثابتةٌ حرفيّةً لأنّ الحارسَ 16 يقرأُها ساكناً
+ * (`evidence: ["CHANNEL_SESSION_EDGE_SCOPES"]` في `packages/authz-policy/src/grants.ts`) —
+ * والمجهولُ لا يُقرأُ سماحاً.
+ */
+export const CHANNEL_SESSION_EDGE_SCOPES: readonly string[] = [
+  "identity:session:issue",
+  "identity:session:exchange",
+  "identity:session:revoke",
+];
+
 export interface HttpIdentityBootstrapOptions {
   /** Base URL of the identity service, e.g. http://identity:8080 */
   readonly baseUrl: string;

@@ -196,6 +196,10 @@
           "file": "packages/bot-runtime/src/config.ts",
           "mode": "template",
           "template": "${p}_TOKEN"
+        },
+        {
+          "file": "bots/customer-bot/src/edge.ts",
+          "mode": "direct"
         }
       ],
       "note_ar": "الاسمُ مُشتَقٌّ في `envNames(bot)` من بادئةِ البوتِ — لا يُقرأُ حرفاً في الشيفرةِ، فنمطُهُ `template` والبابُ 2 يحرسُ حضورَ القالبِ."
@@ -861,6 +865,10 @@
           "file": "packages/bot-runtime/src/config.ts",
           "mode": "template",
           "template": "${p}_TOKEN"
+        },
+        {
+          "file": "bots/driver-bot/src/edge.ts",
+          "mode": "direct"
         }
       ],
       "note_ar": "الاسمُ مُشتَقٌّ في `envNames(bot)` من بادئةِ البوتِ — لا يُقرأُ حرفاً في الشيفرةِ، فنمطُهُ `template` والبابُ 2 يحرسُ حضورَ القالبِ."
@@ -1164,6 +1172,14 @@
         },
         {
           "file": "services/geography/src/http/server.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "bots/customer-bot/src/edge.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "bots/driver-bot/src/edge.ts",
           "mode": "direct"
         }
       ],
@@ -1857,6 +1873,14 @@
         {
           "file": "apps/admin-portal/src/api/client.ts",
           "mode": "direct"
+        },
+        {
+          "file": "apps/customer-mini-app/src/session/session-init.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "apps/driver-mini-app/src/session/session-init.ts",
+          "mode": "direct"
         }
       ],
       "note_ar": "يُمرَّرُ عبرَ سطرِ الأوامرِ في webServer في Playwright، ويُقرَأُ في client.ts عبر import.meta.env."
@@ -1891,6 +1915,29 @@
         }
       ],
       "note_ar": "تُمرَّرُ عبرَ سطرِ الأوامرِ في webServer في Playwright، ويُقرأُها main.tsx عبرَ import.meta.env. تُزالُ بالكاملِ من حزمةِ الإنتاجِ عندَ غيابِها."
+    },
+    {
+      "name": "WASLA_EDGE_ENABLED",
+      "type": "string",
+      "required": "optional",
+      "default": null,
+      "secret": false,
+      "scopes": [
+        "runtime"
+      ],
+      "description_ar": "تفعيل حدّ القناة (ADR-069 · CLM-0524 · M3-09): يبقى معطّلًا افتراضيًا في الإنتاج — لا مسار يُسجَّل حيًّا بلا قرار مالك مستقل (fail-closed).",
+      "owner_item": "M3-09",
+      "readers": [
+        {
+          "file": "bots/customer-bot/src/edge.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "bots/driver-bot/src/edge.ts",
+          "mode": "direct"
+        }
+      ],
+      "note_ar": "الغياب ليس إخفاقًا بل القاعدة: تركيب الحدّ معطّل افتراضيًا ولا يُقرأ إلا بقيمة \"true\" صريحة."
     },
     {
       "name": "WASLA_OBS_ENVIRONMENT",
@@ -2048,6 +2095,14 @@
         {
           "file": "services/negotiations/src/infrastructure/outbound-wiring.ts",
           "mode": "bag"
+        },
+        {
+          "file": "bots/customer-bot/src/edge.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "bots/driver-bot/src/edge.ts",
+          "mode": "direct"
         }
       ]
     },
@@ -2082,6 +2137,14 @@
         {
           "file": "services/negotiations/src/infrastructure/outbound-wiring.ts",
           "mode": "bag"
+        },
+        {
+          "file": "bots/customer-bot/src/edge.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "bots/driver-bot/src/edge.ts",
+          "mode": "direct"
         }
       ],
       "note_ar": "تُقرأُ في `keyRegistryFromEnv` من **قيمةٍ افتراضيّةٍ في دالّةٍ** لا من `process.env.X` — ولذلكَ نمطُها `default_literal` والبابُ 8 يحرسُ رابطَها. ولا تُسجَّلُ في سجلٍّ أبداً."

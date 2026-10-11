@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-10T12:29:32Z",
+  "generated_at": "2026-10-11T01:18:53Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "a4aa85fd864f270d1230e9afa87a6b61d3dd919d",
-    "branch": "feat/clm-0521-edge-allowlist-guard",
-    "dirty": false,
-    "dirty_files": 0,
-    "dirty_reason": "",
-    "tracked_files": 3182
+    "commit": "80eff98b4f7e4a5d070c01f33ba9cd35f164a9c1",
+    "branch": "feat/clm-0525-channel-edge-part2",
+    "dirty": true,
+    "dirty_files": 31,
+    "dirty_reason": "CLM-0525: حزمة channel-edge + wiring في البوتين + session-init في التطبيقين + حزمة app-edge-e2e + ثابت CHANNEL_SESSION_EDGE_SCOPES + env-registry (WASLA_EDGE_ENABLED) + وثائق الأدلة واللوحة والسجلات + BASELINE وbaseline-sources الجديد (قرار مالك تنفيذي: إضافة 74→72 حزم و565→567 ملفّ اختبار و5062→5126 سطر قفل)",
+    "tracked_files": 3183
   },
   "env": {
     "node": "v20.20.2",
@@ -19,14 +19,14 @@
   },
   "lock": {
     "path": "pnpm-lock.yaml",
-    "sha256": "26958c6f816b0e1f0721157dbee4d46690887fd9e947cfb49aac28c89380f858",
-    "lines": 5062
+    "sha256": "c9ade0782d20d86f6fb3596c2b6b792657a94c403d2f1ea5ed3cf761bff6e5f4",
+    "lines": 5126
   },
   "static": {
-    "packages": 72,
-    "packages_with_typecheck": 68,
-    "packages_with_test": 72,
-    "test_files_tracked": 565,
+    "packages": 74,
+    "packages_with_typecheck": 70,
+    "packages_with_test": 74,
+    "test_files_tracked": 567,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-10T120000Z-verify-clm-0522.txt",
-    "tests_passed": 6066,
-    "test_files_executed": 429,
-    "governance_suite_cases": 619,
+    "source": "docs/12-testing/baseline-sources/2026-10-11T011853Z-verify-clm-0525.txt",
+    "tests_passed": 6073,
+    "test_files_executed": 431,
+    "governance_suite_cases": 670,
     "governance_suite_failed": 0,
     "verify_overall": "passed"
   },
-  "fingerprint": "sha256:3437214d50b4bd8917cbf91820bc19c4b1d0eeb59f355f7b50697ed57bb98df8",
+  "fingerprint": "sha256:a27666ef2442b5c0de91ecaa89dca8c738596fa888286e9cb2f784213ff1e09a",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

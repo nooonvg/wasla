@@ -21,6 +21,8 @@
 
 export { BOT, buildApp, type DriverBotOverrides } from "./server.js";
 
+export { buildAppWithEdge, type DriverBotEdgeOverrides } from "./edge.js";
+
 export {
   AVAILABILITY_TEXT,
   DOCUMENTS_HEADER_TEXT,
