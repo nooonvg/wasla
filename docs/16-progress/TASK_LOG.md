@@ -1,3 +1,17 @@
+# 2026-10-11 — CLM-0531 (إلحاق) — إفراجُ حجزِ PR #686 (M5-13D تسجيلًا) وفتحُ الطريقِ للتنفيذ
+
+- **Work Item(s):** M5-13D
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — إفراجُ الحجزِ بعدَ دمجِ PR #686 (فحص 27)؛ التنفيذُ الفعليُّ يتبعُ بحجزٍ جديد.
+- **Kind:** state-correction — دمجُ PR #686 (تسجيلُ M5-13D وفتحُ حجزِ CLM-0531) تركَ صفَّ الحجزِ على `Active` بعدَ الدمجِ، فأفلتَ حاكما `verify-governance` و`Merged branch cleanup` من إفراجِه داخلَ الطلبِ نفسِه؛ صُحِّحَ هنا بإقفالِ صفِّ CLM-0531 على `Released` بعدَ الدمجِ لأنَّ التنفيذَ الفعليَّ (النداءُ والاختباراتُ) سيتبعُ بحجزٍ جديدٍ على العنصرِ نفسِه (لا كتلةً إفراجًا مزدوجًا).
+- **Risk(s):** none — تصحيحُ سجلٍّ لا كودَ ولا إنتاجَ.
+- **Evidence:** `gh pr merge 686` → mergeCommit `0bf368c248f4cc812f7795f9a7ba0664adab7cd9` (2026-10-11T16:18Z) · موافقةُ `xuuux-voox` على الرأسِ الحاليِّ `e0564ee5` · WASLA CI على الفرعِ [38120424135](https://github.com/skyosv10-art/wasla/actions/runs/38120424135) **success** · Roadmap freshness [38120422431](https://github.com/skyosv10-art/wasla/actions/runs/38120422431) **success** · حكمُ main بعدَ الدمجِ: [WASLA CI 38154856579](https://github.com/skyosv10-art/wasla/actions/runs/38154856579) **failure** (فحصا `verify` و`governance-guard` فشلا لأنَّ حجزَ CLM-0531 بقي `Active` بعدَ الدمج — هو ما يُصحِّحُه هذا الإدخالُ) · [Roadmap freshness 38154856578](https://github.com/skyosv10-art/wasla/actions/runs/38154856578) **success** · [Merged branch cleanup 38154857032](https://github.com/skyosv10-art/wasla/actions/runs/38154857032) **failure** لنفسِ السببِ (الفرعُ حُذف `verified: feat/clm-0531-d03-dispatch-job-wiring no longer exists` لكنَّ الفحصَ 27 وجدَ الحجزَ `Active` لعملٍ مدموج).
+- **Deployment:** none — الدفعةُ وثائقيةٌ فقط؛ Render deploy لم يُطلق (docs-only · paths-ignore).
+- **No-Test-Reason:** تصحيحُ سجلٍّ لا كودَ ولا سطحَ اختبار؛ التحققُ آليٌّ (validate-state-sync · validate-work-claims).
+- **Changed (units):** `docs/16-progress/WORK_CLAIMS.md`, `docs/16-progress/TASK_LOG.md`
+- **What / Why:** تعليماتُ المالكِ الصريحةُ (2026-10-11): «أعد التحقق … وإذا ظلت جميع الشروط مستوفاة، ادمج PR #686». تحققتُ من الرأسِ (`e0564ee5` — مطابقٌ للمرجعِ في الرسالةِ) وموافقةِ `xuuux-voox` على الرأسِ نفسِه (`commit_id: e0564ee5`) و0 فحوصٍ فاشلةٍ على الرأسِ و`mergeable_state: clean`، فدمجتُ بالمسارِ المحمي. قرأتُ بعدها حكمَ main الفعليَّ لا افترضتُه: فشلُ WASLA CI هو عينُ الحاجزِ (حجزٌ لم يُقفل في الطلبِ نفسِه) — وهذا التصحيحُ.
+- **Next:** فتحُ حجزٍ جديدٍ (CLM-0532) على عنصرِ M5-13D لتنفيذِ D-03: `services/customers` يُنادي `POST /dispatch/jobs` بعدَ نجاحِ `POST /orders/intake` (Idempotency-Key مشتقٌّ من `order_id`) + اختباراتُ الإرسالِ الحقيقيِّ والفشلِ والإعادةِ ومنعِ التكرار. لا يبدأُ حتى يُدفعَ هذا التصحيحُ ويصبحَ main أخضرَ.
+
 # 2026-10-11 — CLM-0531 — M5-13D: تسجيلُ عنصرِ فجوةِ D-03 (ربطُ إنشاءِ مهمةِ التوزيعِ بنشرِ طلبِ المشوار) وبدءُ الحجز
 
 - **Work Item(s):** M5-13D
