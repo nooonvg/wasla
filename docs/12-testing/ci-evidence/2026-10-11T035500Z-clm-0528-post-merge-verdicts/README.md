@@ -12,6 +12,7 @@
 | على الفرع قبل الدمج | WASLA CI [38108396423](https://github.com/skyosv10-art/wasla/actions/runs/38108396423) | **success** |
 
 - الرأس بعد الدمج: `221a2c4bc61aefd1993b19737374cc60bc3e5fd2` (merge commit لـ PR #682).
+- **إلحاق (04:48Z):** دُمج [PR #683](https://github.com/skyosv10-art/wasla/pull/683) (هذا الدفعة نفسها) على `main` → `82dcbf5c`، وأحكامُ ما بعد الدمج مقروءة من الـ API الحي: WASLA CI [38112713106](https://github.com/skyosv10-art/wasla/actions/runs/38112713106) **success** (0 وظيفة غير ناجحة) · Roadmap freshness [38112713113](https://github.com/skyosv10-art/wasla/actions/runs/38112713113) **success** · Merged branch cleanup [38112713372](https://github.com/skyosv10-art/wasla/actions/runs/38112713372) **success** («verified: `feat/clm-0528-m0-52-merge-verdict` no longer exists»).
 - **Render deploy لم يُطلق على هذا الدمج عمدًا:** الدفعة وثائقية فقط (`docs/16-progress/TASK_LOG.md` + `WORK_CLAIMS.md`)؛ `paths-ignore` في `render-deploy.yml` يستثني الدفعات التي لا تمس كودًا — وهو السلوك القائم المُوثَّق سابقًا (CLM-0516). لا إعداد ولا سر ولا ترحيل غُيّر بيد هذه المطالبة.
 - **لا حجز نشط بعد هذا الإدخال** (كل CLM-0521..0527 → `Released`).
 
