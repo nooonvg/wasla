@@ -1,3 +1,17 @@
+# 2026-10-11 — CLM-0528 — أحكام ما بعد دمج PR #682 (CLM-0526 · main `221a2c4b`)
+
+- **Work Item(s):** M0-52
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — سجل توثيقي بلا كود؛ المدمجُ هو الإفراج (فحص 27 · لا فرعَ للمطالبةِ بعدَ الدمج لأنَّ الدفعةَ وثائقيةٌ على فرعٍ خاصٍّ بها)
+- **Kind:** post-merge-verdict — دمجٌ بقرارِ المالكِ «أدمجَ تلقائيًّا كلَّ أخضرَ بلا سؤالٍ»
+- **Risk(s):** none — لا مخاطرة؛ قراءةُ أحكامٍ من الـ API الحي لا تغييرَ فيها.
+- **Evidence:** `gh pr merge 682` → mergeCommit `221a2c4b` (2026-10-11T03:42Z) · WASLA CI [38109270230](https://github.com/skyosv10-art/wasla/actions/runs/38109270230) **success** (40/40 وظيفة؛ `map(select(.conclusion!="success")) == []`) · Roadmap freshness [38109270299](https://github.com/skyosv10-art/wasla/actions/runs/38109270299) **success** · Merged branch cleanup [38109270240](https://github.com/skyosv10-art/wasla/actions/runs/38109270240) **success** («verified: `feat/cleanup-clm-0526` no longer exists»)
+- **Deployment:** none — Render deploy لم يُطلق عمدًا: الدفعةُ وثائقيةٌ فقط و`paths-ignore` في `render-deploy.yml` يستثنيها؛ لا إعدادٌ ولا سرٌّ ولا ترحيلٌ غُيّرَ بيدِ هذهِ المطالبةِ.
+- **No-Test-Reason:** سجل توثيقي — لا كودَ ولا سطحَ اختبار؛ التحققُ قراءةُ الأحكامِ منَ الـ API الحي وحوكمةُ السجل.
+- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-11T035500Z-clm-0528-post-merge-verdicts/README.md`, `docs/16-progress/TASK_LOG.md`, `docs/16-progress/WORK_CLAIMS.md`, `docs/16-progress/LAUNCH_EXECUTION_BOARD.md`, `ROADMAP.md`
+- **What / Why:** دُمج PR #682 (CLM-0526 — فئةُ `documentation` في خريطة STATE-SYNC) بقرارِ المالكِ الصريحِ، وقُرئت أحكامُ ما بعدَ الدمجِ على `main` منَ الـ API الحي: WASLA CI نجحَ بـ40/40 وظيفةً ناجحةً و0 فاشلةً، وRoadmap freshness نجح، وحارسُ حذفِ الفروعِ المدموجةِ تحقَّقَ من حذفِ `feat/cleanup-clm-0526`. Render deploy لم يُطلق عمدًا لأنَّ الدفعةَ غيّرت وثائقٍ فقط. لا حجزَ نشطَ بعدَ هذا الإدخال.
+- **Next:** لا حجزَ نشط. البندُ التالي في الخارطة هو قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9): فتحُ `production_open=true` لإحدى قوائمِ السماحِ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27 — لا يبدأُ وكيلٌ هذا بلا قرارٍ مكتوب.
+
 # 2026-10-11 — CLM-0527 — أحكام ما بعد دمج PR #681 (CLM-0525 + CLM-0526)
 
 - **Work Item(s):** M3-09
