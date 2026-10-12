@@ -1,3 +1,17 @@
+# 2026-10-12 — CLM-0533 — M5-13D: إعادةُ لقطةِ الأساسِ على main وتسجيلُ حكمِ CI الفعليِّ بعدَ دمجِ PR #688
+
+- **Work Item(s):** M5-13D
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — الدمجُ هو الإفراج؛ M5-13D في اللوحةِ `Ready for Gate`.
+- **Kind:** state-correction — دمجُ PR #688 بالـsquash جعلَ `repo.commit` في `docs/12-testing/BASELINE.json` (`9f576d8a`، التزامُ الفرعِ) غيرَ قابلٍ للحلِّ في `main`، فأسقطَ فحصُ الأساسِ 11 البابَ 4 (RISK-0028) كلاً من `verify` و`governance-guard` على `main` (WASLA CI 38212918677). صُحِّحَ بإعادةِ توليدِ الأساسِ على `main` (`5b0dbd08`) بدلَ تخفيفِ الفحص.
+- **Risk(s):** RISK-0028 — أساسٌ لا يُرجَعُ إلى التزامٍ قائمٍ؛ الفحصُ عملَ كما صُمِّم ولم يُخفَّف.
+- **Evidence:** فرعُ PR #688: WASLA CI [38211658585](https://github.com/skyosv10-art/wasla/actions/runs/38211658585) success (41/41) بعدَ أنْ أخفقَ التشغيلُ الأوّلُ [38206770456](https://github.com/skyosv10-art/wasla/actions/runs/38206770456) في STATE-SYNC (فحص 26: ROADMAP.md غيرُ مُحدَّثٍ و`.env.example` غيرُ مذكورٍ في TASK_LOG — صُحِّحَ بالإضافةِ) · `main` بعدَ الدمجِ: [38212918677](https://github.com/skyosv10-art/wasla/actions/runs/38212918677) failure (فحصُ الأساسِ 11 البابُ 4) · [Render deploy 38212918701](https://github.com/skyosv10-art/wasla/actions/runs/38212918701) success · [Roadmap freshness 38212918639](https://github.com/skyosv10-art/wasla/actions/runs/38212918639) success · `bash scripts/verify.sh` على `main` `5b0dbd08` أخضرُ محليّاً (PostgreSQL مُتخطّى محليّاً ويُقاسُ في CI) · لقطةٌ `docs/12-testing/baseline-sources/2026-10-12T065500Z-verify-clm-0532-main.txt`.
+- **Deployment:** none — docs-only؛ Render لا يُطلَقُ (paths-ignore). نشرُ PR #688 على Render نجحَ.
+- **No-Test-Reason:** تصحيحُ سجلٍّ لا كودَ؛ التحقّقُ آليٌّ (verify-governance فحص 11 · validate-state-sync · validate-work-claims).
+- **Changed (units):** `docs/12-testing/BASELINE.json` · `docs/12-testing/BASELINE.txt` · `docs/12-testing/baseline-sources/2026-10-12T065500Z-verify-clm-0532-main.txt` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** القيدُ البنيويُّ: لقطةُ الأساسِ تُسجِّلُ التزامَ الشجرةِ وقتَ القياسِ، والدمجُ بالـsquash يُنتِجُ التزاماً جديداً، فكلُّ PR يُحدِّثُ الأساسَ يتركُ `main` أحمرَ حتى لقطةٍ لاحقةٍ. لم يُخفَّف الفحصُ ولم يُصنَّف تخطّياً. ويبقى هذا نمطاً مُسجَّلاً: أيُّ PR يلمسُ `BASELINE.json` يحتاجُ لقطةً ثانيةً على main بعدَ الدمج (أو قراراً بنيويّاً مستقلّاً لاشتقاقِ الالتزامِ) — لم يُنفَّذ هنا لأنه تغييرُ حارسٍ خارجَ نطاقِ M5-13D. ويُعلَنُ حدُّ M5-13D كما في اللوحة: `order_id` مُشتقٌّ من طلبِ العميلِ لا من معرّفِ طلبِ محرّكِ الطلبات.
+- **Next:** قراءةُ حكمِ WASLA CI على `main` بعدَ دمجِ هذا الطلبِ ثمَّ اختيارُ البندِ التالي القابلِ للتنفيذِ من الخارطةِ (معاينةُ فجواتِ مصفوفةِ الاكتمالِ غيرِ المحكومةِ بقرارِ مالك: R-02 · R-07 · P-03..P-05 وفجوةِ `order_id`).
+
 # 2026-10-12 — CLM-0532 — M5-13D: تنفيذُ ربطِ إنشاءِ مهمةِ التوزيعِ بنشرِ طلبِ المشوار (فجوةُ D-03)
 
 - **Work Item(s):** M5-13D
