@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-12T13:00:58Z",
+  "generated_at": "2026-10-12T17:47:22Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "da48932bb58dc7495c32d30a444715888c998328",
-    "branch": "chore/clm-0536-baseline-main",
+    "commit": "78940ba435883d80b3d4d8dfc482331a0114cf7e",
+    "branch": "fix/clm-0538-baseline-commit-retrieval",
     "dirty": true,
     "dirty_files": 1,
-    "dirty_reason": "CLM-0536: BASELINE re-snapshot on main da48932b after CLM-0534+0535 squash-merge (RISK-0028, per CLM-0533 pattern).",
-    "tracked_files": 3214
+    "dirty_reason": "CLM-0538 (M0-08B): verify log committed as dynamic.source; baseline taken on the branch commit — after the squash merge gate 4(b) retrieves this commit from origin by SHA (no second snapshot PR).",
+    "tracked_files": 3216
   },
   "env": {
     "node": "v20.20.2",
@@ -34,10 +34,10 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-12T122500Z-verify-clm-0536.txt",
+    "source": "docs/12-testing/baseline-sources/2026-10-12T190000Z-verify-clm-0538.txt",
     "tests_passed": 6078,
     "test_files_executed": 432,
-    "governance_suite_cases": 671,
+    "governance_suite_cases": 674,
     "governance_suite_failed": 0,
     "verify_overall": "passed"
   },
