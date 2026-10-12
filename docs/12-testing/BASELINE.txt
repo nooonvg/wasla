@@ -1,26 +1,26 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-10T12:29:32Z
-الالتزام: a4aa85fd864f270d1230e9afa87a6b61d3dd919d  الفرع: feat/clm-0521-edge-allowlist-guard  شجرةٌ نظيفةٌ
+التاريخ (UTC): 2026-10-12T04:58:04Z
+الالتزام: 7d37629f5289f1223c7a65ded5f9e211de3b9937  الفرع: feat/clm-0532-m5-13d-dispatch-job-wiring  شجرةٌ مُعدَّلةٌ (32 ملفّاً)
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
-القفل: pnpm-lock.yaml · 5062 سطراً · sha256 26958c6f816b0e1f…
+القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
 العدَّاداتُ الساكنةُ (مُبصَّمةٌ):
-  packages                   72
-  packages_with_typecheck    68
-  packages_with_test         72
-  test_files_tracked         565
+  packages                   74
+  packages_with_typecheck    70
+  packages_with_test         74
+  test_files_tracked         568
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          28
   risks_not_closed           23
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/baseline-sources/2026-10-10T120000Z-verify-clm-0522.txt):
-  tests_passed               6066
-  test_files_executed        429
-  governance_suite_cases     619
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/baseline-sources/2026-10-12T053000Z-verify-clm-0532.txt):
+  tests_passed               6078
+  test_files_executed        432
+  governance_suite_cases     671
   governance_suite_failed    0
   verify_overall             passed
 
-البصمة: sha256:3437214d50b4bd8917cbf91820bc19c4b1d0eeb59f355f7b50697ed57bb98df8
+البصمة: sha256:65fad767c89be01567934b26f5b402c0dff63294cd22c3e61be5ffaef76b9ffa
 المرجع: docs/12-testing/BASELINE_FORMAT.md

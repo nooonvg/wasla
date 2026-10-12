@@ -32,7 +32,7 @@ export interface EnvVarSpec {
   readonly ownerItem: string;
 }
 
-/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 93 متغيّراً. */
+/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 94 متغيّراً. */
 export const ENV_REGISTRY: readonly EnvVarSpec[] = [
   {
     name: "BILLING_DATABASE_URL",
@@ -195,13 +195,23 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     ownerItem: "M2-04",
   },
   {
+    name: "DISPATCH_SERVICE_TIMEOUT_MS",
+    type: "positive_int",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["runtime"],
+    readerCount: 1,
+    ownerItem: "M2-04",
+  },
+  {
     name: "DISPATCH_SERVICE_URL",
     type: "http_url",
     required: "optional",
     secret: false,
     default: null,
     scopes: ["runtime"],
-    readerCount: 1,
+    readerCount: 2,
     ownerItem: "M2-04",
   },
   {
@@ -984,6 +994,7 @@ export const ENV_VAR_NAMES = [
   "DISPATCH_ESCALATION_TIMEOUT_SECONDS",
   "DISPATCH_MAX_WAVES",
   "DISPATCH_OFFER_TIMEOUT_SECONDS",
+  "DISPATCH_SERVICE_TIMEOUT_MS",
   "DISPATCH_SERVICE_URL",
   "DISPATCH_WAVE_SIZE",
   "DRIVER_BOT_DEEP_LINK_TEMPLATE",

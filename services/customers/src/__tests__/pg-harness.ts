@@ -29,6 +29,7 @@ import {
   FakeGeography,
   FakeIdentityLookup,
   FixedClock,
+  RecordingDispatchJob,
   RecordingOrderIntake,
   SequentialIdGenerator,
 } from "../infrastructure/in-memory.js";
@@ -37,7 +38,12 @@ import {
   PostgresCustomerOutbox,
   PostgresCustomerRepository,
 } from "../infrastructure/drizzle/repository.js";
-import type { CustomerRepository, OrderIntakePort, Outbox } from "../ports.js";
+import type {
+  CustomerRepository,
+  DispatchJobPort,
+  OrderIntakePort,
+  Outbox,
+} from "../ports.js";
 import type { UseCaseDeps } from "../use-cases/deps.js";
 import { CUSTOMER, OTHER_CUSTOMER, ZONES } from "./helpers.js";
 
@@ -97,10 +103,16 @@ export function makeDeps(options: {
   repo: CustomerRepository;
   outbox: Outbox;
   orderIntake?: OrderIntakePort;
+  dispatchJob?: DispatchJobPort;
   clock?: FixedClock;
-}): UseCaseDeps & { clock: FixedClock; intake: RecordingOrderIntake } {
+}): UseCaseDeps & {
+  clock: FixedClock;
+  intake: RecordingOrderIntake;
+  dispatch: RecordingDispatchJob;
+} {
   const clock = options.clock ?? new FixedClock();
   const intake = new RecordingOrderIntake({ clock });
+  const dispatch = new RecordingDispatchJob();
   return {
     repo: options.repo,
     outbox: options.outbox,
@@ -109,6 +121,8 @@ export function makeDeps(options: {
     identityLookup: new FakeIdentityLookup([CUSTOMER, OTHER_CUSTOMER]),
     geography: new FakeGeography(ZONES),
     orderIntake: options.orderIntake ?? intake,
+    dispatchJob: options.dispatchJob ?? dispatch,
     intake,
+    dispatch,
   };
 }

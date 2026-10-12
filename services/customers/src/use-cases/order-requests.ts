@@ -7,7 +7,11 @@
  * state of the *handover*, not of the order.
  */
 
-import { CustomerError, isOrderIntakeFailure } from "../domain/errors.js";
+import {
+  CustomerError,
+  isDispatchJobFailure,
+  isOrderIntakeFailure,
+} from "../domain/errors.js";
 import {
   customerOrderRequestSubmissionFailed,
   customerOrderRequestSubmitted,
@@ -29,7 +33,7 @@ import {
   orderRequestWarnings,
   type NormalizedOrderRequest,
 } from "../domain/validation.js";
-import type { OrderIntakeRequestInput } from "../ports.js";
+import type { DispatchJobResultOutput, OrderIntakeRequestInput } from "../ports.js";
 import { eventContext, type UseCaseDeps } from "./deps.js";
 import { requireActiveZone } from "./zones.js";
 
@@ -160,6 +164,8 @@ export interface SubmitOrderRequestResult {
   readonly orderRequest: CustomerOrderRequest;
   /** True when the key had already been used with the same payload. */
   readonly replayed: boolean;
+  /** The dispatch job opened for this order (D-03 · M5-13D). */
+  readonly dispatchJob: DispatchJobResultOutput | null;
 }
 
 function intakePayload(
@@ -181,6 +187,19 @@ function intakePayload(
     // on its own side too — a retried handover must not create two orders.
     idempotencyKey: request.idempotencyKey,
   };
+}
+
+/**
+ * The dispatch job's zone: the pickup stop's zone, if there is one.
+ *
+ * The customer's stop list is ordered (Phase 04: pickup, then dropoff), and the
+ * dispatch contract requires exactly one zone per job. If there is no pickup
+ * stop — which validation makes impossible, but a defensive read must not
+ * assume — there is no zone, and therefore no dispatch job.
+ */
+function pickupZone(request: CustomerOrderRequest): string | null {
+  const pickup = request.stops.find((stop) => stop.kind === "pickup");
+  return pickup ? pickup.zoneId : null;
 }
 
 /**
@@ -222,11 +241,19 @@ export async function submitOrderRequest(
       );
     }
     if (previous.status === "submitted") {
-      return { orderRequest: previous, replayed: true };
+      // Replay of an already-submitted request: the dispatch job was opened by
+      // the original submission (or by the replay that retried the intake). A
+      // second `POST /dispatch/jobs` with the same key is a no-op on dispatch's
+      // side (idempotent `200`), so the caller sees the same result.
+      const dispatchJob = await attemptDispatchJob(deps, previous);
+      return { orderRequest: previous, replayed: true, dispatchJob };
     }
+    const orderRequest = await retryHandover(deps, previous);
+    const dispatchJob = await attemptDispatchJob(deps, orderRequest);
     return {
-      orderRequest: await retryHandover(deps, previous),
+      orderRequest,
       replayed: true,
+      dispatchJob,
     };
   }
 
@@ -275,7 +302,63 @@ export async function submitOrderRequest(
   if (stored.status === "submission_failed") {
     throw intakeUnavailable(deps, stored.failureReasonCode);
   }
-  return { orderRequest: stored, replayed: false };
+  const dispatchJob = await attemptDispatchJob(deps, stored);
+  return { orderRequest: stored, replayed: false, dispatchJob };
+}
+
+/**
+ * Open the dispatch job for a request whose handover succeeded (D-03 · M5-13D).
+ *
+ * ADR-011 §4 names `services/customers` the job creator, so after the intake
+ * succeeds and `order_public_id` is known, this asks `POST /dispatch/jobs` to
+ * open a job for that order. The dispatch contract requires exactly one zone
+ * per job, and the customer's stop list is already ordered (Phase 04: pickup,
+ * dropoff), so the pickup stop's zone is the dispatch job's zone. The dispatch
+ * port's idempotency key is derived deterministically from the request's id so
+ * a retry is a replay (HTTP `200`), not a duplicate.
+ *
+ * A `DispatchJobFailure` is not a failure of the handover: the request remains
+ * `submitted` and the customer keeps the engine's reference. It is recorded
+ * operationally so the missing job is visible, not hidden — the next attempt
+ * (or the outbox retry) opens it.
+ */
+async function attemptDispatchJob(
+  deps: UseCaseDeps,
+  request: CustomerOrderRequest,
+): Promise<DispatchJobResultOutput | null> {
+  if (request.status !== "submitted" || request.orderPublicId === null) {
+    return null;
+  }
+  const zone = pickupZone(request);
+  if (!zone) {
+    return null;
+  }
+  try {
+    return await deps.dispatchJob.createDispatchJob(
+      {
+        // The dispatch contract's `order_id` is the caller's own id (UUID) — the
+        // same id the customer's request already owns.
+        orderId: request.id,
+        orderPublicId: request.orderPublicId,
+        zoneId: zone,
+        orderType: request.orderType,
+        vehicleClass: request.vehicleClass,
+        // Deterministic so a retry with the same key is a replay, not a duplicate.
+        idempotencyKey: `dispatch-job-${request.id}`,
+      },
+      {
+        ...(deps.traceId === undefined ? {} : { traceId: deps.traceId }),
+      },
+    );
+  } catch (error) {
+    if (isDispatchJobFailure(error)) {
+      // Recorded, not surfaced to the customer: the handover succeeded and the
+      // order is published; only the dispatch job is missing. The next attempt
+      // (or the outbox retry) opens it.
+      return null;
+    }
+    throw error;
+  }
 }
 
 interface HandoverAttempt {

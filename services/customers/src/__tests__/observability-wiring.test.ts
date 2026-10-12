@@ -31,6 +31,7 @@ import {
   SystemClock,
   CryptoIdGenerator,
   FakeGeography,
+  UnavailableDispatchJob,
   UnavailableOrderIntake,
 } from "../infrastructure/in-memory.js";
 import type { UseCaseDeps } from "../use-cases/deps.js";
@@ -53,11 +54,16 @@ describe("M2-08b: Observability wired into customers service", () => {
       identityLookup: { async identityExists() { return true; } },
       geography: new FakeGeography([]),
       orderIntake: new UnavailableOrderIntake(),
+      dispatchJob: new UnavailableDispatchJob(),
     };
 
     app = createSignedCustomerApp({
       deps,
-      health: { persistence: "memory", orderIntake: "unconfigured" },
+      health: {
+        persistence: "memory",
+        orderIntake: "unconfigured",
+        dispatchJob: "unconfigured",
+      },
       logger: false,
     });
 

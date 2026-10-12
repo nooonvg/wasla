@@ -102,6 +102,7 @@ import {
   InMemoryCustomerRepository,
   InMemoryOutbox as InMemoryCustomerOutbox,
   SystemClock as CustomerClock,
+  UnavailableDispatchJob,
   type UseCaseDeps,
   CUSTOMERS_ORDERS_SCOPES,
   CUSTOMERS_IDENTITY_SCOPES,
@@ -495,8 +496,13 @@ export async function startGate(options: StartGateOptions = {}): Promise<GateCon
         baseUrl: ordersUrl,
         signRequest: ordersSigner("customers", CUSTOMERS_ORDERS_SCOPES),
       }),
+      // The dispatch service under test IS this gate's stub — the customer never
+      // calls it back, so the fail-closed default is an assertion that it cannot,
+      // not a hole. The wiring this gate proves is customers → orders (D-03's
+      // precondition), and dispatch's own job lifecycle is its own gate.
+      dispatchJob: new UnavailableDispatchJob(),
     } satisfies UseCaseDeps,
-    health: { persistence: "memory", orderIntake: "configured" },
+    health: { persistence: "memory", orderIntake: "configured", dispatchJob: "unconfigured" },
     logger: false,
     // `M1-04` · الموجةُ التاسعة: مفروضٌ في البوّابةِ كما في الإنتاجِ.
     serviceIdentity: {

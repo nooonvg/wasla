@@ -12,11 +12,12 @@ import {
   FixedClock,
   InMemoryCustomerRepository,
   InMemoryOutbox,
+  RecordingDispatchJob,
   RecordingOrderIntake,
   SequentialIdGenerator,
 } from "../infrastructure/in-memory.js";
 import type { OrderRequestDraft, ZoneReference } from "../domain/model.js";
-import type { OrderIntakePort } from "../ports.js";
+import type { DispatchJobPort, OrderIntakePort } from "../ports.js";
 import type { UseCaseDeps } from "../use-cases/deps.js";
 import { upsertCustomerProfile } from "../use-cases/customer-profile.js";
 
@@ -41,14 +42,20 @@ export interface TestContext extends UseCaseDeps {
   identityLookup: FakeIdentityLookup;
   geography: FakeGeography;
   intake: RecordingOrderIntake;
+  dispatch: RecordingDispatchJob;
 }
 
 /** Build a full set of in-memory dependencies. */
 export function makeContext(
-  options: { orderIntake?: OrderIntakePort; traceId?: string } = {},
+  options: {
+    orderIntake?: OrderIntakePort;
+    dispatchJob?: DispatchJobPort;
+    traceId?: string;
+  } = {},
 ): TestContext {
   const clock = new FixedClock();
   const intake = new RecordingOrderIntake({ clock });
+  const dispatch = new RecordingDispatchJob();
   return {
     repo: new InMemoryCustomerRepository(),
     outbox: new InMemoryOutbox(),
@@ -57,7 +64,9 @@ export function makeContext(
     identityLookup: new FakeIdentityLookup([CUSTOMER, OTHER_CUSTOMER]),
     geography: new FakeGeography(ZONES),
     intake,
+    dispatch,
     orderIntake: options.orderIntake ?? intake,
+    dispatchJob: options.dispatchJob ?? dispatch,
     ...(options.traceId === undefined ? {} : { traceId: options.traceId }),
   };
 }

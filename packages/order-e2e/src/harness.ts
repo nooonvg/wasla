@@ -56,6 +56,7 @@ import {
   InMemoryCustomerRepository,
   InMemoryOutbox as InMemoryCustomerOutbox,
   SystemClock as CustomerClock,
+  UnavailableDispatchJob,
   type UseCaseDeps,
   CUSTOMERS_GEOGRAPHY_SCOPES,
   CUSTOMERS_ORDERS_SCOPES,
@@ -302,10 +303,13 @@ export async function startGate(): Promise<GateContext> {
           scopes: CUSTOMERS_ORDERS_SCOPES,
         }),
       }),
+      // The dispatch service is not under test here; the fail-closed default is
+      // an assertion that the customer cannot call it, not a hole.
+      dispatchJob: new UnavailableDispatchJob(),
     } satisfies UseCaseDeps,
     // A build with a store and a real engine may say `ok`. The engine being
     // real is what makes this honest here and dishonest anywhere else.
-    health: { persistence: "memory", orderIntake: "configured" },
+    health: { persistence: "memory", orderIntake: "configured", dispatchJob: "unconfigured" },
     logger: false,
     // `M1-04` · الموجةُ التاسعة: مفروضٌ في البوّابةِ كما في الإنتاجِ.
     serviceIdentity: {

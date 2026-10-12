@@ -24,6 +24,7 @@ import {
   InMemoryOutbox,
   SystemClock,
   UnavailableOrderIntake,
+  UnavailableDispatchJob,
   getCustomerProfile,
   savePlace,
   type UseCaseDeps,
@@ -315,6 +316,7 @@ describe("UseCaseCustomerFlows — the adapter over the Customer Core", () => {
       identityLookup: new FakeIdentityLookup([CUSTOMER]),
       geography: new FakeGeography([{ zoneId: "11111111-1111-4111-8111-111111111111", status: "active" }]),
       orderIntake: new UnavailableOrderIntake(),
+      dispatchJob: new UnavailableDispatchJob(),
     };
   }
 

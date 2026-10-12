@@ -51,6 +51,7 @@ import {
   PostgresCustomerOutbox,
   PostgresCustomerRepository,
   SystemClock,
+  UnavailableDispatchJob,
   type CustomerEvent,
   type Outbox,
   type UseCaseDeps,
@@ -267,6 +268,9 @@ export async function startGate(): Promise<GateContext> {
       signRequest: geoSigner("customers", CUSTOMERS_GEOGRAPHY_SCOPES),
     }),
     orderIntake: new HttpStubOrderIntake({ baseUrl: engine.baseUrl }),
+    // The exit gate tests the intake chain; it does not open a dispatch job, so
+    // the fail-closed default here is an assertion that it cannot, not a hole.
+    dispatchJob: new UnavailableDispatchJob(),
   };
 
   const customerApp = createCustomerApp({
@@ -277,6 +281,7 @@ export async function startGate(): Promise<GateContext> {
     health: {
       persistence: CUSTOMER_DATABASE_URL ? "postgres" : "memory",
       orderIntake: "configured",
+      dispatchJob: "unconfigured",
     },
     logger: false,
     // `M1-04` · الموجةُ التاسعة: مفروضٌ في البوّابةِ كما في الإنتاجِ.

@@ -14,10 +14,14 @@ import { randomUUID } from "node:crypto";
 
 import type { CustomerEvent } from "@wasla/contracts-customer";
 
-import { OrderIntakeFailure } from "../domain/errors.js";
+import {
+  DispatchJobFailure,
+  OrderIntakeFailure,
+} from "../domain/errors.js";
 import type {
   CustomerOrderRequest,
   CustomerProfile,
+  DispatchFailureReason,
   IntakeFailureReason,
   OrderRequestStatus,
   SavedPlace,
@@ -25,7 +29,10 @@ import type {
 } from "../domain/model.js";
 import type {
   Clock,
+  CreateDispatchJobInput,
   CustomerRepository,
+  DispatchJobPort,
+  DispatchJobResultOutput,
   GeographyPort,
   IdGenerator,
   IdentityLookupPort,
@@ -429,5 +436,72 @@ export class RecordingOrderIntake implements OrderIntakePort {
       this.options.mintOrderPublicId?.(request, attempt) ??
       `ORD-${String(attempt).padStart(10, "0")}`;
     return { orderPublicId, acceptedAt };
+  }
+}
+
+/**
+ * A dispatch job port that refuses every call, so a composition root that
+ * forgets the real adapter fails loudly.
+ *
+ * Mirrors `UnavailableOrderIntake` (ADR-009 §3): the alternative — recording the
+ * request as submitted and pretending the job was opened — creates orders with
+ * no dispatch and no one waiting for them, which §53 forbids.
+ */
+export class UnavailableDispatchJob implements DispatchJobPort {
+  constructor(
+    private readonly reasonCode: DispatchFailureReason = "CUSTOMER_DISPATCH_JOB_UNAVAILABLE",
+  ) {}
+  async createDispatchJob(): Promise<DispatchJobResultOutput> {
+    throw new DispatchJobFailure(
+      this.reasonCode,
+      "no dispatch job adapter is configured",
+    );
+  }
+}
+
+/**
+ * A test double standing in for the dispatch service (D-03 · M5-13D).
+ *
+ * It records what it received so tests can assert the `POST /dispatch/jobs`
+ * payload (order id, zone, idempotency key) rather than the fact that a
+ * function was called, and it mints the job id the way the dispatch service
+ * will — outside this service.
+ */
+export class RecordingDispatchJob implements DispatchJobPort {
+  readonly received: CreateDispatchJobInput[] = [];
+  private failure: DispatchFailureReason | null = null;
+
+  /** Make the next `POST /dispatch/jobs` fail with a given reason (null = succeed again). */
+  failWith(reasonCode: DispatchFailureReason | null): void {
+    this.failure = reasonCode;
+  }
+
+  get lastRequest(): CreateDispatchJobInput | undefined {
+    return this.received[this.received.length - 1];
+  }
+
+  async createDispatchJob(
+    input: CreateDispatchJobInput,
+  ): Promise<DispatchJobResultOutput> {
+    if (this.failure !== null) {
+      throw new DispatchJobFailure(this.failure);
+    }
+    // Idempotent by contract: the same key + payload returns the same job.
+    const existing = this.received.find(
+      (candidate) => candidate.idempotencyKey === input.idempotencyKey,
+    );
+    if (existing) {
+      return {
+        jobId: `job-${existing.idempotencyKey}`,
+        status: "pending",
+        orderPublicId: existing.orderPublicId,
+      };
+    }
+    this.received.push(input);
+    return {
+      jobId: `job-${input.idempotencyKey}`,
+      status: "pending",
+      orderPublicId: input.orderPublicId,
+    };
   }
 }

@@ -89,7 +89,11 @@ describe("GET /health", () => {
   it("reports ok only when persistence and intake are both wired", async () => {
     const { app } = await harness({
       seed: false,
-      health: { persistence: "postgres", orderIntake: "configured" },
+      health: {
+        persistence: "postgres",
+        orderIntake: "configured",
+        dispatchJob: "configured",
+      },
     });
     const response = await app.inject({ method: "GET", url: "/health" });
 
