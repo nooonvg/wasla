@@ -24,6 +24,7 @@ import {
   InMemoryOutbox,
   SystemClock,
   UnavailableOrderIntake,
+  UnavailableDispatchJob,
   getCustomerProfile,
   isCustomerError,
   listOrderRequests,
@@ -274,6 +275,9 @@ export function buildCustomerFlows(env: CustomerFlowsEnv): CustomerFlowsWiring |
     // The bot never submits an order (flows.ts §scope), so the fail-closed
     // default is not a limitation here — it is the assertion that it cannot.
     orderIntake: new UnavailableOrderIntake(),
+    // The bot never submits an order, so the fail-closed default here is the
+    // same assertion as the one above: it cannot open a dispatch job.
+    dispatchJob: new UnavailableDispatchJob(),
   };
 
   return { flows: new UseCaseCustomerFlows(deps), pool, persistence: "postgres" };
@@ -302,6 +306,7 @@ export function buildInMemoryCustomerFlows(): CustomerFlowsPort {
     identityLookup: new PermissiveIdentityLookup(),
     geography: new FakeGeography([]),
     orderIntake: new UnavailableOrderIntake(),
+    dispatchJob: new UnavailableDispatchJob(),
   });
 }
 

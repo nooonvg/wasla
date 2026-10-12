@@ -11,6 +11,7 @@
 import type {
   Clock,
   CustomerRepository,
+  DispatchJobPort,
   GeographyPort,
   IdGenerator,
   IdentityLookupPort,
@@ -26,6 +27,8 @@ export interface UseCaseDeps {
   identityLookup: IdentityLookupPort;
   geography: GeographyPort;
   orderIntake: OrderIntakePort;
+  /** Opens the dispatch job after a successful handover (D-03 · M5-13D). */
+  dispatchJob: DispatchJobPort;
   /** Optional correlation id propagated into event envelopes and errors. */
   traceId?: string;
 }

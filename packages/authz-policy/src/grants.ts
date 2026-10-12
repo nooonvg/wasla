@@ -77,6 +77,13 @@ export const PRODUCTION_GRANTS: Readonly<Record<Role, readonly Grant[]>> = {
       reason: "قراءةُ نطاقٍ جغرافيٍّ للتحقُّقِ من عنوانِ التسليم.",
       evidence: ["CUSTOMERS_GEOGRAPHY_SCOPES"],
     },
+    {
+      audience: "dispatch",
+      scopes: ["dispatch:job:write"],
+      reason:
+        "فتحُ مهمّةِ توزيعٍ صريحةٍ لطلبٍ نُشِرَ — لا قراءةَ ولا إلغاءَ (D-03 · M5-13D · ADR-011 §4).",
+      evidence: ["CUSTOMERS_DISPATCH_SCOPES"],
+    },
   ],
   delivery: [
     {

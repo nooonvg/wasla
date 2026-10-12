@@ -65,6 +65,18 @@ export type IntakeFailureReason =
   | "CUSTOMER_ORDER_INTAKE_REJECTED"
   | "CUSTOMER_ORDER_INTAKE_TIMEOUT";
 
+/**
+ * Operational reasons opening a dispatch job failed (D-03 · M5-13D).
+ *
+ * Mirrors `POST /dispatch/jobs` responses: unavailable / rejected / timeout /
+ * conflict (the key was used with a different payload — a bug, not a retry).
+ */
+export type DispatchFailureReason =
+  | "CUSTOMER_DISPATCH_JOB_UNAVAILABLE"
+  | "CUSTOMER_DISPATCH_JOB_REJECTED"
+  | "CUSTOMER_DISPATCH_JOB_TIMEOUT"
+  | "CUSTOMER_DISPATCH_JOB_KEY_REUSED";
+
 /** Non-blocking observations about a request, surfaced by the preview. */
 export type OrderRequestWarning =
   | "same_zone_pickup_and_dropoff"

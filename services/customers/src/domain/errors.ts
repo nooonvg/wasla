@@ -17,7 +17,7 @@ import {
   type CustomerErrorCode,
 } from "@wasla/contracts-customer";
 
-import type { IntakeFailureReason } from "./model.js";
+import type { DispatchFailureReason, IntakeFailureReason } from "./model.js";
 
 export type { CustomerErrorCode, CustomerErrorClass };
 
@@ -70,4 +70,24 @@ export class OrderIntakeFailure extends Error {
 /** Narrowing helper: distinguishes a handover failure from a bug. */
 export function isOrderIntakeFailure(value: unknown): value is OrderIntakeFailure {
   return value instanceof OrderIntakeFailure;
+}
+
+/**
+ * Thrown by a DispatchJobPort adapter when opening the job did not happen
+ * (D-03 · M5-13D). Carries the operational `reasonCode` while the customer sees
+ * one 503; `CUSTOMER_DISPATCH_JOB_KEY_REUSED` is a bug, not a retry.
+ */
+export class DispatchJobFailure extends Error {
+  readonly reasonCode: DispatchFailureReason;
+
+  constructor(reasonCode: DispatchFailureReason, message?: string) {
+    super(message ?? reasonCode);
+    this.name = "DispatchJobFailure";
+    this.reasonCode = reasonCode;
+  }
+}
+
+/** Narrowing helper: distinguishes a dispatch-job failure from a bug. */
+export function isDispatchJobFailure(value: unknown): value is DispatchJobFailure {
+  return value instanceof DispatchJobFailure;
 }

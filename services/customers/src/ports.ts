@@ -218,6 +218,67 @@ export interface OrderIntakePort {
 }
 
 // ---------------------------------------------------------------------------
+// Dispatch job port (D-03 · M5-13D — ADR-011 §4)
+// ---------------------------------------------------------------------------
+
+/**
+ * The payload `POST /dispatch/jobs` accepts (services/dispatch/contracts/api.openapi.yml).
+ *
+ * This service is ADR-011 §4's named job creator: after `POST /orders/intake`
+ * succeeds and `order_public_id` is known, it asks dispatch to open an
+ * explicit job for that order. It deliberately does not open dispatch jobs for
+ * any other trigger, does not inspect the orders table, and does not invent
+ * statuses — the dispatch contract owns the lifecycle.
+ *
+ * `zone_id` is the pickup stop's zone (the anchor of the customer's stop list)
+ * because the dispatch contract requires exactly one zone per job and the
+ * customer's stop list is already ordered (Phase 04: pickup, dropoff).
+ */
+export interface CreateDispatchJobInput {
+  /** The order's internal id (must be a UUID, owned by the orders service). */
+  readonly orderId: string;
+  /** The order engine's public id, returned by `submitOrderRequest`. */
+  readonly orderPublicId: string;
+  /** The pickup stop's zone — dispatch matches on zone, not coordinates. */
+  readonly zoneId: string;
+  readonly orderType: OrderType;
+  readonly vehicleClass: VehicleClass;
+  /** Idempotency key for `POST /dispatch/jobs` (§43). Derived deterministically. */
+  readonly idempotencyKey: string;
+}
+
+/** A created (or idempotently replayed) dispatch job. */
+export interface DispatchJobResultOutput {
+  /** The dispatch job's id (UUID). */
+  readonly jobId: string;
+  /** The dispatch job's public status. */
+  readonly status: "pending" | "dispatching" | "escalated_community" | "assigned" | "exhausted" | "cancelled";
+  /** The order this job was opened for. */
+  readonly orderPublicId: string;
+}
+
+export interface DispatchJobCallContext {
+  /** Correlation id of the customer's request; becomes `trace_id` on dispatch. */
+  readonly traceId?: string;
+}
+
+export interface DispatchJobPort {
+  /**
+   * Open an explicit dispatch job for a published order (ADR-011 §4).
+   *
+   * Must be idempotent by `CreateDispatchJobInput.idempotencyKey`: a retry with
+   * the same key and payload returns the same job (HTTP `200`), and the caller
+   * must treat that as success, not as a conflict. Adapters must throw
+   * `DispatchJobFailure` with a reason code rather than returning a partial
+   * result, so the fail-closed path stays explicit.
+   */
+  createDispatchJob(
+    input: CreateDispatchJobInput,
+    context?: DispatchJobCallContext,
+  ): Promise<DispatchJobResultOutput>;
+}
+
+// ---------------------------------------------------------------------------
 // Outbox
 // ---------------------------------------------------------------------------
 

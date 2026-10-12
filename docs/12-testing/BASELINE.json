@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-11T01:18:53Z",
+  "generated_at": "2026-10-12T06:15:18Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "80eff98b4f7e4a5d070c01f33ba9cd35f164a9c1",
-    "branch": "feat/clm-0525-channel-edge-part2",
+    "commit": "9f576d8acc123903aa4909925ae02386592e080a",
+    "branch": "feat/clm-0532-m5-13d-dispatch-job-wiring",
     "dirty": true,
-    "dirty_files": 31,
-    "dirty_reason": "CLM-0525: حزمة channel-edge + wiring في البوتين + session-init في التطبيقين + حزمة app-edge-e2e + ثابت CHANNEL_SESSION_EDGE_SCOPES + env-registry (WASLA_EDGE_ENABLED) + وثائق الأدلة واللوحة والسجلات + BASELINE وbaseline-sources الجديد (قرار مالك تنفيذي: إضافة 74→72 حزم و565→567 ملفّ اختبار و5062→5126 سطر قفل)",
-    "tracked_files": 3183
+    "dirty_files": 1,
+    "dirty_reason": "CLM-0532: M5-13D — dispatch job creation wiring (D-03): DispatchJobPort+HttpDispatchJobPort+UnavailableDispatchJob/RecordingDispatchJob, pickup-zone dispatch, idempotent POST /dispatch/jobs, bots/e2e wiring, .env.example, env-registry (DISPATCH_SERVICE_TIMEOUT_MS), authz-policy grant (dispatch:job:write), TASK_LOG/ROADMAP/board/state docs, BASELINE + baseline-sources new (74→74 packages, 567→568 test files)",
+    "tracked_files": 3207
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 567,
+    "test_files_tracked": 568,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-11T011853Z-verify-clm-0525.txt",
-    "tests_passed": 6073,
-    "test_files_executed": 431,
-    "governance_suite_cases": 670,
+    "source": "docs/12-testing/baseline-sources/2026-10-12T063500Z-verify-clm-0532.txt",
+    "tests_passed": 6078,
+    "test_files_executed": 432,
+    "governance_suite_cases": 671,
     "governance_suite_failed": 0,
     "verify_overall": "passed"
   },
-  "fingerprint": "sha256:a27666ef2442b5c0de91ecaa89dca8c738596fa888286e9cb2f784213ff1e09a",
+  "fingerprint": "sha256:65fad767c89be01567934b26f5b402c0dff63294cd22c3e61be5ffaef76b9ffa",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

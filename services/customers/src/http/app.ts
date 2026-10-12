@@ -87,6 +87,8 @@ export interface CustomerHealthDescriptor {
   persistence: "postgres" | "memory";
   /** `configured` only when a real order-engine adapter is wired (Phase 06). */
   orderIntake: "configured" | "unconfigured";
+  /** `configured` only when a real dispatch-job adapter is wired (D-03 · M5-13D). */
+  dispatchJob: "configured" | "unconfigured";
 }
 
 export interface CreateCustomerAppOptions {
@@ -113,6 +115,7 @@ export interface CreateCustomerAppOptions {
 const DEFAULT_HEALTH: CustomerHealthDescriptor = {
   persistence: "memory",
   orderIntake: "unconfigured",
+  dispatchJob: "unconfigured",
 };
 
 /** الصلاحيّاتُ المُعلَنةُ على مساراتِ العميلِ (domain:resource:action). */

@@ -53,6 +53,7 @@ import {
   InMemoryCustomerRepository,
   InMemoryOutbox,
   SystemClock,
+  UnavailableDispatchJob,
   UnavailableOrderIntake,
 } from "../infrastructure/in-memory.js";
 import { CUSTOMERS_ORDERS_SCOPES, HttpOrderIntakePort } from "../infrastructure/http-order-intake.js";
@@ -61,12 +62,21 @@ import {
   HttpIdentityLookupPort,
   CUSTOMERS_IDENTITY_SCOPES,
 } from "../infrastructure/http-identity-lookup.js";
+import {
+  CUSTOMERS_DISPATCH_SCOPES,
+  HttpDispatchJobPort,
+} from "../infrastructure/http-dispatch-job.js";
 import { createCustomerDb } from "../infrastructure/drizzle/db.js";
 import {
   PostgresCustomerOutbox,
   PostgresCustomerRepository,
 } from "../infrastructure/drizzle/repository.js";
-import type { GeographyPort, IdentityLookupPort, OrderIntakePort } from "../ports.js";
+import type {
+  DispatchJobPort,
+  GeographyPort,
+  IdentityLookupPort,
+  OrderIntakePort,
+} from "../ports.js";
 import type { UseCaseDeps } from "../use-cases/deps.js";
 
 import { createCustomerApp, type CustomerHealthDescriptor } from "./app.js";
@@ -138,6 +148,44 @@ function buildOrderIntake(): {
   };
 }
 
+/**
+ * The dispatch adapter, or the loud absence of one (D-03 · M5-13D).
+ *
+ * Returned together with its health label so the two can never disagree: a
+ * process reporting `configured` while holding `UnavailableDispatchJob` would be
+ * a service that lies about being able to open dispatch jobs.
+ */
+function buildDispatchJob(): {
+  dispatchJob: DispatchJobPort;
+  label: "configured" | "unconfigured";
+} {
+  const baseUrl = process.env.DISPATCH_SERVICE_URL;
+  if (!baseUrl) {
+    // Explicit fail-closed default: no silent success, no silent drop.
+    return { dispatchJob: new UnavailableDispatchJob(), label: "unconfigured" };
+  }
+  // قراءةٌ متسامحةٌ بقصدٍ (M2-04): مهلةٌ ثانويّةٌ غيرُ مقروءةٍ تسقطُ إلى افتراضِ
+  // المنفذِ بدلَ إسقاطِ الإقلاعِ — والتسامحُ مُسمّىً في اسمِ الدالّةِ لا صمتاً.
+  const timeoutMs = readLenientIntEnv(process.env, "DISPATCH_SERVICE_TIMEOUT_MS", { min: 1 });
+  return {
+    dispatchJob: new HttpDispatchJobPort({
+      baseUrl,
+      // M1-04: حدُّ التوزيعِ مفروضٌ، فكلُّ نداءٍ صادرٍ إليه موقَّعٌ. المفاتيح
+      // من البيئةِ بلا قيمةٍ افتراضيّةٍ: منادٍ بلا مفاتيح يُرَدُّ 401 فيُقرأ
+      // الردُّ عطلَ التوزيعِ لا نقصَ إعدادٍ هنا، والإخفاقُ عندَ الإقلاعِ يسمّي
+      // العلةَ في موضعِها.
+      signRequest: createServiceRequestSigner({
+        serviceName: "customers",
+        audience: "dispatch",
+        keys: keyRegistryFromEnv(process.env),
+        scopes: CUSTOMERS_DISPATCH_SCOPES,
+      }),
+      ...(timeoutMs === undefined ? {} : { timeoutMs }),
+    }),
+    label: "configured",
+  };
+}
+
 function buildGeography(): GeographyPort {
   const baseUrl = process.env.GEOGRAPHY_SERVICE_URL;
   // No URL → no zones: every stop is rejected with CUSTOMER_ZONE_NOT_FOUND,
@@ -169,6 +217,7 @@ function buildWiring(): Wiring {
   const identityLookup = buildIdentityLookup();
   const geography = buildGeography();
   const { orderIntake, label: orderIntakeLabel } = buildOrderIntake();
+  const { dispatchJob, label: dispatchJobLabel } = buildDispatchJob();
 
   if (process.env.DATABASE_URL) {
     const { pool, db } = createCustomerDb({
@@ -183,8 +232,13 @@ function buildWiring(): Wiring {
         identityLookup,
         geography,
         orderIntake,
+        dispatchJob,
       },
-      health: { persistence: "postgres", orderIntake: orderIntakeLabel },
+      health: {
+        persistence: "postgres",
+        orderIntake: orderIntakeLabel,
+        dispatchJob: dispatchJobLabel,
+      },
       pool,
     };
   }
@@ -198,8 +252,13 @@ function buildWiring(): Wiring {
       identityLookup,
       geography,
       orderIntake,
+      dispatchJob,
     },
-    health: { persistence: "memory", orderIntake: orderIntakeLabel },
+    health: {
+      persistence: "memory",
+      orderIntake: orderIntakeLabel,
+      dispatchJob: dispatchJobLabel,
+    },
     pool: null,
   };
 }

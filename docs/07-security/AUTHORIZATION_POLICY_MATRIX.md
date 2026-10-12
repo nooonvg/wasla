@@ -212,6 +212,7 @@
 | `customers` | `identity` | `identity:user:read` | `CUSTOMERS_IDENTITY_SCOPES` |
 | `customers` | `orders` | `orders:intake:write` | `CUSTOMERS_ORDERS_SCOPES` |
 | `customers` | `geography` | `geography:zone:read` | `CUSTOMERS_GEOGRAPHY_SCOPES` |
+| `customers` | `dispatch` | `dispatch:job:write` | `CUSTOMERS_DISPATCH_SCOPES` (D-03 · M5-13D · `CLM-0532`) |
 | `delivery` | `marketplace` | `marketplace:store:read`, `marketplace:product:read`, `marketplace:inventory:reserve`, `marketplace:inventory:release` | `DELIVERY_MARKETPLACE_SCOPES`, `DELIVERY_MARKETPLACE_PROBE_SCOPES`, `DELIVERY_MARKETPLACE_RESERVATION_SCOPES` |
 | `dispatch` | `matching` | `matching:candidates:evaluate`, `matching:candidacy:write` | `DISPATCH_MATCHING_SCOPES` |
 | `dispatch` | `orders` | `orders:assignment:write`, `orders:transition:write` | `DISPATCH_ORDERS_SCOPES` |

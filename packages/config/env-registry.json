@@ -733,6 +733,25 @@
       ]
     },
     {
+      "name": "DISPATCH_SERVICE_TIMEOUT_MS",
+      "type": "positive_int",
+      "required": "optional",
+      "default": null,
+      "secret": false,
+      "scopes": [
+        "runtime"
+      ],
+      "description_ar": "مهلةُ نداءِ خدمةِ التوزيعِ من العملاءِ بالمللي ثانية (D-03 · M5-13D).",
+      "owner_item": "M2-04",
+      "readers": [
+        {
+          "file": "services/customers/src/http/server.ts",
+          "mode": "reader"
+        }
+      ],
+      "note_ar": "قيمةٌ غيرُ مقروءةٍ تسقطُ إلى مهلةِ المنفذِ الافتراضيّةِ (2ث) بقرارٍ مكتوبٍ — لا تُوقِفُ الإقلاعَ على حقلٍ ثانويٍّ."
+    },
+    {
       "name": "DISPATCH_SERVICE_URL",
       "type": "http_url",
       "required": "optional",
@@ -741,12 +760,16 @@
       "scopes": [
         "runtime"
       ],
-      "description_ar": "عنوانُ خدمةِ الإرسالِ كما تُناديها المفاوضاتُ.",
+      "description_ar": "عنوانُ خدمةِ التوزيعِ كما تُناديها خدمةُ العملاءِ (D-03 · M5-13D) والمفاوضات.",
       "owner_item": "M2-04",
       "readers": [
         {
           "file": "services/negotiations/src/infrastructure/outbound-wiring.ts",
           "mode": "bag"
+        },
+        {
+          "file": "services/customers/src/http/server.ts",
+          "mode": "direct"
         }
       ]
     },
@@ -2391,5 +2414,5 @@
     }
   ],
   "numeric_parse_exceptions": [],
-  "total": 91
+  "total": 94
 }
