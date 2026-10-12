@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0536 (تحديث 2026-10-12 13:05 UTC): RISK-0028 يُكرَّرُ — لقطةُ الأساسِ في `docs/12-testing/BASELINE.json` كانَت تُشيرُ إلى `88ce3437` (التزامُ الفرعِ المدمَجِ بالـsquash). مُعادٌ التوليدُ على `da48932b` معَ `dirty_reason`. لا كودَ؛ راجع `docs/16-progress/TASK_LOG.md` (CLM-0536).
+
 CLM-0534 (تحديث 11:55 UTC 2026-10-12): إصلاحان في تعزيزات العقدِ — `orderId` يُخزَّنُ في `insertOrderRequest` و`updateOrderRequestOutcome` (مستودع Postgres) لإرضاءِ `port-conformance` (in-memory ↔ Postgres). لا يُغيّر شيئاً في العقدِ أو الواجهةِ؛ يعزّز تعليمات التخزينِ في `services/customers/src/infrastructure/drizzle/repository.ts` فقط. راجع `docs/16-progress/TASK_LOG.md` (CLM-0534+0535).
 
 CLM-0534 (2026-10-12): M5-13D — جذرُ فجوةِ D-03: `order_id` يُعادُ صريحاً في ردّ `orders/intake` (UUID المحرّكِ نفسِهِ — `ADR-010 §5b` · ترحيلٌ `0005` · عقدين مُساويان) ويُمرَّرُ لمهمّةِ التوزيعِ بدلَ معرّفِ طلبِ العميلِ؛ الفحوصُ المحليةُ والاختباراتُ (`customers 151` · `orders 660` · `e2e 11` · عقدين مُساويان) أخضرُ. راجع `docs/16-progress/TASK_LOG.md`.
