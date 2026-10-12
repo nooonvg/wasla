@@ -195,6 +195,7 @@ describe("@wasla/contracts-customer (typed contracts)", () => {
       requested_at: "2026-08-21T09:00:00Z",
     };
     const result: OrderIntakeResult = {
+      order_id: "880e8400-e29b-41d4-a716-446655440003",
       order_public_id: "ORD-000000123",
       accepted_at: "2026-08-21T09:00:01Z",
     };

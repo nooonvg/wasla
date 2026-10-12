@@ -188,6 +188,7 @@ function mapOrderRequest(
     shipment: toShipment(row),
     notes: row.notes,
     orderPublicId: row.orderPublicId,
+    orderId: row.orderId,
     submittedAt: toIso(row.submittedAt),
     failureReasonCode: row.failureReasonCode as IntakeFailureReason | null,
     createdAt: row.createdAt.toISOString(),

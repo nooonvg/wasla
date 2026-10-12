@@ -210,6 +210,8 @@ export interface CustomerOrderRequest {
   readonly notes: string | null;
   /** Owned by the order engine. Null until (and unless) it accepts. */
   readonly orderPublicId: string | null;
+  /** Engine's own order UUID (M5-13D · D-03). Null until the engine accepts. */
+  readonly orderId: string | null;
   readonly submittedAt: string | null;
   readonly failureReasonCode: IntakeFailureReason | null;
   readonly createdAt: string;

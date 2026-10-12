@@ -50,6 +50,7 @@ export interface HttpOrderIntakeOptions {
 }
 
 interface IntakeResponseBody {
+  order_id?: unknown;
   order_public_id?: unknown;
   accepted_at?: unknown;
 }
@@ -95,7 +96,13 @@ export class HttpStubOrderIntake implements OrderIntakePort {
       }
 
       const body = (await response.json()) as IntakeResponseBody;
-      if (typeof body.order_public_id !== "string" || typeof body.accepted_at !== "string") {
+      const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (
+        typeof body.order_id !== "string" ||
+        !UUID_RX.test(body.order_id) ||
+        typeof body.order_public_id !== "string" ||
+        typeof body.accepted_at !== "string"
+      ) {
         // An answer we cannot read is not an acceptance: storing a row without
         // the engine's reference would leave an order nobody can look up.
         throw new OrderIntakeFailure(
@@ -104,7 +111,11 @@ export class HttpStubOrderIntake implements OrderIntakePort {
         );
       }
 
-      return { orderPublicId: body.order_public_id, acceptedAt: body.accepted_at };
+      return {
+        orderId: body.order_id,
+        orderPublicId: body.order_public_id,
+        acceptedAt: body.accepted_at,
+      };
     } catch (error) {
       if (error instanceof OrderIntakeFailure) throw error;
       const aborted = (error as Error).name === "AbortError";

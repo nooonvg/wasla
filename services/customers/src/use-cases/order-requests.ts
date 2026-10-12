@@ -291,6 +291,7 @@ export async function submitOrderRequest(
     shipment: request.shipment,
     notes: request.notes,
     orderPublicId: attempt.orderPublicId,
+    orderId: attempt.orderId,
     submittedAt: attempt.submittedAt,
     failureReasonCode: attempt.failureReasonCode,
     createdAt,
@@ -326,7 +327,7 @@ async function attemptDispatchJob(
   deps: UseCaseDeps,
   request: CustomerOrderRequest,
 ): Promise<DispatchJobResultOutput | null> {
-  if (request.status !== "submitted" || request.orderPublicId === null) {
+  if (request.status !== "submitted" || request.orderPublicId === null || request.orderId === null) {
     return null;
   }
   const zone = pickupZone(request);
@@ -336,9 +337,9 @@ async function attemptDispatchJob(
   try {
     return await deps.dispatchJob.createDispatchJob(
       {
-        // The dispatch contract's `order_id` is the caller's own id (UUID) — the
-        // same id the customer's request already owns.
-        orderId: request.id,
+        // The dispatch contract's `order_id` refers to the order engine's own
+        // `orders.id` — the id the intake reply returned (D-03 · M5-13D).
+        orderId: request.orderId,
         orderPublicId: request.orderPublicId,
         zoneId: zone,
         orderType: request.orderType,
@@ -364,6 +365,7 @@ async function attemptDispatchJob(
 interface HandoverAttempt {
   readonly status: OrderRequestStatus;
   readonly orderPublicId: string | null;
+  readonly orderId: string | null;
   readonly submittedAt: string | null;
   readonly failureReasonCode: CustomerOrderRequest["failureReasonCode"];
 }
@@ -382,6 +384,7 @@ async function attemptHandover(
     return {
       status: "submitted",
       orderPublicId: result.orderPublicId,
+      orderId: result.orderId,
       submittedAt: result.acceptedAt,
       failureReasonCode: null,
     };
@@ -390,6 +393,7 @@ async function attemptHandover(
       return {
         status: "submission_failed",
         orderPublicId: null,
+        orderId: null,
         submittedAt: null,
         failureReasonCode: error.reasonCode,
       };
@@ -410,6 +414,7 @@ async function retryHandover(
   const updated = await deps.repo.updateOrderRequestOutcome(stored.id, {
     status: attempt.status,
     orderPublicId: attempt.orderPublicId,
+    orderId: attempt.orderId,
     submittedAt: attempt.submittedAt,
     failureReasonCode: attempt.failureReasonCode,
     updatedAt: now,

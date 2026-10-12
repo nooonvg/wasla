@@ -109,6 +109,7 @@ export interface HttpOrderIntakeOptions {
 }
 
 interface IntakeResponseBody {
+  order_id?: unknown;
   order_public_id?: unknown;
   accepted_at?: unknown;
   code?: unknown;
@@ -192,9 +193,13 @@ async function readAcceptance(response: Response): Promise<OrderIntakeResultOutp
     );
   }
 
+  const orderId = body.order_id;
   const orderPublicId = body.order_public_id;
   const acceptedAt = body.accepted_at;
+  const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (
+    typeof orderId !== "string" ||
+    !UUID_RX.test(orderId) ||
     typeof orderPublicId !== "string" ||
     !ORDER_PUBLIC_ID_PATTERN.test(orderPublicId) ||
     typeof acceptedAt !== "string" ||
@@ -206,7 +211,7 @@ async function readAcceptance(response: Response): Promise<OrderIntakeResultOutp
     );
   }
 
-  return { orderPublicId, acceptedAt };
+  return { orderId, orderPublicId, acceptedAt };
 }
 
 /** Map a non-success status onto the operational reason it actually means. */

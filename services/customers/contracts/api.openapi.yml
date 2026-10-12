@@ -755,8 +755,12 @@ components:
 
     OrderIntakeResult:
       type: object
-      required: [order_public_id, accepted_at]
+      required: [order_id, order_public_id, accepted_at]
       properties:
+        order_id:
+          type: string
+          format: uuid
+          description: مُعرّفُ الطلبِ عندَ المحرّكِ (D-03 · M5-13D) — يملكه المحرّكُ ولا تُولّدهُ خدمةُ العميلِ.
         order_public_id:
           type: string
           description: يملكه المحرّك — خدمة العميل تُخزّنه ولا تُولّده.

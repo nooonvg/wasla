@@ -173,6 +173,8 @@ export const customerOrderRequests = pgTable(
     notes: text("notes"),
     /** Owned by the order engine; NULL until it accepts the handover. */
     orderPublicId: text("order_public_id"),
+    /** Engine's own order UUID (D-03 · M5-13D). NULL until it accepts. */
+    orderId: uuid("order_id"),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     failureReasonCode: text("failure_reason_code"),
     createdAt: timestamp("created_at", { withTimezone: true })

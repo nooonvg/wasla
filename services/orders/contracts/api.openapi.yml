@@ -624,8 +624,10 @@ components:
 
     OrderIntakeResult:
       type: object
-      required: [order_public_id, accepted_at]
+      required: [order_id, order_public_id, accepted_at]
+      additionalProperties: false
       properties:
+        order_id: {type: string, format: uuid}
         order_public_id: {$ref: '#/components/schemas/OrderPublicId'}
         accepted_at: {type: string, format: date-time}
 

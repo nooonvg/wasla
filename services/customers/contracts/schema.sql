@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS customer_order_requests (
     weight_kg             NUMERIC(9,3) CHECK (weight_kg IS NULL OR (weight_kg >= 0 AND weight_kg <= 3000)),
     notes                 TEXT        CHECK (notes IS NULL OR char_length(notes) <= 500),
     order_public_id       TEXT,                               -- مرجع من محرّك الطلبات (مالكه)
+    order_id              UUID,                               -- مُعرِّفُ الطلبِ عندَ المحرّكِ (D-03 · M5-13D)؛ NULL حتى يقبل التسليم
     submitted_at          TIMESTAMPTZ,
     failure_reason_code   TEXT,
     created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
