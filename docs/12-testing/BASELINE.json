@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-12T07:13:08Z",
+  "generated_at": "2026-10-12T11:03:47Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "5b0dbd0809e70e2a4eb9570b54006164a292c062",
-    "branch": "main",
+    "commit": "88ce3437baf55eb19b51142fbbdb184c9a1207e3",
+    "branch": "feat/clm-0534-m5-13d-order-id-contract",
     "dirty": true,
     "dirty_files": 1,
-    "dirty_reason": "CLM-0533: لقطةُ الأساسِ مُعادةٌ على main بعدَ دمجِ PR #688 (squash 5b0dbd08) لأنَّ التزامَ الفرعِ 9f576d8a لا يُحَلُّ بعدَ الدمجِ (RISK-0028) + سجلُّ الأدلةِ baseline-sources الجديد وإدخالات الحجزِ والسجلِ واللوحةِ والخارطة",
-    "tracked_files": 3208
+    "dirty_reason": "CLM-0535 + CLM-0534: root fix of D-03 — orders/intake returns engine order_id (stored on customer order requests via migration 0005, passed to dispatch job instead of the customer request id); contracts + api-types regenerated; ADR-010 §5b; BASELINE snapshot 2026-10-12T103500Z",
+    "tracked_files": 3213
   },
   "env": {
     "node": "v20.20.2",
@@ -34,7 +34,7 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-12T065500Z-verify-clm-0532-main.txt",
+    "source": "docs/12-testing/baseline-sources/2026-10-12T103500Z-verify-clm-0534.txt",
     "tests_passed": 6078,
     "test_files_executed": 432,
     "governance_suite_cases": 671,

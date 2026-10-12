@@ -54,7 +54,9 @@ describe("M5-13D: dispatch job wiring after a successful intake", () => {
 
     const body = ctx.dispatch.lastRequest;
     expect(body).not.toBeUndefined();
-    expect(body?.orderId).toBe(orderRequest.id);
+    // order_id is the engine's own UUID, not this request's id (D-03).
+    expect(body?.orderId).toBe("00000000-0000-4000-8000-000000000001");
+    expect(orderRequest.orderId).toBe("00000000-0000-4000-8000-000000000001");
     expect(body?.orderPublicId).toBe("ORD-0000000001");
     expect(body?.zoneId).toBe(ZONE_A);
     expect(body?.orderType).toBe("ride");

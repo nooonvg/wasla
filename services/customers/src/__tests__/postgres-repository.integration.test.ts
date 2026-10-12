@@ -103,6 +103,7 @@ function requestInput(
     shipment: null,
     notes: "الاتصال قبل الوصول",
     orderPublicId: "ORD-0000000001",
+    orderId: "11111111-1111-4111-8111-111111111111",
     submittedAt: T0,
     failureReasonCode: null,
     createdAt: T0,
@@ -117,6 +118,7 @@ function failedRequestInput(
   return requestInput({
     status: "submission_failed",
     orderPublicId: null,
+    orderId: null,
     submittedAt: null,
     failureReasonCode: "CUSTOMER_ORDER_INTAKE_UNAVAILABLE",
     ...overrides,
@@ -380,6 +382,7 @@ describe.skipIf(!PG_ENABLED)("Customer Postgres adapter", () => {
     const submitted = await repo.updateOrderRequestOutcome(id(10), {
       status: "submitted",
       orderPublicId: "ORD-0000000001",
+      orderId: "11111111-1111-4111-8111-111111111111",
       submittedAt: T1,
       failureReasonCode: null,
       updatedAt: T1,
@@ -409,6 +412,7 @@ describe.skipIf(!PG_ENABLED)("Customer Postgres adapter", () => {
       repo.updateOrderRequestOutcome(id(99), {
         status: "submitted",
         orderPublicId: "ORD-0000000001",
+        orderId: "11111111-1111-4111-8111-111111111111",
         submittedAt: T1,
         failureReasonCode: null,
         updatedAt: T1,

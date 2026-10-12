@@ -188,6 +188,7 @@ function mapOrderRequest(
     shipment: toShipment(row),
     notes: row.notes,
     orderPublicId: row.orderPublicId,
+    orderId: row.orderId,
     submittedAt: toIso(row.submittedAt),
     failureReasonCode: row.failureReasonCode as IntakeFailureReason | null,
     createdAt: row.createdAt.toISOString(),
@@ -550,6 +551,7 @@ export class PostgresCustomerRepository implements CustomerRepository {
             weightKg: toNumeric(input.shipment?.weightKg ?? null),
             notes: input.notes,
             orderPublicId: input.orderPublicId,
+            orderId: input.orderId,
             submittedAt:
               input.submittedAt === null ? null : new Date(input.submittedAt),
             failureReasonCode: input.failureReasonCode,
@@ -598,6 +600,7 @@ export class PostgresCustomerRepository implements CustomerRepository {
       .set({
         status: outcome.status,
         orderPublicId: outcome.orderPublicId,
+        orderId: outcome.orderId,
         submittedAt:
           outcome.submittedAt === null ? null : new Date(outcome.submittedAt),
         failureReasonCode: outcome.failureReasonCode,

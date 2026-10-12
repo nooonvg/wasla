@@ -68,6 +68,7 @@ export interface InsertOrderRequestInput {
   readonly shipment: ShipmentDetails | null;
   readonly notes: string | null;
   readonly orderPublicId: string | null;
+  readonly orderId: string | null;
   readonly submittedAt: string | null;
   readonly failureReasonCode: IntakeFailureReason | null;
   readonly createdAt: string;
@@ -77,6 +78,7 @@ export interface InsertOrderRequestInput {
 export interface OrderRequestOutcome {
   readonly status: OrderRequestStatus;
   readonly orderPublicId: string | null;
+  readonly orderId: string | null;
   readonly submittedAt: string | null;
   readonly failureReasonCode: IntakeFailureReason | null;
   readonly updatedAt: string;
@@ -186,6 +188,8 @@ export interface OrderIntakeRequestInput {
 
 /** What the engine returns. It owns `orderPublicId` — this service never mints it. */
 export interface OrderIntakeResultOutput {
+  /** Engine's own UUID. Needed to open a dispatch job (D-03 · M5-13D). */
+  readonly orderId: string;
   readonly orderPublicId: string;
   readonly acceptedAt: string;
 }

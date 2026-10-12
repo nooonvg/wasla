@@ -324,6 +324,7 @@ export function createOrderApp(options: CreateOrderAppOptions): FastifyInstance 
     // comparing bodies, and the Phase 04 exit gate asserts this from the
     // handing-over side.
     return reply.status(outcome.replayed ? 200 : 201).send({
+      order_id: outcome.order.id,
       order_public_id: outcome.orderPublicId,
       accepted_at: outcome.acceptedAt,
     });

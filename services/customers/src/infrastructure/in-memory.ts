@@ -305,6 +305,7 @@ export class InMemoryCustomerRepository implements CustomerRepository {
       shipment: input.shipment,
       notes: input.notes,
       orderPublicId: input.orderPublicId,
+      orderId: input.orderId,
       submittedAt: input.submittedAt,
       failureReasonCode: input.failureReasonCode,
       createdAt: input.createdAt,
@@ -324,6 +325,7 @@ export class InMemoryCustomerRepository implements CustomerRepository {
       ...existing,
       status: outcome.status,
       orderPublicId: outcome.orderPublicId,
+      orderId: outcome.orderId,
       submittedAt: outcome.submittedAt,
       failureReasonCode: outcome.failureReasonCode,
       updatedAt: outcome.updatedAt,
@@ -411,6 +413,10 @@ export class RecordingOrderIntake implements OrderIntakePort {
         request: OrderIntakeRequestInput,
         attempt: number,
       ) => string;
+      readonly mintOrderId?: (
+        request: OrderIntakeRequestInput,
+        attempt: number,
+      ) => string;
     } = {},
   ) {}
 
@@ -435,7 +441,11 @@ export class RecordingOrderIntake implements OrderIntakePort {
     const orderPublicId =
       this.options.mintOrderPublicId?.(request, attempt) ??
       `ORD-${String(attempt).padStart(10, "0")}`;
-    return { orderPublicId, acceptedAt };
+    // The engine mints its own UUID; for tests a deterministic one is fine.
+    const orderId =
+      this.options.mintOrderId?.(request, attempt) ??
+      `00000000-0000-4000-8000-${String(attempt).padStart(12, "0")}`;
+    return { orderId, orderPublicId, acceptedAt };
   }
 }
 

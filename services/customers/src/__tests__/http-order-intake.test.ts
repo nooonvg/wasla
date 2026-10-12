@@ -110,7 +110,7 @@ afterEach(async () => {
   while (servers.length > 0) await servers.pop()?.close();
 });
 
-const ACCEPTED = { order_public_id: "ORD-0000000042", accepted_at: "2026-08-21T18:00:00.000Z" };
+const ACCEPTED = { order_id: "11111111-1111-4111-8111-111111111111", order_public_id: "ORD-0000000042", accepted_at: "2026-08-21T18:00:00.000Z" };
 
 function intakeInput(overrides: Partial<OrderIntakeRequestInput> = {}): OrderIntakeRequestInput {
   return {
@@ -169,6 +169,7 @@ describe("HttpOrderIntakePort — the handover on the wire", () => {
     const result = await port.submitOrderRequest(intakeInput());
 
     expect(result).toEqual({
+      orderId: "11111111-1111-4111-8111-111111111111",
       orderPublicId: "ORD-0000000042",
       acceptedAt: "2026-08-21T18:00:00.000Z",
     });
@@ -215,6 +216,7 @@ describe("HttpOrderIntakePort — the handover on the wire", () => {
     const port = new HttpOrderIntakePort({ baseUrl: engine.baseUrl, signRequest: TEST_SIGNER });
 
     await expect(port.submitOrderRequest(intakeInput())).resolves.toEqual({
+      orderId: "11111111-1111-4111-8111-111111111111",
       orderPublicId: "ORD-0000000042",
       acceptedAt: "2026-08-21T18:00:00.000Z",
     });

@@ -177,6 +177,10 @@ export async function startStubOrderEngine(
       response.writeHead(201, { "content-type": "application/json" });
       response.end(
         JSON.stringify({
+          // The engine's own UUID (D-03 · M5-13D): the real engine returns it, so
+          // the stub must too or the handover gate would pass against a reply
+          // the production adapter refuses.
+          order_id: `00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`,
           order_public_id: orderPublicId,
           accepted_at: new Date().toISOString(),
         }),

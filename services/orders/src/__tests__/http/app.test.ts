@@ -315,7 +315,7 @@ describe("GET /orders/lookup", () => {
 });
 
 describe("POST /orders/intake", () => {
-  it("accepts a fresh order with 201 and returns only the public id", async () => {
+  it("accepts a fresh order with 201 and returns the engine's ids and the public id", async () => {
     const { app } = fixture();
     const response = await post(app, "/orders/intake", intakeBody(), KEY, CUSTOMER);
 
@@ -323,9 +323,13 @@ describe("POST /orders/intake", () => {
     const body = response.json();
     expect(body.order_public_id).toMatch(/^ORD-\d{10}$/);
     expect(typeof body.accepted_at).toBe("string");
-    // The engine's internal id is NOT part of the answer: the caller addresses
-    // the order by its public id (ADR-010) and must not learn a second handle.
+    // `order_id` is the engine's own UUID and the only id `POST /dispatch/jobs`
+    // accepts as `order_id` (D-03 · M5-13D); it is not a second public handle —
+    // it is the service-to-service id dispatch needs. The public id remains the
+    // human/caller-facing reference (ADR-010).
+    expect(body.order_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     expect(body).toEqual({
+      order_id: body.order_id,
       order_public_id: body.order_public_id,
       accepted_at: body.accepted_at,
     });

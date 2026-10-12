@@ -420,6 +420,11 @@ export interface components {
             idempotency_key?: string;
         };
         OrderIntakeResult: {
+            /**
+             * Format: uuid
+             * @description مُعرّفُ الطلبِ عندَ المحرّكِ (D-03 · M5-13D) — يملكه المحرّكُ ولا تُولّدهُ خدمةُ العميلِ.
+             */
+            order_id: string;
             /** @description يملكه المحرّك — خدمة العميل تُخزّنه ولا تُولّده. */
             order_public_id: string;
             /** Format: date-time */

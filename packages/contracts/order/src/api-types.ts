@@ -367,6 +367,8 @@ export interface components {
             idempotency_key?: string;
         };
         OrderIntakeResult: {
+            /** Format: uuid */
+            order_id: string;
             order_public_id: components["schemas"]["OrderPublicId"];
             /** Format: date-time */
             accepted_at: string;
