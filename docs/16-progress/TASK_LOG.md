@@ -1,8 +1,8 @@
-# 2026-10-12 — CLM-0534 — M5-13D: جذرُ فجوةِ D-03 — `order_id` يُعادُ صريحاً في ردّ `orders/intake` ويُمرَّرُ لمهمّةِ التوزيع
+# 2026-10-12 — CLM-0535 + CLM-0534 — M5-13D: جذرُ فجوةِ D-03 — `order_id` يُعادُ صريحاً في ردّ `orders/intake` ويُمرَّرُ لمهمّةِ التوزيع
 
 - **Work Item(s):** M5-13D
 - **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
-- **Status:** In Progress — الكودُ والاختباراتُ والحوكمةُ محليّاً خضراءُ؛ الفرعُ مدفوعٌ، يتبعُ حكمُ CI ثمّ إغلاقُ الحجزِ في الطلبِ.
+- **Status:** In Progress — الكودُ والاختباراتُ والحوكمةُ محليّاً خضراءُ؛ الفرعُ مدفوعٌ، يتبعُ حكمُ CI ثمّ إغلاقُ الحجزِ في الطلبِ. **CLM-0535:** تحديثُ `ADR-010 §5b` لتوثيقِ قرارِ إعادةِ `order_id` في ردّ التسليمِ — لا كودَ، حجزٌ ثانٍ لأنَّ `WORK_CLAIM_RULE §6` يمنعُ توسيعَ نطاقِ حجزٍ قائمٍ بعدَ بدءِ الكتابةِ.
 - **Kind:** implementation — تحسينُ جذرِ فجوةِ D-03 (بدلَ حلٍّ شكليّ). الربطُ الأصليُّ (`CLM-0532`) كانَ يستخدمُ `request.id` كمُعرّفِ طلبِ المحرّكِ في `POST /dispatch/jobs` — لكنّ عقدَ التوزيعِ يُفسّرُ `order_id` دلالةً كمُعرّفِ `orders.id` عندَ المحرّكِ نفسِهِ، لا كمعرّفِ طلبِ العميلِ. هذا ليسَ «تحسّناً اختيارياً» بل إصلاحُ خطأِ دلالةٍ: مهمّةُ التوزيعِ المربوطةُ بمعرّفِ خاطئٍ لا تُعرَفُ كأصلٍ لطلبِ المحرّكِ، و`findByOrderId` و`POST /orders/:id/transitions` ستفشلُ على هذا المعرفِ.
 - **Risk(s):** R-028 / D-03 بنيويّ — خطرُ «معرّفٌ صحيحٌ شكلاً، خاطئٌ دلالةً».
 - **Evidence:** `pnpm -r typecheck` نجح (جميع الحزم) · `pnpm --filter @wasla/customers-service test` — 151/151 (بما فيها `dispatch-job-wiring.test.ts` يُثبتُ الآنَ `body.orderId` هو UUID المحرّكِ لا معرّفَ طلبِ العميل) · `pnpm --filter @wasla/orders-service test` — 660/660 (اختبار `orders/intake` الجديد يُثبتُ إعادةَ `order_id`) · `pnpm --filter @wasla/customer-e2e test` — 11/11 (exit gate على `HttpStubOrderIntake` مُعدَّلٌ) · `pnpm --filter @wasla/contracts-{order,customer} test` — عقدين مُساواةٍ (mirror) · `pnpm test` (root) أخضر (58+15) · `bash scripts/verify.sh` أخضر محليّاً (بوّابةُ الحوكمة 15/15) · BASELINE لقطةٌ جديدةٌ `2026-10-12T095500Z-verify-clm-0534.txt`.
