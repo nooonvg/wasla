@@ -1,3 +1,17 @@
+# 2026-10-13 — CLM-0539 — M0-08B: نسخُ CI الكاملةُ لا تُضحَّلُ — البابُ 4(ب) يُقاسُ فعلاً
+
+- **Work Item(s):** M0-08B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** In Progress — يتبعُ حكمُ CI على الفرعِ ثمَّ على `main` بعدَ الدمجِ (البرهانُ الحيُّ للبندِ كلِّه).
+- **Kind:** implementation — تصحيحُ سببٍ جذريٍّ اكتُشِفَ بحكمِ `main` بعدَ CLM-0538.
+- **Risk(s):** RISK-0028 → closed (لا تغيير في الحالة؛ اكتشافٌ مُسجَّلٌ بالإضافةِ)
+- **Evidence:** حكمُ `main` بعدَ دمجِ PR #694 [38306302226](https://github.com/skyosv10-art/wasla/actions/runs/38306302226) **failure** — `verify` **نجحَ** (نسخةٌ كاملةٌ على حدثِ الدفعِ: البابُ 4(ب) استرجعَ `78940ba4` من `origin`)، و`governance-guard` أخفقَ: سجلُّهُ يقولُ «⊘ البابُ 4: نسخةٌ ضحلةٌ — غيرُ مقيسٍ» ثمَّ «(repo.commit 78940ba43588 not importable from the real checkout)» ثمَّ ✗ «verify-governance يعمل في سياق git» (672 ناجح · 1 فاشل). السببُ: `git fetch origin "$TARGET:…" --depth=50` بعدَ `fetch-depth: 0` يُضحِّلُ النسخة.
+- **Deployment:** none — تغييرُ CI.
+- **No-Test-Reason:** الحكمُ هوَ تشغيلُ CI نفسِهِ على الفرعِ وعلى `main`؛ لا يُحاكى محلّيّاً.
+- **Changed (units):** `.github/workflows/ci.yml` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** حُذِفَ `--depth=50` من ثلاثِ جلباتٍ (`require-doc-update` و`governance-guard` و`verify` على الطلبات) — كلُّها في وظائفَ تخرجُ بتاريخٍ كاملٍ، والعُمقُ كانَ يقصُّهُ فقط. الحارسُ لم يُمَسّ، و`BASELINE.json` لم يُعَد توليدُهُ عمداً: ما زالَ يُشيرُ إلى `78940ba4` المحذوفِ فرعُهُ، فحكمُ `main` بعدَ هذا الدمجِ هوَ الاختبارُ الحيُّ للاسترجاع.
+- **Next:** حكمُ `main` أخضرُ بلا طلبِ لقطةٍ ⇒ M0-08B `Ready for Gate`.
+
 # 2026-10-12 — CLM-0538 — M0-08B: معالجةٌ بنيويّةٌ لـRISK-0028 — التزامُ الأساسِ يُسترجَعُ بعدَ الـsquash
 
 - **Work Item(s):** M0-08B

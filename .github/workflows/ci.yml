@@ -102,7 +102,7 @@ jobs:
       - name: require-doc-update
         run: |
           TARGET="${GITHUB_BASE_REF:-main}"
-          git fetch origin "$TARGET:refs/remotes/origin/$TARGET" --depth=50 2>/dev/null || true
+          git fetch origin "$TARGET:refs/remotes/origin/$TARGET" 2>/dev/null || true
           bash scripts/checks/require-doc-update.sh "origin/$TARGET" HEAD
 
   # ───────────────────────────────────────────────────────────────────
@@ -157,8 +157,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # CLM-0539 (M0-08B): no `--depth` here. This job checks out with
+          # fetch-depth: 0, and `git fetch --depth=50` silently turned that full
+          # clone shallow, so gate 4(b) of the baseline reported "shallow: not
+          # measured" in every run (measured: run 38306302226) and the proof
+          # suite could not import repo.commit. Updating the ref needs no depth.
           TARGET="${GITHUB_BASE_REF:-main}"
-          git fetch origin "$TARGET:refs/remotes/origin/$TARGET" --depth=50 2>/dev/null || true
+          git fetch origin "$TARGET:refs/remotes/origin/$TARGET" 2>/dev/null || true
           echo "==> بوابة الحوكمة: النطاق origin/$TARGET..HEAD"
           bash scripts/checks/verify-governance.sh "origin/$TARGET" HEAD
       # السببُ الجذريُّ (2) نفسُه في ADR-023 §6: `test-governance.sh` يُشغِّلُ
@@ -237,7 +242,7 @@ jobs:
       - name: verify.sh
         run: |
           if [[ -n "${GITHUB_BASE_REF:-}" ]]; then
-            git fetch origin "$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" --depth=50 2>/dev/null || true
+            git fetch origin "$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" 2>/dev/null || true
             bash scripts/verify.sh "origin/$GITHUB_BASE_REF" HEAD
           else
             bash scripts/verify.sh
