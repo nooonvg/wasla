@@ -1,3 +1,17 @@
+# 2026-10-13 — CLM-0541 — M0-08B: الإغلاقُ بقرارِ مالكِ البرنامج (Ready for Gate → Completed)
+
+- **Work Item(s):** M0-08B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer) — المنفِّذ؛ **والقرارُ لمالكِ البرنامجِ لا للمنفِّذ**
+- **Status:** Ready for Gate → Completed
+- **Kind:** owner-decision — قرارُ مالكِ البرنامجِ المُعتمَدُ بنقلِ M0-08B إلى `Completed`، مُبلَّغٌ صريحاً إلى المنفِّذِ في 2026-10-13 بقائمةِ الأدلّةِ المعتمدةِ نفسِها؛ مرجعُهُ STATUS_MODEL §2.8 (سلطةُ `COMPLETED` لمالكِ البرنامجِ وحدَه) وملفُّ البوّابة `docs/12-testing/M0-08B_GATE.md`؛ ويراهُ مراجعو CODEOWNERS في طلبِ الإغلاق.
+- **Risk(s):** RISK-0028 → closed (لا تغيير في الحالة؛ مُغلَقٌ منذ 2026-09-30 بـCLM-0414، وهذا البندُ عالجَ أثرَهُ الجانبيَّ)
+- **Evidence:** [PR #694](https://github.com/skyosv10-art/wasla/pull/694) (الاسترجاعُ البنيويُّ لالتزامِ الأساس) · [PR #695](https://github.com/skyosv10-art/wasla/pull/695) (إصلاحُ عمقِ الجلبِ الذي منعَ القياسَ على النسخةِ الكاملة) · [PR #696](https://github.com/skyosv10-art/wasla/pull/696) (حكمُ `main` الأخضرُ و`Ready for Gate`) · `main` `90ab63eec22fb3c866b856c5626209adfbc6fc1c` · WASLA CI [38316980962](https://github.com/skyosv10-art/wasla/actions/runs/38316980962) success (40 وظيفةً · 40 بدأت · 40 success) · Roadmap freshness [38316981000](https://github.com/skyosv10-art/wasla/actions/runs/38316981000) success · Merged branch cleanup [38316981622](https://github.com/skyosv10-art/wasla/actions/runs/38316981622) success · `BASELINE.repo.commit` = `78940ba4` ليسَ في تاريخِ `main` (`git merge-base --is-ancestor` ⇒ لا) ولم يُعَد توليدُهُ ولم يُفتَح طلبُ لقطةٍ ثانٍ · `governance-guard` و`verify` على `90ab63ee` سجّلا «غائبٌ محلّيّاً فاستُرجِعَ من `origin`» وحزمةُ الإثباتِ 673/0.
+- **Deployment:** none — docs-only؛ حارسُ حوكمةٍ لا يُنشَر.
+- **No-Test-Reason:** سجلُّ قرارٍ لا كودَ؛ الأدلّةُ تشغيلاتُ CI المذكورة.
+- **Changed (units):** `docs/12-testing/M0-08B_GATE.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** الأدلّةُ الثلاثةُ المستقلّةُ (Implementation · Verification · Gate على `main`) اجتمعت، فأُتيحَ الطلبُ، وصدرَ قرارُ المالكِ بالنقل. أُنشِئَ ملفُّ البوّابةِ لأنَّ STATUS_MODEL §2.1 يمنعُ `COMPLETED` قبلَ GATED. **لم يُمَسَّ** `BASELINE.json` ولا الحارسُ ولا حمايةُ `main`.
+- **Next:** **هذا الإغلاقُ لا يُغلِقُ بوّاباتِ الإصدارِ ولا مخاطرَ المشروعِ الأخرى**؛ تبقى البنودُ المحكومةُ بالبنيةِ الحيّةِ أو بقرارِ المالكِ (R-02 · R-07 · P-03..P-05) كما هي.
+
 # 2026-10-13 — CLM-0540 — M0-08B: حكمُ main أخضرُ بلا لقطةٍ ثانيةٍ — البرهانُ الحيُّ لمعالجةِ RISK-0028
 
 - **Work Item(s):** M0-08B

@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0541 (2026-10-13): M0-08B `Completed` بقرارِ مالكِ البرنامجِ — البوّابةُ `docs/12-testing/M0-08B_GATE.md` بالأدلّةِ الثلاثةِ (PR #694 · PR #695 · `main` `90ab63ee` WASLA CI 38316980962 40/40). لا يُغلِقُ بوّاباتِ الإصدارِ ولا مخاطرَ المشروعِ الأخرى. راجع `docs/16-progress/TASK_LOG.md` (CLM-0541).
+
 CLM-0540 (2026-10-13): M0-08B `Ready for Gate` — `main` `522197d2` أخضرُ (WASLA CI 38309988128 success 42/42) و`BASELINE.repo.commit` ما زالَ التزامَ فرعٍ محذوفٍ (`78940ba4`) بلا طلبِ لقطةٍ ثانٍ: معالجةُ RISK-0028 مقيسةٌ حيّاً. راجع `docs/16-progress/TASK_LOG.md` (CLM-0540).
 
 CLM-0539 (2026-10-13): M0-08B — حكمُ `main` 38306302226 كشفَ أنَّ `git fetch --depth=50` في `.github/workflows/ci.yml` يُضحِّلُ نسخَ `fetch-depth: 0` فلم يُقَس البابُ 4(ب) في `governance-guard` قطُّ؛ حُذِفَ العمقُ من الجلباتِ الثلاث. راجع `docs/16-progress/TASK_LOG.md` (CLM-0539).
