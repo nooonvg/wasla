@@ -242,8 +242,10 @@ for f in "$BOARD" "$VC"; do
   [[ -f "$f" ]] || continue
   grep -q "BASELINE" "$f" || { PROBLEMS+=("البابُ 4: لا إحالةَ إلى الأساسِ في ${f#$ROOT/} — أساسٌ لا يُحال إليه لا يُحدَّث."); ((D4++)); }
 done
-DOOR4="$(python3 - "$BASE" "$ROOT" <<'PY'
-import json, os, subprocess, sys
+DOOR4="$(python3 - "$BASE" "$ROOT" "$LIB" <<'PY'
+import json, os, sys
+sys.path.insert(0, sys.argv[3])
+import baseline_commit
 doc = json.load(open(sys.argv[1], encoding="utf-8"))
 root = sys.argv[2]
 dyn = doc.get("dynamic") or {}
@@ -286,18 +288,22 @@ else:
 # (b) `repo.commit` must resolve when the checkout has full history
 #     (governance-guard uses fetch-depth: 0). A shallow or non-git root is
 #     reported, not silently passed.
+#     CLM-0538 (structural fix of the RISK-0028 recurrence): the baseline is
+#     measured on a branch, and the squash merge deletes that branch, so the
+#     recorded commit vanished from every fetched ref and `main` went red after
+#     each PR that touched BASELINE.json (PR #688 -> CLM-0533, PR #691 ->
+#     CLM-0536). The commit still exists in the repository of record (GitHub
+#     keeps refs/pull/N/head). `baseline_commit.ensure` retrieves exactly that
+#     SHA from origin when the local cache lacks it. A SHA that exists nowhere
+#     still fails here.
 commit = str(repo.get("commit", ""))
-try:
-    shallow = subprocess.run(["git", "-C", root, "rev-parse", "--is-shallow-repository"],
-                             capture_output=True, text=True).stdout.strip()
-except Exception:
-    shallow = ""
-if shallow == "false":
-    if subprocess.run(["git", "-C", root, "cat-file", "-e", commit + "^{commit}"],
-                      capture_output=True).returncode != 0:
-        problems.append("البابُ 4: `repo.commit` = %s لا يُحَلُّ في المستودعِ — أساسٌ لا يُرجَعُ إلى التزامٍ قائمٍ (RISK-0028)." % commit[:12])
-elif shallow == "true":
+status, detail = baseline_commit.ensure(root, commit)
+if status == "fetched":
+    print("N|البابُ 4: `repo.commit` = %s غائبٌ محلّيّاً فاستُرجِعَ من `origin` بمعرّفِهِ — موجودٌ في المستودعِ المرجعيِّ (CLM-0538)." % commit[:12])
+elif status == "shallow":
     print("N|البابُ 4: نسخةٌ ضحلةٌ — حلُّ `repo.commit` غيرُ مقيسٍ هنا (يُقاس في governance-guard بـfetch-depth: 0).")
+elif status in ("missing", "invalid"):
+    problems.append("البابُ 4: `repo.commit` = %s لا يُحَلُّ في المستودعِ ولا في `origin` — أساسٌ لا يُرجَعُ إلى التزامٍ قائمٍ (RISK-0028) · %s." % (commit[:12], detail))
 if repo.get("dirty") and not str(repo.get("dirty_reason", "")).strip():
     problems.append("البابُ 4: الأساسُ وُلِّد من شجرةٍ مُعدَّلةٍ بلا `repo.dirty_reason` — شجرةٌ مُعدَّلةٌ بلا سببٍ مكتوبٍ تجعل الأساسَ غيرَ قابلٍ للإرجاع.")
 for p in problems:
