@@ -1,3 +1,17 @@
+# 2026-10-12 — CLM-0536 — M5-13D: إعادةُ لقطةِ الأساسِ على main بعدَ دمجِ PR #691 (RISK-0028)
+
+- **Work Item(s):** M5-13D
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — الدمجُ هو الإفراج؛ `main` سيُقاسُ مُباشرةً بعدَ الدمج.
+- **Kind:** state-correction — دمجُ PR #691 بالـsquash جعلَ `repo.commit` في `docs/12-testing/BASELINE.json` (`88ce3437`) غيرَ قابلٍ للحلِّ في `main`. صُحِّحَ بإعادةِ اللقطةِ على `da48932b` دونَ تخفيفِ الفحص.
+- **Risk(s):** RISK-0028 — نمطٌ مُسجَّلٌ (CLM-0533): كلُّ PR يلمسُ `BASELINE.json` يتركُ main أحمرَ حتى لقطةٍ ثانيةٍ بعدَ الدمج.
+- **Evidence:** فرعُ PR #691 WASLA CI [38245177579](https://github.com/skyosv10-art/wasla/actions/runs/38245177579) **success** (بعدَ إصلاحِ تخزينِ `orderId` في `insertOrderRequest` و`updateOrderRequestOutcome` لرضا `port-conformance`) · `main` بعدَ الدمجِ [38248408334](https://github.com/skyosv10-art/wasla/actions/runs/38248408334) **failure** (`verify` و`governance-guard`: فحصُ الأساسِ 11 البابُ 4) · هذا PR [#692](https://github.com/skyosv10-art/wasla/pull/692) — ستُقرأ أحكامُ CI بعدَ الدمجِ.
+- **Deployment:** none — docs-only؛ Render لا يُطلَقُ (paths-ignore).
+- **No-Test-Reason:** تصحيحُ سجلٍّ لا كودَ؛ التحقّقُ آليٌّ.
+- **Changed (units):** `docs/12-testing/BASELINE.json` · `docs/12-testing/BASELINE.txt` · `docs/12-testing/baseline-sources/2026-10-12T122500Z-verify-clm-0536.txt` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
+- **What / Why:** لا تُخفَّفُ البوّابةُ ولا تُسكَّت؛ يُصحَّحُ السببُ الجذريُّ (لقطةٌ على التزامِ `main`) كما في CLM-0533.
+- **Next:** قراءةُ حكمِ `main` بعدَ دمجِ هذا الطلبِ ثمَّ اختيارُ البندِ التالي القابلِ للتنفيذِ من الخارطةِ.
+
 # 2026-10-12 — CLM-0535 + CLM-0534 — M5-13D: جذرُ فجوةِ D-03 — `order_id` يُعادُ صريحاً في ردّ `orders/intake` ويُمرَّرُ لمهمّةِ التوزيع
 
 - **Work Item(s):** M5-13D
