@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-12T06:15:18Z
-الالتزام: 9f576d8acc123903aa4909925ae02386592e080a  الفرع: feat/clm-0532-m5-13d-dispatch-job-wiring  شجرةٌ مُعدَّلةٌ (1 ملفّاً)
+التاريخ (UTC): 2026-10-12T07:13:08Z
+الالتزام: 5b0dbd0809e70e2a4eb9570b54006164a292c062  الفرع: main  شجرةٌ مُعدَّلةٌ (1 ملفّاً)
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
 القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
@@ -15,7 +15,7 @@
   governance_checks          28
   risks_not_closed           23
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/baseline-sources/2026-10-12T063500Z-verify-clm-0532.txt):
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/baseline-sources/2026-10-12T065500Z-verify-clm-0532-main.txt):
   tests_passed               6078
   test_files_executed        432
   governance_suite_cases     671
