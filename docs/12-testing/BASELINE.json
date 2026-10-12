@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-12T04:58:04Z",
+  "generated_at": "2026-10-12T06:15:18Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "7d37629f5289f1223c7a65ded5f9e211de3b9937",
+    "commit": "9f576d8acc123903aa4909925ae02386592e080a",
     "branch": "feat/clm-0532-m5-13d-dispatch-job-wiring",
     "dirty": true,
-    "dirty_files": 32,
+    "dirty_files": 1,
     "dirty_reason": "CLM-0532: M5-13D — dispatch job creation wiring (D-03): DispatchJobPort+HttpDispatchJobPort+UnavailableDispatchJob/RecordingDispatchJob, pickup-zone dispatch, idempotent POST /dispatch/jobs, bots/e2e wiring, .env.example, env-registry (DISPATCH_SERVICE_TIMEOUT_MS), authz-policy grant (dispatch:job:write), TASK_LOG/ROADMAP/board/state docs, BASELINE + baseline-sources new (74→74 packages, 567→568 test files)",
-    "tracked_files": 3203
+    "tracked_files": 3207
   },
   "env": {
     "node": "v20.20.2",
@@ -34,7 +34,7 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-12T053000Z-verify-clm-0532.txt",
+    "source": "docs/12-testing/baseline-sources/2026-10-12T063500Z-verify-clm-0532.txt",
     "tests_passed": 6078,
     "test_files_executed": 432,
     "governance_suite_cases": 671,
