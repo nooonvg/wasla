@@ -551,6 +551,7 @@ export class PostgresCustomerRepository implements CustomerRepository {
             weightKg: toNumeric(input.shipment?.weightKg ?? null),
             notes: input.notes,
             orderPublicId: input.orderPublicId,
+            orderId: input.orderId,
             submittedAt:
               input.submittedAt === null ? null : new Date(input.submittedAt),
             failureReasonCode: input.failureReasonCode,
