@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0538 (2026-10-12): M0-08B — معالجةٌ بنيويّةٌ لـRISK-0028: البابُ 4(ب) في `scripts/checks/validate-baseline.sh` يسترجعُ `repo.commit` الغائبَ بعدَ الـsquash من `origin` بمعرّفِهِ (`scripts/checks/lib/baseline_commit.py`)، فلا يحتاجُ كلُّ طلبٍ يلمسُ `BASELINE.json` طلبَ لقطةٍ ثانياً؛ المعرّفُ المعدومُ يبقى يُسقِط. راجع `docs/16-progress/TASK_LOG.md` (CLM-0538).
+
 CLM-0537 (2026-10-12 14:30 UTC): صُحِّحَت واقعةُ RISK-0028 (النمطُ نفسُهُ لم يُعالَج بنيويّاً) — `main` أخضرُ (WASLA CI 38262905066 success · Roadmap freshness 38262905172 success) بعدَ دمجِ PR [#692](https://github.com/skyosv10-art/wasla/pull/692). M5-13D `Ready for Gate`؛ D-03 `COMPLETE (الشقيقُ)`. راجع `docs/16-progress/TASK_LOG.md` (CLM-0536).
 
 CLM-0536 (تحديث 2026-10-12 13:05 UTC): RISK-0028 يُكرَّرُ — لقطةُ الأساسِ في `docs/12-testing/BASELINE.json` كانَت تُشيرُ إلى `88ce3437` (التزامُ الفرعِ المدمَجِ بالـsquash). مُعادٌ التوليدُ على `da48932b` معَ `dirty_reason`. لا كودَ؛ راجع `docs/16-progress/TASK_LOG.md` (CLM-0536).

@@ -1,3 +1,17 @@
+# 2026-10-12 — CLM-0538 — M0-08B: معالجةٌ بنيويّةٌ لـRISK-0028 — التزامُ الأساسِ يُسترجَعُ بعدَ الـsquash
+
+- **Work Item(s):** M0-08B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** In Progress — الحارسُ وحالاتُ الإثباتِ محلّيّاً خضراءُ؛ يتبعُ حكمُ CI على الفرعِ ثمَّ على `main` بعدَ الدمجِ **بلا** طلبِ لقطةٍ ثانٍ.
+- **Kind:** implementation — تغييرُ حارسٍ (البابُ 4(ب) في `scripts/checks/validate-baseline.sh`) بأمرِ المالكِ «عالِج RISK-0028 بنيويًا في حارس الأساس».
+- **Risk(s):** RISK-0028 — تصحيحٌ بالإضافةِ في السجلِّ، والحالةُ تبقى `closed`.
+- **Evidence:** إعادةُ إنتاجِ العطلِ الحقيقيِّ: نسخةُ `main` وحدَها على `da48932b` (الأساسُ يُسجِّلُ `88ce3437`) — الحارسُ القديمُ يُسقِطُ البابَ 4، والجديدُ يسترجعُ الالتزامَ من `origin` بمعرّفِهِ ويمرّ · معرّفٌ مُختلَقٌ (`297a9148…`) يُرفَضُ من `origin` بـ«not our ref» · `bash scripts/checks/test-governance.sh` — 674 ناجح · 0 فاشل (منها 3 حالاتٍ جديدةٍ CLM-0538) · برهانُ الطفرةِ: حالةُ الـsquash المُحاكاةُ يُسقِطُها الحارسُ القديمُ ويُمرِّرُها الجديدُ.
+- **Deployment:** none — حارسُ حوكمةٍ لا يُنشَر.
+- **No-Test-Reason:** لا ينطبقُ — الحالاتُ في `scripts/checks/test-governance.sh`.
+- **Changed (units):** `scripts/checks/validate-baseline.sh` · `scripts/checks/lib/baseline_commit.py` · `scripts/checks/test-governance.sh` · `docs/12-testing/BASELINE_FORMAT.md` · `docs/12-testing/BASELINE.json` · `docs/12-testing/BASELINE.txt` · `docs/12-testing/baseline-sources/` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** الأساسُ يُقاسُ على الفرعِ، والـsquash يحذفُ الفرعَ، فكانَ البابُ 4(ب) يقيسُ **النسخةَ المحلّيّةَ** لا **المستودعَ المرجعيَّ** ويُسقِطُ `main` بعدَ كلِّ طلبٍ يلمسُ `BASELINE.json` (PR #688 → CLM-0533 · PR #691 → CLM-0536). والالتزامُ قائمٌ في GitHub (`refs/pull/N/head`). فصارَ `baseline_commit.py` مصدراً واحداً يستعملُهُ الحارسُ وحزمةُ الإثباتِ: يحلُّ محلّيّاً، وإلّا يجلبُ ذلك المعرّفَ وحدَهُ من `origin`. لم يُخفَّف شيءٌ: المعرّفُ المعدومُ وغيابُ `origin` والشبكةِ والمهلةُ كلُّها تُسقِط، والضحلةُ تُعلَنُ غيرَ مقيسةٍ.
+- **Next:** حكمُ CI على الفرعِ، ثمَّ الدمجُ، ثمَّ قراءةُ حكمِ `main` — هو البرهانُ الحيُّ أنَّ الطلبَ الثانيَ لم يعُد لازماً.
+
 # 2026-10-12 — CLM-0537 — M5-13D: تسجيلُ حكمِ main الأخضرِ بعدَ CLM-0536
 
 - **Work Item(s):** M5-13D
