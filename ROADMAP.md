@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0533 (2026-10-12): M5-13D — حكمُ CI الفعليُّ بعدَ دمجِ PR #688: فرعٌ أخضرُ 41/41 (38211658585)، و`main` أحمرُ (38212918677) لأنَّ التزامَ لقطةِ الأساسِ لا يُحَلُّ بعدَ الـsquash (RISK-0028)؛ صُحِّحَ بلقطةٍ على `5b0dbd08` دونَ تخفيفِ الفحص. M5-13D `Ready for Gate`، وD-03 تبقى PARTIAL (فجوةُ `order_id` في عقدِ الاستلام). راجع `docs/16-progress/TASK_LOG.md`.
+
 CLM-0532 (2026-10-12): M5-13D — سدُّ فجوةِ D-03: `services/customers` يُنشئُ مهمّةَ توزيعٍ بعدَ نجاحِ `POST /orders/intake` عبرَ منفذٍ موقَّعٍ جديدٍ (`HttpDispatchJobPort` · `dispatch:job:write` حصراً · مفتاحُ انتيشارٍ `dispatch-job-<request_id>` · فشلُ التوزيعِ لا يُغيّرُ حالةَ الطلب). مُحدَّثٌ: `services/customers/` · `bots/customer-bot/` · `packages/{customer,dispatch,driver,order,negotiation}-e2e/` · `.env.example` (DISPATCH_SERVICE_TIMEOUT_MS) · `packages/config/` · `packages/authz-policy/` · `docs/07-security/` · `docs/12-testing/` · `docs/16-progress/`. راجع `docs/16-progress/TASK_LOG.md` (CLM-0532).
 
 CLM-0528 (2026-10-11): أحكامُ ما بعد دمج PR #682 (CLM-0526) — main `221a2c4b` أخضرُ بالكامل (WASLA CI 38109270230 · 40/40 · Roadmap freshness 38109270299 · branch cleanup verified deleted)؛ Render deploy لم يُطلق عمدًا (docs-only). وPR #683 (هذه الدفعة) دُمج أيضًا على `82dcbf5c` بأحكامٍ خضراءٍ (WASLA CI 38112713106 · freshness 38112713113 · branch cleanup verified). لا حجز نشط. البندُ التالي في الخارطةِ قرارُ مالكٍ مستقلّ (ADR-069 §2.6-9): فتحُ `production_open=true` لقائمةِ سماحٍ قبلَ كتابةِ الأدلةِ الحيّةِ E-01..E-27.
