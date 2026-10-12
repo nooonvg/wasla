@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0540 (2026-10-13): M0-08B `Ready for Gate` — `main` `522197d2` أخضرُ (WASLA CI 38309988128 success 42/42) و`BASELINE.repo.commit` ما زالَ التزامَ فرعٍ محذوفٍ (`78940ba4`) بلا طلبِ لقطةٍ ثانٍ: معالجةُ RISK-0028 مقيسةٌ حيّاً. راجع `docs/16-progress/TASK_LOG.md` (CLM-0540).
+
 CLM-0539 (2026-10-13): M0-08B — حكمُ `main` 38306302226 كشفَ أنَّ `git fetch --depth=50` في `.github/workflows/ci.yml` يُضحِّلُ نسخَ `fetch-depth: 0` فلم يُقَس البابُ 4(ب) في `governance-guard` قطُّ؛ حُذِفَ العمقُ من الجلباتِ الثلاث. راجع `docs/16-progress/TASK_LOG.md` (CLM-0539).
 
 CLM-0538 (2026-10-12): M0-08B — معالجةٌ بنيويّةٌ لـRISK-0028: البابُ 4(ب) في `scripts/checks/validate-baseline.sh` يسترجعُ `repo.commit` الغائبَ بعدَ الـsquash من `origin` بمعرّفِهِ (`scripts/checks/lib/baseline_commit.py`)، فلا يحتاجُ كلُّ طلبٍ يلمسُ `BASELINE.json` طلبَ لقطةٍ ثانياً؛ المعرّفُ المعدومُ يبقى يُسقِط. راجع `docs/16-progress/TASK_LOG.md` (CLM-0538).

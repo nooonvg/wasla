@@ -1,3 +1,17 @@
+# 2026-10-13 — CLM-0540 — M0-08B: حكمُ main أخضرُ بلا لقطةٍ ثانيةٍ — البرهانُ الحيُّ لمعالجةِ RISK-0028
+
+- **Work Item(s):** M0-08B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Ready for Gate — معيارُ الخروجِ مقيسٌ على `main`؛ الإغلاقُ `Completed` بقرارِ المالك.
+- **Kind:** state-correction — لوحةُ التنفيذِ تقولُ M0-08B `In Progress` وسجلُّ CLM-0539 «يتبعُ حكمُ main»، والحكمُ صدرَ أخضرَ؛ هذا يُصحِّحُ السجلَّينِ بالقياسِ.
+- **Risk(s):** RISK-0028 → closed (لا تغيير في الحالة؛ تكرارُهُ بعدَ الـsquash عولِجَ ومُقاسٌ حيّاً)
+- **Evidence:** WASLA CI على `main` `522197d2` [38309988128](https://github.com/skyosv10-art/wasla/actions/runs/38309988128) **success 42/42** · Roadmap freshness [38309988038](https://github.com/skyosv10-art/wasla/actions/runs/38309988038) success · `BASELINE.repo.commit` = `78940ba4` و`git merge-base --is-ancestor 78940ba4 522197d2` ⇒ ليسَ في تاريخِ `main` · على فرعِ PR #695 سجّلَ `governance-guard` «غائبٌ محلّيّاً فاستُرجِعَ من `origin`» وحزمةُ الإثباتِ 673/0. قبلَها: PR #688 وPR #691 تركا `main` أحمرَ واحتاجا CLM-0533 وCLM-0536.
+- **Deployment:** none — docs-only.
+- **No-Test-Reason:** تسجيلُ حكمٍ لا كودَ.
+- **Changed (units):** `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** M0-08B مُنجَزٌ هندسيّاً: البابُ 4(ب) يسترجعُ التزامَ الأساسِ من `origin` (CLM-0538)، ونسخُ CI الكاملةُ لم تعُد تُضحَّلُ فصارَ البابُ مقيساً فعلاً (CLM-0539). وهذا الطلبُ لا يلمسُ `BASELINE.json`.
+- **Next:** قرارُ المالكِ بإغلاقِ M0-08B؛ ثمَّ البنودُ المحكومةُ بالبنيةِ الحيّةِ أو بقرارِ المالكِ (R-02 · R-07 · P-03..P-05).
+
 # 2026-10-13 — CLM-0539 — M0-08B: نسخُ CI الكاملةُ لا تُضحَّلُ — البابُ 4(ب) يُقاسُ فعلاً
 
 - **Work Item(s):** M0-08B
