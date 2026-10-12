@@ -599,6 +599,7 @@ export class PostgresCustomerRepository implements CustomerRepository {
       .set({
         status: outcome.status,
         orderPublicId: outcome.orderPublicId,
+        orderId: outcome.orderId,
         submittedAt:
           outcome.submittedAt === null ? null : new Date(outcome.submittedAt),
         failureReasonCode: outcome.failureReasonCode,
