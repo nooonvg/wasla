@@ -1,3 +1,17 @@
+# 2026-10-12 — CLM-0537 — M5-13D: تسجيلُ حكمِ main الأخضرِ بعدَ CLM-0536
+
+- **Work Item(s):** M5-13D
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Released — دُمجَ PR [#692](https://github.com/skyosv10-art/wasla/pull/692) (squash `2e7080b1`)؛ `main` أخضرُ.
+- **Kind:** state-correction — إدخالُ السجلِّ السابقُ لم يكن صريحَ الاسمِ (حجزُ CLM-0537 لا 0536) ولوحةُ التنفيذِ ما زالتْ تقولُ M5-13D In Progress رغمَ أنَّهُ محسومٌ هندسيّاً (D-03 COMPLETE)؛ وصياغةُ RISK-0028 «مُغلقةٌ» خاطئةٌ — هذه الواقعةُ صُحِّحَتْ والنمطُ نفسُهُ لم يُعالَج بنيويّاً. هذا يُصلِحُ سجلَّ D-03 وجميعَ العناصرِ المحكومةِ بقرارِ المالكِ (بنودُ R-02/R-07/P-03..P-05) لا يُغلقُها هذا التصحيح.
+- **Risk(s):** RISK-0028 — صُحِّحَت هذه الواقعةُ فقط (لقطةٌ على التزامِ main)؛ النمطُ يتكرّرُ مع كلِّ PR يلمسُ `BASELINE.json` ولم يُعالَج بنيويّاً.
+- **Evidence:** WASLA CI على `main` [38262905066](https://github.com/skyosv10-art/wasla/actions/runs/38262905066) **success** · Roadmap freshness [38262905172](https://github.com/skyosv10-art/wasla/actions/runs/38262905172) **success** · `bash scripts/verify.sh` على `main` `2e7080b1` أخضرُ محليّاً · `python3 scripts/checks/lib/state_sync.py origin/main HEAD` PASS.
+- **Deployment:** Render deploy [38248407442](https://github.com/skyosv10-art/wasla/actions/runs/38248407442) success (PR #691) — docs-only لا يُطلَقُ هنا.
+- **No-Test-Reason:** تصحيحُ سجلٍّ لا كودَ.
+- **Changed (units):** `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/12-testing/ENGINEERING_COMPLETION_MATRIX.md`
+- **What / Why:** M5-13D يُعادُ إلى `Ready for Gate` في اللوحةِ (D-03 `COMPLETE (الشقيقُ)`)؛ `order_id` مُعادٌ ومُخزَّنٌ ومُمرَّرٌ (CLM-0534+0535). لا `Completed` بلا إثباتٍ إنتاجيٍّ حيٍّ (§9).
+- **Next:** اختبارُ البندِ التالي القابلِ للتنفيذِ من الخارطةِ: ر-02 · ر-07 · P-03..P-05 (بنودُ قرارِ المالكِ/بِنيةٍ حيّة) أو أمرٌ جديدٌ من المالكِ.
+
 # 2026-10-12 — CLM-0536 — M5-13D: إعادةُ لقطةِ الأساسِ على main بعدَ دمجِ PR #691 (RISK-0028)
 
 - **Work Item(s):** M5-13D
