@@ -49,7 +49,11 @@ PROOF_BASE_HEAD="$(git rev-parse HEAD)"
 # from the real repository (object only, under a private ref). The gate is not
 # relaxed: if the real checkout lacks the commit, the git-context case fails.
 _BASE_COMMIT="$(python3 -c "import json;print((json.load(open('docs/12-testing/BASELINE.json')).get('repo') or {}).get('commit',''))" 2>/dev/null)"
+# CLM-0538: after a squash merge the recorded commit is absent from the real
+# checkout too; retrieve it there by SHA with the same helper the gate uses,
+# so the proof repo imports the same object the gate would resolve.
 if [[ -n "$_BASE_COMMIT" ]]; then
+  python3 "$REPO_ROOT/scripts/checks/lib/baseline_commit.py" "$REPO_ROOT" "$_BASE_COMMIT" >/dev/null 2>&1 || true
   git fetch -q "$REPO_ROOT" "$_BASE_COMMIT:refs/baseline/recorded" >/dev/null 2>&1 \
     || printf '  (repo.commit %s not importable from the real checkout — the git-context case will report it)\n' "${_BASE_COMMIT:0:12}"
 fi
@@ -2086,6 +2090,40 @@ B_TAMPER="$(_base_root tamper)"; _base_mut "$B_TAMPER" 'd["dynamic"]["tests_pass
 t "رقمُ اختباراتٍ لا يُطابقُ مجموعَ المصدرِ يُسقِط (RISK-0028)" fail bash "$BASE_SRC" "$B_TAMPER"
 B_NOCOMMIT="$(_base_root nocommit)"; _base_mut "$B_NOCOMMIT" 'd["repo"]["commit"]="297a9148edf536de7324df47168119aa46186646"'
 t "التزامُ الأساسِ الذي لا يُحَلُّ يُسقِط (RISK-0028)" fail bash "$BASE_SRC" "$B_NOCOMMIT"
+
+# CLM-0538 (structural fix of the RISK-0028 recurrence): simulate a squash
+# merge. The baseline records the branch commit C1; the "main" checkout has the
+# same tree under a new parentless commit and no longer contains C1. The
+# repository of record (a bare `origin`) keeps C1 only under refs/pull/1/head,
+# as GitHub does. The gate must retrieve C1 by SHA and pass. When origin lacks
+# the SHA as well, it must still fail.
+_base_squash() { # _base_squash <جذر> <keep-pull-ref: yes|no>
+  local R="$1" keep="$2" C1 OLD O
+  C1="$(git -C "$R" rev-parse HEAD)"
+  OLD="$(git -C "$R" symbolic-ref --short HEAD)"
+  O="${R}.origin.git"
+  rm -rf "$O"
+  git clone -q --bare --no-local "$R" "$O" >/dev/null 2>&1
+  git -C "$O" update-ref refs/pull/1/head "$C1"
+  git -C "$O" for-each-ref --format='%(refname)' refs/heads | while read -r ref; do git -C "$O" update-ref -d "$ref"; done
+  if [[ "$keep" == "no" ]]; then
+    git -C "$O" update-ref -d refs/pull/1/head
+    git -C "$O" reflog expire --expire=now --all >/dev/null 2>&1
+    git -C "$O" gc -q --prune=now >/dev/null 2>&1
+  fi
+  ( cd "$R" && git checkout -q --orphan squashed && git -c user.email=t@t -c user.name=t commit -q -m squashed \
+    && git branch -q -D "$OLD" && git reflog expire --expire=now --all && git gc -q --prune=now ) >/dev/null 2>&1
+  git -C "$R" remote add origin "file://$O"
+  git -C "$R" cat-file -e "${C1}^{commit}" 2>/dev/null && printf '  (squash fixture: C1 still local — case is not measuring retrieval)\n'
+  return 0
+}
+B_SQUASH="$(_base_root squash)"; _base_squash "$B_SQUASH" yes
+t "التزامُ الأساسِ الغائبُ بعدَ الـsquash يُسترجَعُ من origin بمعرّفِهِ فيمرّ (CLM-0538)" pass bash "$BASE_SRC" "$B_SQUASH"
+B_SQGONE="$(_base_root sqgone)"; _base_squash "$B_SQGONE" no
+t "التزامُ الأساسِ الغائبُ محلّيّاً وفي origin يُسقِط (CLM-0538)" fail bash "$BASE_SRC" "$B_SQGONE"
+B_NOCOMMIT_O="$(_base_root nocommito)"; _base_mut "$B_NOCOMMIT_O" 'd["repo"]["commit"]="297a9148edf536de7324df47168119aa46186646"'
+git clone -q --bare --no-local "$B_NOCOMMIT_O" "${B_NOCOMMIT_O}.origin.git" >/dev/null 2>&1; git -C "$B_NOCOMMIT_O" remote add origin "file://${B_NOCOMMIT_O}.origin.git"
+t "التزامٌ لا وجودَ له يُسقِطُ ولو وُجدَ origin (CLM-0538)" fail bash "$BASE_SRC" "$B_NOCOMMIT_O"
 
 # ── البابُ 1: الصيغةُ والاتّساقُ الذاتيُّ ──────────────────────────────────
 B_NOFILE="$(_base_root nofile)"; rm -f "$B_NOFILE/docs/12-testing/BASELINE.json"
