@@ -1,5 +1,6 @@
 # WASLA MARKET — Roadmap
 
+CLM-0549 (2026-10-13): إعادةُ تشغيلِ L1 تأكيدًا بعدَ دمجِ أدلةِ CLM-0548 (run 38465371715 PASS على main 31bd06bf): peak 21 ≤ 34 · 53300=0 · 5xx=0 · timeouts=0 · p95 ≤ 88 ms · 17/17 · recovery 17/17 · post-merge CI green. لا يُثبِتُ سلوكَ Supavisor — L2/حملٌ حيّ بقرارِ مالك. الحالةُ لا تتغيّر (RISK-0067 mitigating · M6-18B Blocked · NO-GO). راجع `docs/16-progress/TASK_LOG.md` (CLM-0549).
 CLM-0548 (2026-10-13): L1 isolated-load PASS مُوثَّق (run 38442183818 على main 2a5f6c31): peak pg_stat_activity=21 ≤ 34 · 53300=0 · 5xx=0 · timeouts=0 · p95 ≤ 80 ms · 17/17 services · recovery 17/17 · post-merge CI green. لا يُثبِتُ سلوكَ Supavisor — L2/حملٌ حيّ بقرارِ مالك. الحالةُ لا تتغيّر (RISK-0067 mitigating · M6-18B Blocked · NO-GO). راجع `docs/16-progress/TASK_LOG.md` (CLM-0548).
 CLM-0547-r2 (2026-10-13): تشغيلُ L1 الثاني 38435893220 failure (0/17 WASLA_SERVICE_AUTH_KEYS) — الحارسُ أفشلَ مغلقًا بشكلٍ صحيح، وأُصلِحَ مطابقاً لـscenario2-db-unavailable.mts. إعادةُ التشغيلِ بعدَ الدمج. راجع `docs/16-progress/TASK_LOG.md` (CLM-0547-r2).
 CLM-0547 (2026-10-13): إصلاحُ جذرِ فشلِ تشغيلِ L1 الأولِ (run 38422802830: waitForPort/fetchJSON/startFleet — لا حارسَ عُطِّل ولا فحصَ خُفِّف؛ القيمُ من scenario2-db-unavailable.mts نفسِهِ). إعادةُ التشغيلِ بعدَ الدمج. راجع `docs/16-progress/TASK_LOG.md` (CLM-0546-r2).
