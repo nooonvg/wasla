@@ -8,7 +8,7 @@
 - **Root cause fix:** `waitForPort` يعملُ الآنَ بـ`probePort` (اتصالٌ حقيقيٌّ مع wait)، و`fetchJSON` يلتقطُ الاستثناءَ ويعيدُ `status: 0` (يُحسبُ 5xx) بدلَ إسقاطِ العملية، و`startFleet` يلتقطُ stderr ويستخدمُ `health path` و`dbEnv` لكلِّ خدمةٍ منقولاً **من `scenario2-db-unavailable.mts` نفسِهِ** (نفسُ 17 خدمةً · نفسُ القيمِ · لا مصدرَ حقيقةٍ ثانٍ). `npx tsc --noEmit` نظيفٌ.
 - **No guard disabled, no check weakened.** فحصُ الحارسِ نفسِهِ ما زالَ يفشلُ مغلقًا عندَ أيِّ معيارٍ غيرَ مستوفى.
 - **Deployment:** none.
-- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
+- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts` · `docs/16-progress/TASK_LOG.md`
 - **Next:** إعادةُ تشغيلِ L1 (workflow_dispatch على main بعدَ الدمج) وقراءةُ الحكمِ الفعليِّ وتسجيلُهُ في الأدلة.
 
 # 2026-10-13 — CLM-0546 — M6-18B / RISK-0067: تنفيذُ الطبقةِ L1 — اختبارُ حِملٍ معزولٌ في CI (لا أسرار، لا إنتاج)
