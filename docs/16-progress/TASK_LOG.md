@@ -1,3 +1,16 @@
+# 2026-10-13 — CLM-0544 — M6-18B / RISK-0067: خطّةُ قياسِ السعةِ تحتَ الحِمل (وثيقةٌ فقط، بلا تنفيذ)
+
+- **Work Item(s):** M6-18B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Blocked (لا تغيير)
+- **Risk(s):** RISK-0067 → mitigating (لا تغيير) · RISK-0066 → open (لا تغيير) · RISK-0058 → mitigating (لا تغيير)
+- **Evidence:** `docs/12-testing/M6-18B_RISK-0067_LOAD_MEASUREMENT_PLAN.md`. الفحصُ في 2026-10-13: سرُّ `DR_REPLACEMENT_DB_URL` موجودٌ في Actions (المعايرةُ ممكنةٌ على غيرِ الإنتاج)، وحجمُ تجمّعِ Supavisor على DR غيرُ مقيس، ولا بيئةَ staging، والـharness `LEGACY-ONLY`، وموصلُ Supabase غيرُ متّصلٍ في الجلسة، فقراءةُ `EMAXCONNSESSION` تحتاجُ وصولاً من المالك. والأرقامُ الأساسيّةُ من CLM-0509 (40 · 60 · ذروةُ 25 بلا حِمل) وCLM-0510 (`max` 2 · 17 × 2 = 34).
+- **Deployment:** none — docs-only.
+- **No-Test-Reason:** خطّةٌ لا كود.
+- **Changed (units):** `docs/12-testing/M6-18B_RISK-0067_LOAD_MEASUREMENT_PLAN.md` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** فصلُ نجاحِ الشفرةِ (مدموجةٌ في CLM-0510) عن القياسِ التشغيليّ (غائب). الخطّةُ تحدّدُ الهدفَ والحدودَ وخطَّ الأساسِ ومعاييرَ PASS وFAIL و«غيرُ مقيس»، ومعايرةً على DR بضابطٍ سلبيٍّ متعمَّدٍ (40 و42 اتصالاً)، ثمّ تحميلاً متدرّجاً للإنتاجِ بشروطِ توقّفٍ (معدّلُ الخطأ، p95، `EMAXCONNSESSION`، الاتصالات، 503). **لم يُشغَّل أيُّ حِمل**، ولم يُمَسّ Production ولا Render ولا Supavisor ولا الـworkflows. ولا تمرينَ RISK-0058 ولا تغييرَ لخطّةِ Render.
+- **Next:** قرارُ المالكِ وفقَ §5 من الخطّة (موافقةٌ ونافذة، والتفاعلُ مع RISK-0066، ووصولٌ لسجلّاتِ Supavisor، وworkflow المعايرة)، ثمّ المرحلتانِ 0 و1 في حجزٍ مستقلّ.
+
 # 2026-10-13 — CLM-0543 — M7-01: تصحيحُ تقريرَي الجاهزيّةِ 2026-10-06 بالإضافة (مطابقةُ السجلِّ والأدلّة)
 
 - **Work Item(s):** M7-01
