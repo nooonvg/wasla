@@ -1,7 +1,7 @@
 # 2026-10-13 — CLM-0548 — M6-18B / RISK-0067: L1 isolated-load measurement PASS (run 38442183818) — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0547 · CLM-0548 · CLM-0546)
-- **Status:** In Progress (L1 PASS مُوثَّق · L2/حملٌ حيّ يبقى بقرارِ مالك)
+- **Status:** Released (L1 PASS مُوثَّق · L2/حملٌ حيّ يبقى بقرارِ مالك)
 - **Risk(s):** RISK-0067 → mitigating (لا تغيير — إغلاقُها يحتاجُ حملًا حيًّا بلا `EMAXCONNSESSION`، L1 لا يُثبته)
 - **Evidence:** run [38442183818](https://github.com/skyosv10-art/wasla/actions/runs/38442183818) **PASS** على main بعدَ دمجِ PR #704 (2a5f6c31): peak `pg_stat_activity` = 21 ≤ 34 · `53300` = 0 · 5xx = 0 · timeouts = 0 · p95 ≤ 80 ms · 17/17 services started · التعافي بعدَ `pg_terminate_backend` = 17/17. وCI بعدَ الدمجِ على main: WASLA CI **success** · Roadmap freshness **success** · Render deploy **success**. [evidence](../12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md)
 - **Deployment:** none (CI-only harness; لا إنتاج ولا DR ولا Render ولا Supavisor).
