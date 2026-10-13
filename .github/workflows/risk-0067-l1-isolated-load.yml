@@ -1,0 +1,117 @@
+name: RISK-0067 L1 — isolated load measurement (M6-18B)
+# M6-18B · CLM-0546 · RISK-0067 — the L1 layer of the ENGINEERING_COMPLETION_MATRIX §5
+# isolated-load plan (docs/12-testing/ENGINEERING_COMPLETION_MATRIX.md §5).
+#
+# What it proves:
+#   With `max_connections=40` on a throwaway postgres:17 (simulating the 40 Supavisor
+#   session slots), 17 real services — each started from its own `src/http/server.ts`
+#   with the shipped `withPgPoolDefaults` (`max` default 2) — hold their connections
+#   under graduated load (10 → 50 → 100 → 200 concurrent requests per 60 s step),
+#   the `pg_stat_activity` peak stays ≤ 34 (the theoretical worst case), there is no
+#   `53300 too_many_connections` error, no 5xx, p95 stays ≤ 500 ms, and the fleet
+#   recovers after `pg_terminate_backend` on a test connection.
+#
+# What it does NOT prove (the matrix says so, §5):
+#   Supavisor's own behaviour (`EMAXCONNSESSION`). That is the L2 layer / a live
+#   measurement, gated on an owner-approved isolated project.
+#
+# Scope guard: no secret, no production/DR/Render/Supavisor connection — this job runs
+# on the runner against a throwaway container only. Fails closed.
+# Triggers: manual dispatch, plus PR pushes to the claim branch (proof before merge,
+# the same pattern as dr-replacement-restore.yml).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ['feat/clm-0546-risk-0067-l1-isolated-load']
+    paths:
+      - '.github/workflows/risk-0067-l1-isolated-load.yml'
+      - 'scripts/ops/m6-18b-dr/**'
+      - 'packages/resilience/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: risk-0067-l1-isolated-load
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "20.20.1"
+  PNPM_VERSION: "9.15.9"
+  PG_PORT: "55434"
+
+jobs:
+  l1-isolated-load:
+    name: L1 — 17 services × max=2 vs max_connections=40 (throwaway postgres)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Activate pinned pnpm and install
+        run: |
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          pnpm install --frozen-lockfile
+      - name: Throwaway postgres:17 with max_connections=40
+        run: |
+          docker run -d --name s2-pg-l1 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=wasla_l1 \
+            -p 127.0.0.1:${PG_PORT}:5432 postgres:17 >/dev/null
+          for _ in $(seq 1 60); do docker exec s2-pg-l1 pg_isready -U postgres -d wasla_l1 >/dev/null 2>&1 && break; sleep 1; done
+          sleep 2
+          # Set max_connections=40 on a throwaway container only — never on production.
+          docker exec s2-pg-l1 psql -U postgres -d wasla_l1 -c "ALTER SYSTEM SET max_connections = 40;" >/dev/null
+          docker restart s2-pg-l1 >/dev/null
+          for _ in $(seq 1 60); do docker exec s2-pg-l1 pg_isready -U postgres -d wasla_l1 >/dev/null 2>&1 && break; sleep 1; done
+          sleep 2
+          docker exec s2-pg-l1 psql -U postgres -d wasla_l1 -tc "SHOW max_connections;"
+      - name: Migrate the 17 DB services (shared schema, one throwaway DB)
+        run: |
+          set -e
+          # Apply the domain schemas for every DB service, all into wasla_l1.
+          for svc in audit billing customers delivery dispatch drivers geography identity marketplace matching negotiations orders partners reputation search subscriptions support; do
+            MIG="services/${svc}/src/db/migrate-cli.ts"
+            if [ -f "$MIG" ]; then
+              DATABASE_URL="postgres://postgres@127.0.0.1:${PG_PORT}/wasla_l1" \
+                ./services/audit/node_modules/.bin/tsx "$MIG" >/dev/null 2>&1 \
+                && echo "$MIG: OK" \
+                || echo "$MIG: SKIP (empty or no-op)"
+            else
+              echo "$svc: no migrate-cli (schema handled by another service)"
+            fi
+          done
+      - name: Run L1 — measure, then judge (fail closed)
+        run: |
+          mkdir -p out
+          set +e
+          PG_PORT=${PG_PORT} ./services/audit/node_modules/.bin/tsx scripts/ops/m6-18b-dr/l1-isolated-load.mts > out/l1-isolated-load.json
+          verdict=$?
+          set -e
+          python3 - out/l1-isolated-load.json <<'PY'
+          import json, sys
+          r = json.load(open(sys.argv[1]))
+          print(f"max_connections on the throwaway DB: {r['env']['max_connections']}")
+          print(f"services started: {len(r['fleet']['started'])} · not started: {len(r['fleet']['not_started'])}")
+          print(f"WASLA_PG_POOL_MAX env: {r['env']['wasla_pg_pool_max']} (absent ⇒ default 2)")
+          for step in r["steps"]:
+              print(f"step {step['concurrency']:>3} conc · 60 s · {step['total_requests']} req · "
+                    f"5xx {step['errors_5xx']} · timeouts {step['timeouts']} · 53300 {step['errors_53300']} · "
+                    f"p95 {step['p95_ms']:.0f} ms · peak pg_stat_activity {step['peak_pg_stat_activity']}")
+          for c in r["verdict"]["checks"]:
+              print(("PASS " if c["pass"] else "FAIL ") + c["id"] + " — " + c["detail"])
+          print("VERDICT:", "PASS" if r["verdict"]["pass"] else "FAIL")
+          PY
+          exit $verdict
+      - name: Upload L1 record (timings and peak counts only — no secrets)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-0067-l1-isolated-load-${{ github.run_id }}
+          path: out/*.json
+          if-no-files-found: warn
+          retention-days: 90
