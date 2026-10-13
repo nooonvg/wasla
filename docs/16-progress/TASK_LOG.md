@@ -1,6 +1,10 @@
 # 2026-10-13 — CLM-0547 — M6-18B / RISK-0067: إصلاحُ جذرِ فشلِ L1 التشغيلِ الأول (run 38422802830) — لا حارسَ ولا فحصَ أُعطِّل
 
 - **Work Item(s):** M6-18B (CLM-0547 · CLM-0546)
+- **Status:** In Progress (الجذرُ الثانيُ عولجَ · إعادةُ التشغيلِ بعدَ الدمج)
+- **Evidence:** تشغيلُ L1 الثاني: run [38435893220](https://github.com/skyosv10-art/wasla/actions/runs/38435893220) **failure** (0/17 services started — الحارسُ أفشلَ مغلقًا بشكلٍ صحيح) · تحققٌ محلي: audit يبدأ و`/health` → 200 بنفسِ env الجديد. إعادةُ التشغيلِ بعدَ الدمج.
+- **Deployment:** none (CI-only harness).
+- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts`
 
 
 (متابعةُ CLM-0546 على نفسِ فرعِهِ `feat/clm-0546-risk-0067-l1-isolated-load` — أُعيدَ ترقيمُها CLM-0547 لأنَّ حارسَ الحجوزاتِ يقبلُ أرقامَ CLM-\d+ فقط.)
