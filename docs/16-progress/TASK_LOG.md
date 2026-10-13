@@ -1,3 +1,17 @@
+# 2026-10-13 — CLM-0542 — M0-08B: أرشفةُ تحقّقِ ما بعدَ الإغلاق (Post-closeout verification)
+
+- **Work Item(s):** M0-08B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Completed (لا تغيير — أرشفةٌ لا إعادةُ فتح)
+- **Kind:** state-correction — ملفُّ البوّابةِ `docs/12-testing/M0-08B_GATE.md` يحملُ أدلّةَ ما قبلَ الإغلاقِ (`90ab63ee`) ولا يحملُ حكمَ `main` على التزامِ الإغلاقِ نفسِهِ (`3d8534f0`) ولا قياسَ حذفِ الفرعِ المدموجِ؛ يُضافُ §6 مؤرَّخاً ويبقى §0–§5 كما هو.
+- **Risk(s):** RISK-0028 → closed (لا تغيير)
+- **Evidence:** مقروءٌ من `GET /actions/runs/<id>/jobs?filter=all`: WASLA CI [38321972239](https://github.com/skyosv10-art/wasla/actions/runs/38321972239) على `3d8534f0` — total 40 · بدأت 40 · اكتملت 40 · success 40 · failure 0 · skipped 0 · cancelled 0 · Roadmap freshness [38321972268](https://github.com/skyosv10-art/wasla/actions/runs/38321972268) — 1/1/1/0 · Merged branch cleanup [38321972337](https://github.com/skyosv10-art/wasla/actions/runs/38321972337) (رأسُ PR #697 `436a1235`) — 1/1/1/0 · `governance-guard` (الوظيفة 115051912244) سجّلَ استرجاعَ `78940ba4` من `origin` وحزمةَ الإثباتِ 673/0 · `git ls-remote` للفرعِ المدموجِ ⇒ 0 مراجع و`GET /branches/<ref>` ⇒ 404 · PR #697 `merged=true` بـ`merge_commit_sha=3d8534f0…`.
+- **Deployment:** none — docs-only.
+- **No-Test-Reason:** أرشفةُ أدلّةٍ لا كودَ.
+- **Changed (units):** `docs/12-testing/M0-08B_GATE.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** فصلُ أدلّةِ ما بعدَ دمجِ PR #697 عن أدلّةِ ما قبلَهُ في ملفِّ البوّابةِ، بأرقامِ الوظائفِ لا بلونِ الشارة. **لم يُمَسَّ** `BASELINE.json` ولا حارسُ الأساسِ ولا ملفّاتُ CI ولا حمايةُ `main`.
+- **Next:** المرحلةُ الثانيةُ في نطاقٍ مستقلٍّ: تصحيحُ تقريرَي الجاهزيّةِ 2026-10-06 بالأدلّةِ الحاليّة.
+
 # 2026-10-13 — CLM-0541 — M0-08B: الإغلاقُ بقرارِ مالكِ البرنامج (Ready for Gate → Completed)
 
 - **Work Item(s):** M0-08B

@@ -65,3 +65,41 @@ PRODUCTION ⚪ NOT APPLICABLE — حارسُ حوكمةٍ وCI؛ لا يُنشَ
 **الحكمُ: ✅ PASSED — محلّيّاً وفي الخطِّ على `main` (`90ab63ee` · التشغيلُ 38316980962 · 40/40).**
 
 **والنقلُ إلى `Completed` قرارُ مالكِ البرنامج** (STATUS_MODEL §2.8، البروتوكول §9): صدرَ القرارُ صريحاً في 2026-10-13 بعدَ مراجعةِ الأدلّةِ أعلاه، ويُسجَّلُ في [`TASK_LOG.md`](../16-progress/TASK_LOG.md) (CLM-0541) بنوعِ `owner-decision`، ويراه مراجعو CODEOWNERS في طلبِ الإغلاق.
+
+---
+
+## 6. Post-closeout verification — تحقّقُ ما بعدَ الإغلاق (2026-10-13 · `CLM-0542`)
+
+> **ما هذا القسم:** أرشفةٌ وتتبُّعٌ لحكمِ `main` **بعدَ** دمجِ طلبِ الإغلاق [PR #697](https://github.com/skyosv10-art/wasla/pull/697). **ليسَ** تنفيذاً جديداً لـM0-08B ولا يُعيدُ فتحَه. الأقسامُ 0–5 أعلاه تبقى كما كُتبت: أدلّتُها هيَ أدلّةُ ما **قبلَ** الإغلاقِ (`90ab63ee` و`522197d2` والحكمُ الأحمرُ `7d90678b`) ولا تُستبدَلُ بهذه.
+
+**التزامُ الإغلاق:** `3d8534f0e95d43e235869fff7c1b9d9cc720940e` — squash لـPR #697 (رأسُهُ `436a1235398557b0447cf943da46bbcb6eaf7192`، موافقةُ `xuuux-voox` على هذا الرأسِ نفسِه، دُمِجَ عبرَ المسارِ المحميِّ بلا `--admin`).
+
+### 6.1 التشغيلاتُ — مقروءةٌ من `GET /actions/runs/<id>` و`GET /actions/runs/<id>/jobs?filter=all` في 2026-10-13
+
+| التشغيل | الحدث · الفرع | الرأس | المحاولة | الحالة | الوظائف (total_count) | بدأت | اكتملت | success | failure | skipped | cancelled |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| [`38321972239`](https://github.com/skyosv10-art/wasla/actions/runs/38321972239) WASLA CI | push · `main` | `3d8534f0` | 1 | completed/success | 40 | 40 | 40 | 40 | 0 | 0 | 0 |
+| [`38321972268`](https://github.com/skyosv10-art/wasla/actions/runs/38321972268) Roadmap freshness | push · `main` | `3d8534f0` | 1 | completed/success | 1 | 1 | 1 | 1 | 0 | 0 | 0 |
+| [`38321972337`](https://github.com/skyosv10-art/wasla/actions/runs/38321972337) Merged branch cleanup | pull_request (closed) · `chore/clm-0541-m0-08b-owner-closeout` | `436a1235` (رأسُ PR #697) | 1 | completed/success | 1 (`cleanup`) | 1 | 1 | 1 | 0 | 0 | 0 |
+
+ورأسُ تشغيلِ التنظيفِ هوَ رأسُ الطلبِ لا التزامُ الدمجِ — وهذا سلوكُ حدثِ `pull_request` عندَ الإغلاق، لا تعارض.
+
+### 6.2 الحارسُ على التزامِ الإغلاقِ نفسِه
+
+سجلُّ وظيفةِ `governance-guard` (المعرّف `115051912244`) في التشغيلِ `38321972239` على `3d8534f0`:
+
+- «⊘ البابُ 4: `repo.commit` = 78940ba43588 غائبٌ محلّيّاً فاستُرجِعَ من `origin` بمعرّفِهِ — موجودٌ في المستودعِ المرجعيِّ» — البابُ 4(ب) **مقيسٌ** لا «ضحلٌ غيرُ مقيس».
+- حزمةُ الإثبات: **673 ناجح · 0 فاشل** (الفرقُ عن 674 محلّيّاً مُفسَّرٌ في §4 البند 1).
+- `BASELINE.json` لم يتغيّر في PR #697، و`repo.commit` ما زالَ `78940ba4`.
+
+### 6.3 حذفُ الفرعِ المدموج — مقيس
+
+| القياس | النتيجة |
+|---|---|
+| `git ls-remote origin refs/heads/chore/clm-0541-m0-08b-owner-closeout` | **0** مراجع |
+| `GET /repos/skyosv10-art/wasla/branches/chore/clm-0541-m0-08b-owner-closeout` | **404 Branch not found** |
+| `GET /repos/skyosv10-art/wasla/pulls/697` | `state=closed` · `merged=true` · `merge_commit_sha=3d8534f0…` |
+
+### 6.4 الحكمُ على هذا القسم
+
+`main` على التزامِ الإغلاقِ أخضرُ بأرقامِ الوظائفِ لا بلونِ الشارة، والفرعُ المدموجُ محذوفٌ فعلاً، والحجزُ `CLM-0541` `Released`. **حالةُ M0-08B تبقى `Completed`** ولا يتغيّرُ شيءٌ في §0–§5. ولا يُغلِقُ هذا القسمُ بوّابةَ إصدارٍ ولا خطراً آخر.
