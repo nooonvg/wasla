@@ -1,5 +1,12 @@
 # 2026-10-13 — CLM-0547 — M6-18B / RISK-0067: إصلاحُ جذرِ فشلِ L1 التشغيلِ الأول (run 38422802830) — لا حارسَ ولا فحصَ أُعطِّل
 
+- **Work Item(s):** M6-18B (CLM-0547 · CLM-0546)
+- **Status:** In Progress (الجذرُ الثانيُ عولجَ · إعادةُ التشغيلِ بعدَ الدمج)
+- **Evidence:** تشغيلُ L1 الثاني: run [38435893220](https://github.com/skyosv10-art/wasla/actions/runs/38435893220) **failure** (0/17 services started — الحارسُ أفشلَ مغلقًا بشكلٍ صحيح) · تحققٌ محلي: audit يبدأ و`/health` → 200 بنفسِ env الجديد. إعادةُ التشغيلِ بعدَ الدمج.
+- **Deployment:** none (CI-only harness).
+- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts`
+
+
 (متابعةُ CLM-0546 على نفسِ فرعِهِ `feat/clm-0546-risk-0067-l1-isolated-load` — أُعيدَ ترقيمُها CLM-0547 لأنَّ حارسَ الحجوزاتِ يقبلُ أرقامَ CLM-\d+ فقط.)
 
 - **Work Item(s):** M6-18B
@@ -7,6 +14,7 @@
 - **Status:** In Progress (الجذرُ عولجَ · إعادةُ التشغيلِ بعدَ الدمج)
 - **Risk(s):** RISK-0067 → mitigating (لا تغيير)
 - **Evidence:** تشغيلُ L1 الأولُ على main بعدَ الدمجِ الأولِ: run [38422802830](https://github.com/skyosv10-art/wasla/actions/runs/38422802830) **failure** — السببُ الجذريُّ مقروءٌ من السجلِّ: `waitForPort` في `l1-isolated-load.mts` كانَ يُعيدُ `true` فورًا بلا اتصالٍ فعليٍّ (net.connect callback pattern خاطئ)، و`fetchJSON` لم يُعلِّمِ الاستثناءَ فسقطَتِ العمليةُ على `TypeError: fetch failed` عندَ خدمةٍ لم تبدأ (ECONNREFUSED على 18101)، و`stdio: "ignore"` أخفى stderr فيبدو كأنَّ الخدمةَ بلا سبب.
+- **Second failure (run 38435893220):** 0/17 services started — `keyRegistryFromEnv` throws `ServiceAuthKeyError: WASLA_SERVICE_AUTH_KEYS مفقود` because the harness never set it; the guard correctly reported `FLEET_STARTED FAIL 0/17`. Fix: set `WASLA_SERVICE_AUTH_KEYS=dr1:active:<throwaway-secret>` + `WASLA_SERVICE_AUTH_ACTIVE_KID=dr1` in `startFleet`, matching `scenario2-db-unavailable.mts` exactly (no second source of truth). Verified locally: audit starts and `/health` → 200.
 - **Root cause fix:** `waitForPort` يعملُ الآنَ بـ`probePort` (اتصالٌ حقيقيٌّ مع wait)، و`fetchJSON` يلتقطُ الاستثناءَ ويعيدُ `status: 0` (يُحسبُ 5xx) بدلَ إسقاطِ العملية، و`startFleet` يلتقطُ stderr ويستخدمُ `health path` و`dbEnv` لكلِّ خدمةٍ منقولاً **من `scenario2-db-unavailable.mts` نفسِهِ** (نفسُ 17 خدمةً · نفسُ القيمِ · لا مصدرَ حقيقةٍ ثانٍ). `npx tsc --noEmit` نظيفٌ.
 - **No guard disabled, no check weakened.** فحصُ الحارسِ نفسِهِ ما زالَ يفشلُ مغلقًا عندَ أيِّ معيارٍ غيرَ مستوفى.
 - **Deployment:** none.
