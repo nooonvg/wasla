@@ -1,36 +1,14 @@
-# 2026-10-13 — CLM-0548 — M6-18B / RISK-0067: L1 isolated-load measurement PASS (run 38442183818) — الحالةُ لا تتغيّر
-
-- **Work Item(s):** M6-18B (CLM-0547 · CLM-0548 · CLM-0546)
-- **Status:** Released (L1 PASS مُوثَّق · L2/حملٌ حيّ يبقى بقرارِ مالك)
-- **Risk(s):** RISK-0067 → mitigating (لا تغيير — إغلاقُها يحتاجُ حملًا حيًّا بلا `EMAXCONNSESSION`، L1 لا يُثبته)
-- **Evidence:** run [38442183818](https://github.com/skyosv10-art/wasla/actions/runs/38442183818) **PASS** على main بعدَ دمجِ PR #704 (2a5f6c31): peak `pg_stat_activity` = 21 ≤ 34 · `53300` = 0 · 5xx = 0 · timeouts = 0 · p95 ≤ 80 ms · 17/17 services started · التعافي بعدَ `pg_terminate_backend` = 17/17. وCI بعدَ الدمجِ على main: WASLA CI **success** · Roadmap freshness **success** · Render deploy **success**. [evidence](../12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md)
-- **Deployment:** none (CI-only harness; لا إنتاج ولا DR ولا Render ولا Supavisor).
-- **What L1 does NOT prove:** سلوكَ Supavisor نفسِهِ (`EMAXCONNSESSION`) — ذاكَ L2/حملٌ حيّ، قرارُ مالك.
-- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` (RISK-0058/0066/0067) · NO-GO.
-- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
-- **Prior failures (recorded, not erased):** run [38422802830](https://github.com/skyosv10-art/wasla/actions/runs/38422802830) failure · run [38435893220](https://github.com/skyosv10-art/wasla/actions/runs/38435893220) failure.
-
-# 2026-10-13 — CLM-0547 — M6-18B / RISK-0067: إصلاحُ جذرِ فشلِ L1 التشغيلِ الأول (run 38422802830) — لا حارسَ ولا فحصَ أُعطِّل
-
-- **Work Item(s):** M6-18B (CLM-0547 · CLM-0546)
-- **Status:** In Progress (الجذرُ الثانيُ عولجَ · إعادةُ التشغيلِ بعدَ الدمج)
-- **Evidence:** تشغيلُ L1 الثاني: run [38435893220](https://github.com/skyosv10-art/wasla/actions/runs/38435893220) **failure** (0/17 services started — الحارسُ أفشلَ مغلقًا بشكلٍ صحيح) · تحققٌ محلي: audit يبدأ و`/health` → 200 بنفسِ env الجديد. إعادةُ التشغيلِ بعدَ الدمج.
-- **Deployment:** none (CI-only harness).
-- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts`
-
-
-(متابعةُ CLM-0546 على نفسِ فرعِهِ `feat/clm-0546-risk-0067-l1-isolated-load` — أُعيدَ ترقيمُها CLM-0547 لأنَّ حارسَ الحجوزاتِ يقبلُ أرقامَ CLM-\d+ فقط.)
+# 2026-10-13 — CLM-0546-r2 — M6-18B / RISK-0067: إصلاحُ جذرِ فشلِ L1 التشغيلِ الأول (run 38422802830) — لا حارسَ ولا فحصَ أُعطِّل
 
 - **Work Item(s):** M6-18B
 - **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
 - **Status:** In Progress (الجذرُ عولجَ · إعادةُ التشغيلِ بعدَ الدمج)
 - **Risk(s):** RISK-0067 → mitigating (لا تغيير)
 - **Evidence:** تشغيلُ L1 الأولُ على main بعدَ الدمجِ الأولِ: run [38422802830](https://github.com/skyosv10-art/wasla/actions/runs/38422802830) **failure** — السببُ الجذريُّ مقروءٌ من السجلِّ: `waitForPort` في `l1-isolated-load.mts` كانَ يُعيدُ `true` فورًا بلا اتصالٍ فعليٍّ (net.connect callback pattern خاطئ)، و`fetchJSON` لم يُعلِّمِ الاستثناءَ فسقطَتِ العمليةُ على `TypeError: fetch failed` عندَ خدمةٍ لم تبدأ (ECONNREFUSED على 18101)، و`stdio: "ignore"` أخفى stderr فيبدو كأنَّ الخدمةَ بلا سبب.
-- **Second failure (run 38435893220):** 0/17 services started — `keyRegistryFromEnv` throws `ServiceAuthKeyError: WASLA_SERVICE_AUTH_KEYS مفقود` because the harness never set it; the guard correctly reported `FLEET_STARTED FAIL 0/17`. Fix: set `WASLA_SERVICE_AUTH_KEYS=dr1:active:<throwaway-secret>` + `WASLA_SERVICE_AUTH_ACTIVE_KID=dr1` in `startFleet`, matching `scenario2-db-unavailable.mts` exactly (no second source of truth). Verified locally: audit starts and `/health` → 200.
 - **Root cause fix:** `waitForPort` يعملُ الآنَ بـ`probePort` (اتصالٌ حقيقيٌّ مع wait)، و`fetchJSON` يلتقطُ الاستثناءَ ويعيدُ `status: 0` (يُحسبُ 5xx) بدلَ إسقاطِ العملية، و`startFleet` يلتقطُ stderr ويستخدمُ `health path` و`dbEnv` لكلِّ خدمةٍ منقولاً **من `scenario2-db-unavailable.mts` نفسِهِ** (نفسُ 17 خدمةً · نفسُ القيمِ · لا مصدرَ حقيقةٍ ثانٍ). `npx tsc --noEmit` نظيفٌ.
 - **No guard disabled, no check weakened.** فحصُ الحارسِ نفسِهِ ما زالَ يفشلُ مغلقًا عندَ أيِّ معيارٍ غيرَ مستوفى.
 - **Deployment:** none.
-- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts` · `docs/16-progress/TASK_LOG.md`
+- **Changed (units):** `scripts/ops/m6-18b-dr/l1-isolated-load.mts` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
 - **Next:** إعادةُ تشغيلِ L1 (workflow_dispatch على main بعدَ الدمج) وقراءةُ الحكمِ الفعليِّ وتسجيلُهُ في الأدلة.
 
 # 2026-10-13 — CLM-0546 — M6-18B / RISK-0067: تنفيذُ الطبقةِ L1 — اختبارُ حِملٍ معزولٌ في CI (لا أسرار، لا إنتاج)
