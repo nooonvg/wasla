@@ -1,3 +1,26 @@
+# 2026-10-13 — CLM-0545 — M6-18B / RISK-0067: المرحلةُ 0 — جردٌ قراءةٌ فقط لسعةِ الاتصالات (قياسٌ فعلي، بلا حِمل)
+
+- **Work Item(s):** M6-18B
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Blocked (لا تغيير) — RISK-0067 mitigating · RISK-0066 open · M6-18B Blocked · NO-GO
+- **Risk(s):** RISK-0067 → mitigating (لا تغيير) · RISK-0066 → open (لا تغيير)
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-13T130000Z-clm-0545-risk-0067-stage0-inventory/README.md`
+- **Deployment:** none — docs-only.
+- **No-Test-Reason:** قراءةٌ فقط (قاعدة المرحلة 0).
+- **Changed (units):** `docs/12-testing/M6-18B_RISK-0067_LOAD_MEASUREMENT_PLAN.md` (تصحيحٌ مؤرَّخ §8) · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_INDEX.md` · `docs/12-testing/ci-evidence/2026-10-13T130000Z-clm-0545-risk-0067-stage0-inventory/README.md` · `ROADMAP.md`
+- **Measured (read-only):**
+  - Render API `/v1/services` + `/v1/services/{id}/env-vars`: **24 خدمة** (21 `web_service` + 3 `static_site`) — الخطةُ كانت تفترضُ 17؛ القياسُ 21. كلُّ `web_service` `plan=free` · `numInstances=1` · `not_suspended`.
+  - `WASLA_PG_POOL_MAX` **غائب** من env-vars لكل 21/21 خدمة — الحدُّ الفعليُّ لكل مجمعٍ هو 2 (الافتراضي في `withPgPoolDefaults`).
+  - Supabase connector على `ppixaauyqoykrogwdxtv` (2026-10-13): `max_connections=60` · `pg_stat_activity` **13 اتصالًا** (كلها أدوات Supabase الداخلية، لا شيء من أسطول Render) · `supavisor_logs` متاحة · `EMAXCONNSESSION` **0** في آخر 24 ساعة.
+  - `default_pool_size` لـSupavisor: **غير مقيس** — `pg_settings` لا يعمل (Supavisor منفصل عن PostgreSQL). قراءة 2026-10-08 (40) لا تُعتمد.
+  - مشروع DR `pvyuhjadrygqqdoczmnd`: **INACTIVE** — `execute_sql` فشل مرتين (`Connection terminated due to connection timeout`). المعايرةُ عليه تتطلبُ إعادةَ تشغيله أولًا.
+  - `GET /health`: **200** لكل خدمات الـDB (كانت مهلةً عند أول محاولة بسبب خطة free/sleep) · `/ready` غير موجود (404) · `healthCheckPath` الفعلي لكل خدمةٍ هو `/health` أو فارغ.
+  - **الحسابُ النظريُّ المصحّح:** 21 × 1 × 2 = **42** (لا 34) — يتجاوزُ سعة Supavisor (40) نظريًّا، لكن لا حملَ فعليًّا.
+- **What / Why:** فصلُ الجردِ المقيسِ عن أي حمل. النتيجةُ تُلزِمُ تصحيحَ الخطة (المرحلة الثانية) قبل أي معايرة: إضافة حالة HOLD · اشتقاقُ معايرة DR من قياسٍ حقيقي (لا 40/42) · ربطُ هدفِ الإنتاجِ بالحدودِ المقيسة (لا 34).
+- **Plan correction (same PR):** إضافةُ §8 إلى الخطة: حالة HOLD بتعريفٍ وإجراءٍ (تجميدُ الحمل فورًا، عودةٌ لآخرِ درجةٍ آمنة، تسجيلُ الحكمِ ومراجعتُه قبل الاستئناف) · تصحيح 17⇒21 ⇒ 34⇒42 · شروطُ بدءِ معايرةِ DR (قائمةٌ دقيقة) · ما لم يتغيّر (RISK-0058/0066/0067، R-02/R-07/P-03/P-04/P-05، NO-GO).
+- **Not measured (explicit):** `default_pool_size` على الإنتاج وDR · عددُ العمليات داخل كل حاوية · أي حملٍ فعلي.
+- **Next:** قرارُ المالك: إعادةُ تشغيلِ DR + وصولٌ لسجلّاتِ Supavisor (`default_pool_size` من واجهة الإدارة) + موافقةٌ على workflow المعايرة + حسمُ RISK-0066 (مراجعة 2026-10-15).
+
 # 2026-10-13 — CLM-0544 — M6-18B / RISK-0067: خطّةُ قياسِ السعةِ تحتَ الحِمل (وثيقةٌ فقط، بلا تنفيذ)
 
 - **Work Item(s):** M6-18B
