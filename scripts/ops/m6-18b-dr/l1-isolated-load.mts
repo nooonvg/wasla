@@ -29,24 +29,25 @@ const DB_URL = `postgres://postgres@127.0.0.1:${PG_PORT}/wasla_l1`;
 const WASLA_PG_POOL_MAX = process.env.WASLA_PG_POOL_MAX ?? null; // absent ⇒ default 2
 
 // The 17 DB services that build a `pg.Pool` via `withPgPoolDefaults` (matrix §5).
-const SERVICES: Array<{ name: string; port: number; envKey: string }> = [
-  { name: "audit", port: 18101, envKey: "DATABASE_URL" },
-  { name: "billing", port: 18102, envKey: "BILLING_DATABASE_URL" },
-  { name: "customers", port: 18103, envKey: "CUSTOMER_DATABASE_URL" },
-  { name: "delivery", port: 18104, envKey: "DELIVERY_DATABASE_URL" },
-  { name: "dispatch", port: 18105, envKey: "DISPATCH_DATABASE_URL" },
-  { name: "drivers", port: 18106, envKey: "DRIVER_DATABASE_URL" },
-  { name: "geography", port: 18107, envKey: "DATABASE_URL" },
-  { name: "identity", port: 18108, envKey: "DATABASE_URL" },
-  { name: "marketplace", port: 18109, envKey: "DATABASE_URL" },
-  { name: "matching", port: 18110, envKey: "DATABASE_URL" },
-  { name: "negotiations", port: 18111, envKey: "NEGOTIATION_DATABASE_URL" },
-  { name: "orders", port: 18112, envKey: "ORDER_DATABASE_URL" },
-  { name: "partners", port: 18113, envKey: "PARTNERS_DATABASE_URL" },
-  { name: "reputation", port: 18114, envKey: "DATABASE_URL" },
-  { name: "search", port: 18115, envKey: "DATABASE_URL" },
-  { name: "subscriptions", port: 18116, envKey: "DATABASE_URL" },
-  { name: "support", port: 18117, envKey: "DATABASE_URL" },
+// health/dbEnv mirror the pattern of scenario2-db-unavailable.mts exactly.
+const SERVICES: ReadonlyArray<{ name: string; port: number; health: string; dbEnv: string }> = [
+  { name: "audit", port: 18201, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "billing", port: 18202, health: "/billing/health", dbEnv: "BILLING_DATABASE_URL" },
+  { name: "customers", port: 18203, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "delivery", port: 18204, health: "/delivery/health", dbEnv: "DATABASE_URL" },
+  { name: "dispatch", port: 18205, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "drivers", port: 18206, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "geography", port: 18207, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "identity", port: 18208, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "marketplace", port: 18209, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "matching", port: 18210, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "negotiations", port: 18211, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "orders", port: 18212, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "partners", port: 18213, health: "/partners/health", dbEnv: "PARTNERS_DATABASE_URL" },
+  { name: "reputation", port: 18214, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "search", port: 18215, health: "/search/health", dbEnv: "DATABASE_URL" },
+  { name: "subscriptions", port: 18216, health: "/health", dbEnv: "DATABASE_URL" },
+  { name: "support", port: 18217, health: "/health", dbEnv: "DATABASE_URL" },
 ];
 
 type Step = {
@@ -61,36 +62,20 @@ type Step = {
   peak_pg_stat_activity: number;
 };
 
-type ServiceProc = { name: string; proc: ChildProcess | null; port: number };
+type FleetMember = { service: string; port: number; health: string; child: ChildProcess; stderr: string; exited: boolean; childProc?: ChildProcess };
 
-async function startService(s: { name: string; port: number; envKey: string }): Promise<ServiceProc> {
-  const env: Record<string, string> = {
-    ...process.env,
-    NODE_ENV: "production",
-    PORT: String(s.port),
-  } as Record<string, string>;
-  env[s.envKey] = DB_URL;
-  env.WASLA_PG_SSL_MODE = "off"; // local postgres, trust auth
-  const proc = spawn("./services/audit/node_modules/.bin/tsx", [
-    `services/${s.name}/src/http/server.ts`,
-  ], { env, stdio: "ignore", detached: true });
-  return { name: s.name, proc, port: s.port };
+function firstErrorLines(stderr: string): string[] {
+  return stderr
+    .split("\n")
+    .filter((l) => l.trim() && !l.trim().startsWith("Deprecation"))
+    .slice(-3);
 }
 
-async function waitForPort(port: number, timeoutMs = 8000): Promise<boolean> {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const s = net.connect(port, "127.0.0.1");
-      s.on("error", () => undefined);
-      s.destroy();
-      await new Promise((r) => setTimeout(r, 120));
-      return true;
-    } catch {
-      await new Promise((r) => setTimeout(r, 200));
-    }
-  }
-  return false;
+function probePort(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const s = net.connect(port, "127.0.0.1", () => { s.destroy(); resolve(true); });
+    s.on("error", () => resolve(false));
+  });
 }
 
 async function fetchJSON(url: string, timeoutMs = 4000): Promise<{ status: number; body?: unknown; ms: number }> {
@@ -103,51 +88,41 @@ async function fetchJSON(url: string, timeoutMs = 4000): Promise<{ status: numbe
     let body: unknown;
     try { body = await resp.json(); } catch { body = undefined; }
     return { status: resp.status, body, ms };
+  } catch {
+    return { status: 0, body: undefined, ms: Date.now() - start };
   } finally {
     clearTimeout(t);
   }
 }
 
-async function pgStatActivityPeak(): Promise<number> {
-  // Read via a throwaway TCP client to the postgres container's psql — do it via the
-  // docker exec API instead (no pg client in the Node process). Call the exported
-  // `dockerExec` helper below.
-  return dockerExecPeak();
+async function healthStatus(port: number, path: string, timeoutMs = 1000): Promise<{ status: number; ms: number }> {
+  const r = await fetchJSON(`http://127.0.0.1:${port}${path}`, timeoutMs);
+  return { status: r.status, ms: r.ms };
 }
 
-let lastPeak = 0;
-async function dockerExecPeak(): Promise<number> {
-  // We use `docker exec` from the Node process (this is a harness running on a
-  // GitHub Actions runner, so docker is available; locally it is too, per the repo
-  // pattern of dr-replacement-restore.yml).
-  return new Promise<number>((resolve) => {
+async function dockerExecPsql(sql: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
     const p = spawn("docker", [
-      "exec", "s2-pg-l1", "psql", "-U", "postgres", "-d", "wasla_l1",
-      "-tc", "select count(*) from pg_stat_activity where usename is not null",
+      "exec", "s2-pg-l1", "psql", "-U", "postgres", "-d", "wasla_l1", "-tc", sql,
     ], { stdio: ["ignore", "pipe", "ignore"] });
     let out = "";
     p.stdout.on("data", (d: Buffer) => { out += d; });
-    p.on("close", () => {
-      const n = parseInt(out.trim() || "0", 10);
-      lastPeak = Math.max(lastPeak, isNaN(n) ? 0 : n);
-      resolve(lastPeak);
-    });
-    p.on("error", () => resolve(lastPeak));
+    p.on("close", () => resolve(out.trim()));
+    p.on("error", (e: Error) => reject(e));
   });
+}
+
+async function pgStatActivityCount(): Promise<number> {
+  const out = await dockerExecPsql("select count(*) from pg_stat_activity where usename is not null");
+  const n = parseInt(out || "0", 10);
+  return isNaN(n) ? 0 : n;
 }
 
 async function terminateBackend(): Promise<boolean> {
-  // Find one idle connection from the app and terminate it, to prove the pool recovers.
-  return new Promise<boolean>((resolve) => {
-    const p = spawn("docker", [
-      "exec", "s2-pg-l1", "psql", "-U", "postgres", "-d", "wasla_l1",
-      "-tc", "select pg_terminate_backend(pid) from pg_stat_activity where usename is not null and application_name='' limit 1",
-    ], { stdio: ["ignore", "pipe", "ignore"] });
-    let out = "";
-    p.stdout.on("data", (d: Buffer) => { out += d; });
-    p.on("close", () => resolve(out.trim().startsWith("t")));
-    p.on("error", () => resolve(false));
-  });
+  const out = await dockerExecPsql(
+    "select pg_terminate_backend(pid) from pg_stat_activity where usename is not null and application_name='' limit 1"
+  );
+  return out.startsWith("t");
 }
 
 function p95(sortedMs: number[]): number {
@@ -162,42 +137,87 @@ function p99(sortedMs: number[]): number {
   return sortedMs[i];
 }
 
+async function startFleet(): Promise<{ members: FleetMember[]; notStarted: Array<{ service: string; reason: string }> }> {
+  const members: FleetMember[] = [];
+  const notStarted: Array<{ service: string; reason: string }> = [];
+
+  for (const s of SERVICES) {
+    const child = spawn("./services/audit/node_modules/.bin/tsx", [`services/${s.name}/src/http/server.ts`], {
+      env: {
+        ...process.env,
+        NODE_ENV: "development",
+        PORT: String(s.port),
+        [s.dbEnv]: DB_URL,
+        WASLA_SERVICE_TOKEN_REPLAY_MODE: "memory",
+        OTEL_SDK_DISABLED: "true",
+      },
+      stdio: ["ignore", "ignore", "pipe"],
+    });
+    let stderr = "";
+    let exited = false;
+    child.stderr?.on("data", (d: Buffer) => (stderr = (stderr + d.toString()).slice(-4000)));
+    child.on("exit", () => (exited = true));
+    members.push({ service: s.name, port: s.port, health: s.health, child, stderr: "", exited, childProc: child });
+    // keep stderr text on the member
+    const m = members[members.length - 1];
+    child.stderr?.on("data", (d: Buffer) => { m.stderr = (m.stderr + d.toString()).slice(-4000); });
+    child.on("exit", () => { m.exited = true; });
+  }
+
+  const deadline = Date.now() + 90_000;
+  const pending = new Set(members);
+  while (pending.size > 0 && Date.now() < deadline) {
+    for (const m of [...pending]) {
+      if (m.exited) { pending.delete(m); continue; }
+      const h = await healthStatus(m.port, m.health, 1_000);
+      if (h.status === 200) pending.delete(m);
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  for (const m of members) {
+    if (m.exited || pending.has(m)) {
+      notStarted.push({
+        service: m.service,
+        reason: m.exited
+          ? `exited: ${firstErrorLines(m.stderr).join(" | ").slice(0, 300)}`
+          : "health not 200 within 90 s",
+      });
+    }
+  }
+  return { members: members.filter((m) => !m.exited && !pending.has(m)), notStarted };
+}
+
 async function main(): Promise<void> {
-  const result: Record<string, unknown> = {
+  const result = {
     env: {
       pg_port: PG_PORT,
-      max_connections: null, // filled after measuring
+      max_connections: "unknown" as string,
       wasla_pg_pool_max: WASLA_PG_POOL_MAX,
-      services: SERVICES.map((s) => s.name),
+      db_url_masked: "postgres://postgres@127.0.0.1:<port>/wasla_l1",
     },
-    fleet: { started: [] as string[], not_started: [] as string[] },
+    fleet: { started: [] as string[], not_started: [] as Array<{ service: string; reason: string }> },
     steps: [] as Step[],
-    recovery: {},
-    verdict: { checks: [], pass: false },
+    recovery: {} as Record<string, unknown>,
+    verdict: { checks: [] as Array<{ id: string; detail: string; pass: boolean }>, pass: false },
   };
 
   // Measure max_connections on the throwaway DB.
-  result.env.max_connections = await new Promise<string>((resolve) => {
-    const p = spawn("docker", [
-      "exec", "s2-pg-l1", "psql", "-U", "postgres", "-d", "wasla_l1", "-tc", "SHOW max_connections;",
-    ], { stdio: ["ignore", "pipe", "ignore"] });
-    let out = "";
-    p.stdout.on("data", (d: Buffer) => { out += d; });
-    p.on("close", () => resolve(out.trim() || "unknown"));
-    p.on("error", () => resolve("unknown"));
-  });
-
-  // Start all 17 services, each with its own pool.
-  const procs: ServiceProc[] = [];
-  for (const s of SERVICES) {
-    const p = await startService(s);
-    const ok = await waitForPort(s.port, 6000);
-    if (ok) (result.fleet.started as string[]).push(s.name);
-    else (result.fleet.not_started as string[]).push(s.name);
-    procs.push(p);
+  try {
+    result.env.max_connections = (await dockerExecPsql("SHOW max_connections;")) || "unknown";
+  } catch (e) {
+    result.env.max_connections = `error: ${(e as Error).message}`;
   }
+
+  // Start all 17 services.
+  const fleet = await startFleet();
+  result.fleet.started.push(...fleet.members.map((m) => m.service));
+  result.fleet.not_started.push(...fleet.notStarted);
+
   // Give pools a moment to settle.
   await new Promise((r) => setTimeout(r, 3000));
+
+  // Measure the baseline (idle) pg_stat_activity.
+  let lastPeak = await pgStatActivityCount();
 
   const CONCURRENCIES = [10, 50, 100, 200];
   const STEP_MS = 60_000; // 60 s per step per the matrix.
@@ -209,13 +229,14 @@ async function main(): Promise<void> {
 
     const worker = async (id: number): Promise<void> => {
       while (Date.now() < stopAt) {
-        const s = procs[(id + Math.floor(Math.random() * procs.length)) % procs.length];
+        const s = fleet.members[(id + Math.floor(Math.random() * fleet.members.length)) % fleet.members.length];
         try {
-          const r = await fetchJSON(`http://127.0.0.1:${s.port}/health`, 4000);
+          const r = await fetchJSON(`http://127.0.0.1:${s.port}${s.health}`, 4000);
           latencies.push(r.ms);
           total++;
-          if (r.status >= 500) errors5xx++;
-          if (r.body && typeof r.body === "object" && "code" in (r.body as Record<string, unknown>) && String((r.body as Record<string, unknown>).code).includes("53300")) errors53300++;
+          if (r.status === 0 || r.status >= 500) errors5xx++;
+          const body = r.body as Record<string, unknown> | undefined;
+          if (body && typeof body === "object" && "code" in body && String(body.code).includes("53300")) errors53300++;
         } catch (e) {
           timeouts++;
           total++;
@@ -225,15 +246,17 @@ async function main(): Promise<void> {
       }
     };
 
-    const peakInterval = setInterval(() => { void pgStatActivityPeak(); }, 1500);
+    const peakInterval = setInterval(() => {
+      void pgStatActivityCount().then((n) => { lastPeak = Math.max(lastPeak, n); });
+    }, 1500);
 
     const workers = Array.from({ length: conc }, (_, i) => worker(i));
     await Promise.all(workers);
     clearInterval(peakInterval);
-    await pgStatActivityPeak(); // final read for the step.
+    lastPeak = Math.max(lastPeak, await pgStatActivityCount()); // final read.
 
     const sorted = [...latencies].sort((a, b) => a - b);
-    (result.steps as Step[]).push({
+    result.steps.push({
       concurrency: conc,
       duration_ms: STEP_MS,
       total_requests: total,
@@ -244,31 +267,31 @@ async function main(): Promise<void> {
       p99_ms: p99(sorted),
       peak_pg_stat_activity: lastPeak,
     });
-    lastPeak = 0; // reset per step
+    lastPeak = await pgStatActivityCount(); // reset per step
   }
 
   // Recovery after pg_terminate_backend.
   const killed = await terminateBackend();
   await new Promise((r) => setTimeout(r, 1000));
   let alive = 0;
-  for (const p of procs) {
-    const r = await fetchJSON(`http://127.0.0.1:${p.port}/health`, 3000);
-    if (r.status === 200) alive++;
+  for (const m of fleet.members) {
+    const h = await healthStatus(m.port, m.health, 3000);
+    if (h.status === 200) alive++;
   }
-  (result.recovery as Record<string, unknown>) = {
+  result.recovery = {
     pg_terminate_backend: killed,
     alive_after: alive,
-    of: procs.length,
+    of: fleet.members.length,
   };
 
   // Verdict — fail closed.
-  const steps = result.steps as Step[];
+  const steps = result.steps;
   const checks: Array<{ id: string; detail: string; pass: boolean }> = [];
 
-  const peakOverall = Math.max(...steps.map((s) => s.peak_pg_stat_activity));
+  const peakOverall = Math.max(...steps.map((s) => s.peak_pg_stat_activity), 0);
   checks.push({
     id: "PEAK_LE_34",
-    detail: `peak pg_stat_activity = ${peakOverall} (worst case 17×2 = 34, Supavisor slot ceiling 40)`,
+    detail: `peak pg_stat_activity = ${peakOverall} (worst case 17×2 = 34, simulated Supavisor ceiling 40)`,
     pass: peakOverall <= 34,
   });
   checks.push({
@@ -288,32 +311,32 @@ async function main(): Promise<void> {
   });
   checks.push({
     id: "P95_LE_500",
-    detail: `max p95 across all steps = ${Math.max(...steps.map((s) => s.p95_ms))} ms (SLO ≤ 500 ms, M4-03)`,
-    pass: Math.max(...steps.map((s) => s.p95_ms)) <= 500,
+    detail: `max p95 across all steps = ${steps.length ? Math.max(...steps.map((s) => s.p95_ms)) : 0} ms (SLO ≤ 500 ms, M4-03)`,
+    pass: steps.length > 0 && Math.max(...steps.map((s) => s.p95_ms)) <= 500,
   });
   checks.push({
     id: "FLEET_STARTED",
-    detail: `${(result.fleet.started as string[]).length}/17 services started`,
-    pass: (result.fleet.started as string[]).length === 17,
+    detail: `${fleet.members.length}/17 services started`,
+    pass: fleet.members.length === 17,
   });
   checks.push({
     id: "RECOVERY",
-    detail: `alive_after pg_terminate_backend = ${alive}/17`,
-    pass: alive === 17,
+    detail: `alive_after pg_terminate_backend = ${alive}/${fleet.members.length}`,
+    pass: fleet.members.length > 0 && alive === fleet.members.length,
   });
 
-  (result.verdict as Record<string, unknown>).checks = checks;
-  (result.verdict as Record<string, unknown>).pass = checks.every((c) => c.pass);
+  result.verdict.checks = checks;
+  result.verdict.pass = checks.every((c) => c.pass);
 
   // Clean up.
-  for (const p of procs) {
-    if (p.proc && p.proc.exitCode === null) {
-      try { p.proc.kill("SIGTERM"); } catch { /* already gone */ }
+  for (const m of fleet.members) {
+    if (m.child.exitCode === null) {
+      try { m.child.kill("SIGTERM"); } catch { /* already gone */ }
     }
   }
 
   process.stdout.write(JSON.stringify(result, null, 2));
-  process.exit((result.verdict as Record<string, unknown>).pass ? 0 : 1);
+  process.exit(result.verdict.pass ? 0 : 1);
 }
 
 void main();
