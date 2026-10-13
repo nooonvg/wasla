@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0542 (2026-10-13): M0-08B يبقى `Completed` — أُرشِفَ تحقّقُ ما بعدَ الإغلاقِ في `docs/12-testing/M0-08B_GATE.md` §6 (التزامُ الإغلاقِ `3d8534f0`: WASLA CI 38321972239 40/40 · Roadmap freshness 38321972268 · Merged branch cleanup 38321972337 · الفرعُ المدموجُ 404). راجع `docs/16-progress/TASK_LOG.md` (CLM-0542).
+
 CLM-0541 (2026-10-13): M0-08B `Completed` بقرارِ مالكِ البرنامجِ — البوّابةُ `docs/12-testing/M0-08B_GATE.md` بالأدلّةِ الثلاثةِ (PR #694 · PR #695 · `main` `90ab63ee` WASLA CI 38316980962 40/40). لا يُغلِقُ بوّاباتِ الإصدارِ ولا مخاطرَ المشروعِ الأخرى. راجع `docs/16-progress/TASK_LOG.md` (CLM-0541).
 
 CLM-0540 (2026-10-13): M0-08B `Ready for Gate` — `main` `522197d2` أخضرُ (WASLA CI 38309988128 success 42/42) و`BASELINE.repo.commit` ما زالَ التزامَ فرعٍ محذوفٍ (`78940ba4`) بلا طلبِ لقطةٍ ثانٍ: معالجةُ RISK-0028 مقيسةٌ حيّاً. راجع `docs/16-progress/TASK_LOG.md` (CLM-0540).
