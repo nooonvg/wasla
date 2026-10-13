@@ -1,3 +1,17 @@
+# 2026-10-13 — CLM-0543 — M7-01: تصحيحُ تقريرَي الجاهزيّةِ 2026-10-06 بالإضافة (مطابقةُ السجلِّ والأدلّة)
+
+- **Work Item(s):** M7-01
+- **Author/Owner:** @skyosv10-art (agent:perplexity-computer)
+- **Status:** Not Started (لا تغيير)
+- **Kind:** state-correction — تقريرا الجاهزيّةِ `M7_READINESS_REVIEW_2026-10-06.md` و`OPERATIONAL_READINESS_REVIEW_2026-10-06.md` يذكرانِ عوائقَ أغلقتها أدلّةٌ لاحقة (RISK-0060 بالتشغيل 37879172647، وINC-0002 بـCLM-0492، وRISK-0063 بـCLM-0505، ومصادقةُ ADR-066/067 الصريحةُ في 2026-10-08)؛ يُضافُ قسمُ تصحيحٍ مؤرَّخٌ ويبقى النصُّ الأصليّ.
+- **Risk(s):** RISK-0060 → closed (لا تغيير) · RISK-0055 → closed (لا تغيير) · RISK-0061 → closed (لا تغيير) · RISK-0058 → mitigating (لا تغيير) · RISK-0066 → open (لا تغيير) · RISK-0067 → mitigating (لا تغيير)
+- **Evidence:** [RISK-0060 probe run 37879172647](https://github.com/skyosv10-art/wasla/actions/runs/37879172647) (`workflow_dispatch` · `main` `7be06f6b` · 1/1 وظيفةٌ success) · رأسا ADR-066 وADR-067 وقسمُ Ratification («أصادق ADR-066 وADR-067 صراحةً»، النصُّ المصحَّح `69c6627`، CLM-0497) · INCIDENTS.md INC-0002 `Closed` · سطرُ RISK-0063 (CLM-0505) · آخرُ 5 تشغيلاتٍ لـ`db-backup.yml` success (آخرُها 38324981243) · عدُّ حالاتِ اللوحةِ والسجلِّ على `main` `8b155269`.
+- **Deployment:** none — docs-only.
+- **No-Test-Reason:** تصحيحُ وثائقَ بالإضافة.
+- **Changed (units):** `docs/16-progress/M7_READINESS_REVIEW_2026-10-06.md` · `docs/16-progress/OPERATIONAL_READINESS_REVIEW_2026-10-06.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/TASK_LOG.md` · `ROADMAP.md`
+- **What / Why:** مطابقةُ التقريرينِ للسجلِّ الحيّ. **السجلُّ نفسُهُ لم يُعدَّل**: هوَ محدَّثٌ أصلاً (إغلاقُ RISK-0060 في CLM-0514، وملاحظتا المصادقةِ على RISK-0055/0061 في CLM-0496/0497)، وتكرارُها فيهِ مصدرٌ ثانٍ للحقيقة. لا يُغلِقُ التصحيحُ خطراً ولا بوّابة؛ **الحكمُ NO-GO**. القائمُ: RISK-0058 (تمرينُ Production، ولا قرارَ D2 مسجَّل)، وRISK-0066 (اختيارُ خيارٍ مدفوعٍ من المالك؛ المراجعة 2026-10-15)، وRISK-0067 (الشفرةُ مدموجةٌ والقياسُ تحتَ الحِملِ غائب — غيابُ قياسٍ لا فشل). R-02 وR-07 وP-03..P-05 بلا تغيير.
+- **Next:** نطاقٌ مستقلّ: خطّةُ قياسِ RISK-0067 (معايرةٌ على غيرِ الإنتاجِ أوّلاً) — لا تمرينَ RISK-0058 ولا تغييرَ خطّةِ Render.
+
 # 2026-10-13 — CLM-0542 — M0-08B: أرشفةُ تحقّقِ ما بعدَ الإغلاق (Post-closeout verification)
 
 - **Work Item(s):** M0-08B

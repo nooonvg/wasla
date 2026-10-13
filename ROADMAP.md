@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0543 (2026-10-13): تقريرا الجاهزيّةِ 2026-10-06 صُحِّحا بالإضافة (M7 §13 · ORR §9) — RISK-0060 وINC-0002 وRISK-0063 مغلقة، وADR-066/067 مصادَقان؛ M6-18B يبقى `Blocked` على RISK-0058/0066/0067، والحكمُ NO-GO. راجع `docs/16-progress/TASK_LOG.md` (CLM-0543).
+
 CLM-0542 (2026-10-13): M0-08B يبقى `Completed` — أُرشِفَ تحقّقُ ما بعدَ الإغلاقِ في `docs/12-testing/M0-08B_GATE.md` §6 (التزامُ الإغلاقِ `3d8534f0`: WASLA CI 38321972239 40/40 · Roadmap freshness 38321972268 · Merged branch cleanup 38321972337 · الفرعُ المدموجُ 404). راجع `docs/16-progress/TASK_LOG.md` (CLM-0542).
 
 CLM-0541 (2026-10-13): M0-08B `Completed` بقرارِ مالكِ البرنامجِ — البوّابةُ `docs/12-testing/M0-08B_GATE.md` بالأدلّةِ الثلاثةِ (PR #694 · PR #695 · `main` `90ab63ee` WASLA CI 38316980962 40/40). لا يُغلِقُ بوّاباتِ الإصدارِ ولا مخاطرَ المشروعِ الأخرى. راجع `docs/16-progress/TASK_LOG.md` (CLM-0541).
