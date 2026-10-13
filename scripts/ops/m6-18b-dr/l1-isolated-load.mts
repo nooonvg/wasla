@@ -23,9 +23,11 @@
 
 import { spawn, type ChildProcess } from "node:child_process";
 import net from "node:net";
+import { randomBytes } from "node:crypto";
 
 const PG_PORT = Number(process.env.PG_PORT ?? "55434");
 const DB_URL = `postgres://postgres@127.0.0.1:${PG_PORT}/wasla_l1`;
+const SECRET = randomBytes(32).toString("hex"); // throwaway, matches scenario2-db-unavailable.mts.
 const WASLA_PG_POOL_MAX = process.env.WASLA_PG_POOL_MAX ?? null; // absent ⇒ default 2
 
 // The 17 DB services that build a `pg.Pool` via `withPgPoolDefaults` (matrix §5).
@@ -150,6 +152,8 @@ async function startFleet(): Promise<{ members: FleetMember[]; notStarted: Array
         [s.dbEnv]: DB_URL,
         WASLA_SERVICE_TOKEN_REPLAY_MODE: "memory",
         OTEL_SDK_DISABLED: "true",
+        WASLA_SERVICE_AUTH_KEYS: `dr1:active:${SECRET}`,
+        WASLA_SERVICE_AUTH_ACTIVE_KID: "dr1",
       },
       stdio: ["ignore", "ignore", "pipe"],
     });
