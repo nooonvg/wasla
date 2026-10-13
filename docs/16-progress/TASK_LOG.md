@@ -1,3 +1,27 @@
+# 2026-10-13 — CLM-0550 — M6-18B / RISK-0067: إعادةُ تشغيلِ L1 تأكيدًا بعدَ دمجِ أدلةِ CLM-0549 (run 38477010128) — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0546 · CLM-0547 · CLM-0548 · CLM-0549 · CLM-0550)
+- **Status:** Released (L1 PASS مُوثَّق ثلاثَ مراتِ · L2/حملٌ حيّ يبقى بقرارِ مالك)
+- **Risk(s):** RISK-0067 → mitigating (لا تغيير — إغلاقُها يحتاجُ حملًا حيًّا بلا `EMAXCONNSESSION`، L1 لا يُثبته)
+- **Evidence:** run [38477010128](https://github.com/skyosv10-art/wasla/actions/runs/38477010128) **PASS** على main بعدَ دمجِ أدلةِ CLM-0549 (8d4385d0): peak `pg_stat_activity` = 21 ≤ 34 · `53300` = 0 · 5xx = 0 · timeouts = 0 · p95 ≤ 46 ms · 17/17 services · التعافي بعدَ `pg_terminate_backend` = 17/17. وCI بعدَ الدمجِ على main (8d4385d0): WASLA CI **success** · Roadmap freshness **success**. [evidence](../12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md)
+- **Deployment:** none (CI-only harness).
+- **What L1 does NOT prove:** سلوكَ Supavisor نفسِهِ (`EMAXCONNSESSION`) — ذاكَ L2/حملٌ حيّ، قرارُ مالك.
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` (RISK-0058/0066/0067) · NO-GO.
+- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
+- **Prior failures (recorded, not erased):** run [38422802830](https://github.com/skyosv10-art/wasla/actions/runs/38422802830) failure · run [38435893220](https://github.com/skyosv10-art/wasla/actions/runs/38435893220) failure.
+
+# 2026-10-13 — CLM-0549 — M6-18B / RISK-0067: إعادةُ تشغيلِ L1 تأكيدًا بعدَ دمجِ أدلةِ CLM-0548 (run 38465371715) — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0546 · CLM-0547 · CLM-0548 · CLM-0549)
+- **Status:** Released (L1 PASS مُوثَّق مرتينِ · L2/حملٌ حيّ يبقى بقرارِ مالك)
+- **Risk(s):** RISK-0067 → mitigating (لا تغيير — إغلاقُها يحتاجُ حملًا حيًّا بلا `EMAXCONNSESSION`، L1 لا يُثبته)
+- **Evidence:** run [38465371715](https://github.com/skyosv10-art/wasla/actions/runs/38465371715) **PASS** على main بعدَ دمجِ أدلةِ CLM-0548 (31bd06bf): peak `pg_stat_activity` = 21 ≤ 34 · `53300` = 0 · 5xx = 0 · timeouts = 0 · p95 ≤ 88 ms · 17/17 services · التعافي بعدَ `pg_terminate_backend` = 17/17. وCI بعدَ الدمجِ على main (31bd06bf): WASLA CI **success** · Roadmap freshness **success**. [evidence](../12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md)
+- **Deployment:** none (CI-only harness).
+- **What L1 does NOT prove:** سلوكَ Supavisor نفسِهِ (`EMAXCONNSESSION`) — ذاكَ L2/حملٌ حيّ، قرارُ مالك.
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` (RISK-0058/0066/0067) · NO-GO.
+- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-13T175200Z-clm-0547-l1-pass/README.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
+- **Prior failures (recorded, not erased):** run [38422802830](https://github.com/skyosv10-art/wasla/actions/runs/38422802830) failure · run [38435893220](https://github.com/skyosv10-art/wasla/actions/runs/38435893220) failure.
+
 # 2026-10-13 — CLM-0548 — M6-18B / RISK-0067: L1 isolated-load measurement PASS (run 38442183818) — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0547 · CLM-0548 · CLM-0546)
