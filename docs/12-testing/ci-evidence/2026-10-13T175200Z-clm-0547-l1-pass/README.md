@@ -40,6 +40,7 @@ RISK-0067 stays `mitigating` (closure needs a live load measurement with no `EMA
 ## Sources
 
 - [Run 38442183818 — PASS](https://github.com/skyosv10-art/wasla/actions/runs/38442183818)
+- [Run 38465371715 — PASS (confirmation re-run on main 31bd06bf, post-merge of the evidence PR #705)](https://github.com/skyosv10-art/wasla/actions/runs/38465371715): peak 21 ≤ 34 · 53300=0 · 5xx=0 · timeouts=0 · p95 ≤ 88 ms · 17/17 · recovery 17/17 · VERDICT: PASS
 - [docs/12-testing/ENGINEERING_COMPLETION_MATRIX.md §5](../../../ENGINEERING_COMPLETION_MATRIX.md)
 - [docs/12-testing/M6-18B_RISK_0067_LOAD_MEASUREMENT_PLAN.md](../../M6-18B_RISK-0067_LOAD_MEASUREMENT_PLAN.md)
 - [docs/16-progress/TASK_LOG.md (CLM-0547)](../../../16-progress/TASK_LOG.md)
