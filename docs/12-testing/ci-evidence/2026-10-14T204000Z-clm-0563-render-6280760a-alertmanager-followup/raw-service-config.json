@@ -1,0 +1,24 @@
+{
+ "read_at": "2026-10-14T20:28Z",
+ "source": "GET https://api.render.com/v1/services/srv-db3s2nui0phs73bc45cg (env vars not read)",
+ "id": "srv-db3s2nui0phs73bc45cg",
+ "name": "wasla-alertmanager",
+ "type": "web_service",
+ "suspended": "not_suspended",
+ "autoDeploy": "no",
+ "branch": "main",
+ "plan": "free",
+ "region": "oregon",
+ "runtime": "docker",
+ "numInstances": 1,
+ "healthCheckPath": "",
+ "maxShutdownDelaySeconds": null,
+ "preDeployCommand": null,
+ "url": "https://wasla-alertmanager-6hhq.onrender.com",
+ "openPorts": [],
+ "docker": {
+  "dockerCommand": "",
+  "dockerContext": "infra/observability",
+  "dockerfilePath": "infra/observability/Dockerfile.alertmanager"
+ }
+}

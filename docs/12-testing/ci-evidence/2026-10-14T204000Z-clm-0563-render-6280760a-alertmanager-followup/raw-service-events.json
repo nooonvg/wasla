@@ -1,0 +1,105 @@
+{
+ "source": "GET /v1/services/srv-db3s2nui0phs73bc45cg/events?startTime=2026-10-14T17:00:00Z (trigger.user removed)",
+ "events": [
+  {
+   "timestamp": "2026-10-14T18:11:28.217664Z",
+   "type": "deploy_ended",
+   "details": {
+    "deployId": "dep-db7s4gqjnfac73f00up0",
+    "deployStatus": "failed",
+    "reason": {},
+    "status": 4
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:56:26.797356Z",
+   "type": "build_ended",
+   "details": {
+    "buildId": "bld-db7s4gqjnfac73f00uug",
+    "buildStatus": "succeeded",
+    "reason": {},
+    "status": 2
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:56:19.909976Z",
+   "type": "deploy_started",
+   "details": {
+    "deployId": "dep-db7s4gqjnfac73f00up0",
+    "trigger": {
+     "clearCache": false,
+     "deployedByRender": false,
+     "envUpdated": false,
+     "firstBuild": false,
+     "manual": false,
+     "rollback": false
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:56:19.887593Z",
+   "type": "build_started",
+   "details": {
+    "buildId": "bld-db7s4gqjnfac73f00uug",
+    "trigger": {
+     "clearCache": false,
+     "deployedByRender": false,
+     "envUpdated": false,
+     "firstBuild": false,
+     "manual": false,
+     "rollback": false
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:31:21.900879Z",
+   "type": "deploy_ended",
+   "details": {
+    "deployId": "dep-db7roebl550s73d3nir0",
+    "deployStatus": "succeeded",
+    "reason": {},
+    "status": 2
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:31:06.918968Z",
+   "type": "build_ended",
+   "details": {
+    "buildId": "bld-db7roebl550s73d3nis0",
+    "buildStatus": "succeeded",
+    "reason": {},
+    "status": 2
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:30:34.45115Z",
+   "type": "deploy_started",
+   "details": {
+    "deployId": "dep-db7roebl550s73d3nir0",
+    "trigger": {
+     "clearCache": false,
+     "deployedByRender": false,
+     "envUpdated": false,
+     "firstBuild": false,
+     "manual": false,
+     "rollback": false
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-14T17:30:34.406197Z",
+   "type": "build_started",
+   "details": {
+    "buildId": "bld-db7roebl550s73d3nis0",
+    "trigger": {
+     "clearCache": false,
+     "deployedByRender": false,
+     "envUpdated": false,
+     "firstBuild": false,
+     "manual": false,
+     "rollback": false
+    }
+   }
+  }
+ ]
+}

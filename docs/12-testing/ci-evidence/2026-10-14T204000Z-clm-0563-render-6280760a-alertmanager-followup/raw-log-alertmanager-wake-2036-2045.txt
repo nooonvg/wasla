@@ -1,0 +1,11 @@
+# GET /v1/logs resource=srv-db3s2nui0phs73bc45cg 2026-10-14T20:36:00Z..20:45:00Z
+2026-10-14T20:37:19.771351881Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.771Z caller=main.go:181 level=info msg="Starting Alertmanager" version="(version=0.27.0, branch=HEAD, revision=0aa3c2aad14cff039931923ab16b26b7481783b5)"
+2026-10-14T20:37:19.771378762Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.771Z caller=main.go:182 level=info build_context="(go=go1.21.7, platform=linux/amd64, user=root@22cd11f671e9, date=20240228-11:51:20, tags=netgo)"
+2026-10-14T20:37:19.771541882Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.771Z caller=nflog.go:275 level=debug component=nflog msg="notification log snapshot file doesn't exist" err="open /tmp/alertmanager/data/nflog: no such file or directory"
+2026-10-14T20:37:19.77167767Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.771Z caller=silence.go:355 level=debug component=silences msg="silences snapshot file doesn't exist" err="open /tmp/alertmanager/data/silences: no such file or directory"
+2026-10-14T20:37:19.974075435Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.973Z caller=main.go:348 level=debug externalURL=http://srv-db3s2nui0phs73bc45cg-hibernate-779c5977f4-ncpqc:9093
+2026-10-14T20:37:19.974151359Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.973Z caller=coordinator.go:113 level=info component=configuration msg="Loading configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T20:37:19.974405034Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.974Z caller=coordinator.go:126 level=info component=configuration msg="Completed loading of configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T20:37:19.975536882Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.975Z caller=main.go:495 level=debug routePrefix=/
+2026-10-14T20:37:19.976262275Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.976Z caller=tls_config.go:313 level=info msg="Listening on" address=[::]:9093
+2026-10-14T20:37:19.976460217Z inst=srv-db3s2nui0phs73bc45cg-ncpqc ts=2026-10-14T20:37:19.976Z caller=tls_config.go:352 level=info msg="TLS is disabled." http2=false address=[::]:9093

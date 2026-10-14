@@ -1,0 +1,89 @@
+# GET /v1/logs resource=wasla-prometheus 2026-10-14T17:56:00Z..18:12:00Z (deploy dep-db7s4nuk1f9s73cqvogg, live)
+2026-10-14T17:56:51.45440769Z inst=- ==> Cloning from https://github.com/skyosv10-art/wasla
+2026-10-14T17:56:53.654198909Z inst=- ==> Checking out commit 6280760a9b444eca13d70dd9435abb95b3f27dc5 in branch main
+2026-10-14T17:56:55.207919667Z inst=- #1 [internal] load build definition from Dockerfile.prometheus
+2026-10-14T17:56:55.207939187Z inst=- #1 transferring dockerfile: 629B done
+2026-10-14T17:56:55.207940971Z inst=- #1 DONE 0.0s
+2026-10-14T17:56:55.207942265Z inst=- 
+2026-10-14T17:56:55.207944107Z inst=- #2 [internal] load metadata for docker.io/prom/prometheus:v2.54.1
+2026-10-14T17:56:55.399075725Z inst=- #2 ...
+2026-10-14T17:56:55.399093868Z inst=- 
+2026-10-14T17:56:55.399096323Z inst=- #3 [auth] prom/prometheus:pull render-prod/docker-mirror-repository/prom/prometheus:pull token for us-west1-docker.pkg.dev
+2026-10-14T17:56:55.399099405Z inst=- #3 DONE 0.0s
+2026-10-14T17:56:55.549329555Z inst=- 
+2026-10-14T17:56:55.549353227Z inst=- #2 [internal] load metadata for docker.io/prom/prometheus:v2.54.1
+2026-10-14T17:56:55.595061363Z inst=- #2 DONE 0.5s
+2026-10-14T17:56:55.700708971Z inst=- 
+2026-10-14T17:56:55.700723114Z inst=- #4 [internal] load .dockerignore
+2026-10-14T17:56:55.700724971Z inst=- #4 transferring context: 2B done
+2026-10-14T17:56:55.700726641Z inst=- #4 DONE 0.0s
+2026-10-14T17:56:55.700727814Z inst=- 
+2026-10-14T17:56:55.700729373Z inst=- #5 [internal] load build context
+2026-10-14T17:56:55.700730695Z inst=- #5 DONE 0.0s
+2026-10-14T17:56:55.700732014Z inst=- 
+2026-10-14T17:56:55.700734419Z inst=- #6 [1/5] FROM docker.io/prom/prometheus:v2.54.1@sha256:f6639335d34a77d9d9db382b92eeb7fc00934be8eae81dbc03b31cfe90411a94
+2026-10-14T17:56:55.700735879Z inst=- #6 resolve docker.io/prom/prometheus:v2.54.1@sha256:f6639335d34a77d9d9db382b92eeb7fc00934be8eae81dbc03b31cfe90411a94 done
+2026-10-14T17:56:55.700737239Z inst=- #6 DONE 0.0s
+2026-10-14T17:56:55.700738396Z inst=- 
+2026-10-14T17:56:55.700739599Z inst=- #7 importing cache manifest
+2026-10-14T17:56:55.700741495Z inst=- #7 inferred cache manifest type: application/vnd.oci.image.manifest.v1+json done
+2026-10-14T17:56:55.700742905Z inst=- #7 DONE 0.1s
+2026-10-14T17:56:55.810979901Z inst=- 
+2026-10-14T17:56:55.810997101Z inst=- #5 [internal] load build context
+2026-10-14T17:56:55.810999614Z inst=- #5 transferring context: 11.14kB done
+2026-10-14T17:56:55.811001392Z inst=- #5 DONE 0.0s
+2026-10-14T17:56:55.811002694Z inst=- 
+2026-10-14T17:56:55.811004488Z inst=- #8 [2/5] COPY prometheus.yml /etc/prometheus/prometheus.yml
+2026-10-14T17:56:55.811005927Z inst=- #8 CACHED
+2026-10-14T17:56:55.811007454Z inst=- 
+2026-10-14T17:56:55.811008855Z inst=- #9 [3/5] COPY alert-rules.yml /etc/prometheus/alert-rules.yml
+2026-10-14T17:56:55.811010261Z inst=- #9 CACHED
+2026-10-14T17:56:55.811011407Z inst=- 
+2026-10-14T17:56:55.81101275Z inst=- #10 [4/5] COPY targets/ /etc/prometheus/targets/
+2026-10-14T17:56:55.811014003Z inst=- #10 CACHED
+2026-10-14T17:56:55.811015166Z inst=- 
+2026-10-14T17:56:55.811016917Z inst=- #11 [5/5] COPY prometheus-entrypoint.sh /etc/prometheus/entrypoint.sh
+2026-10-14T17:56:55.811018202Z inst=- #11 CACHED
+2026-10-14T17:56:55.81101941Z inst=- 
+2026-10-14T17:56:55.811020654Z inst=- #12 exporting cache to registry
+2026-10-14T17:56:55.81102256Z inst=- #12 sending cache export
+2026-10-14T17:56:56.018871176Z inst=- #12 sending cache export 0.2s done
+2026-10-14T17:56:56.018885003Z inst=- #12 DONE 0.3s
+2026-10-14T17:56:56.018886496Z inst=- 
+2026-10-14T17:56:56.018888423Z inst=- #13 exporting to image
+2026-10-14T17:56:56.018890327Z inst=- #13 exporting layers done
+2026-10-14T17:56:56.018891581Z inst=- #13 pushing layers 0.2s done
+2026-10-14T17:56:56.018892889Z inst=- #13 DONE 0.3s
+2026-10-14T17:56:57.503884138Z inst=- ==> Deploying...
+2026-10-14T17:56:57.588444148Z inst=- ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-10-14T18:09:17.753025637Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.752Z caller=main.go:601 level=info msg="No time or size retention was set so using the default time retention" duration=15d
+2026-10-14T18:09:17.753062748Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.752Z caller=main.go:645 level=info msg="Starting Prometheus Server" mode=server version="(version=2.54.1, branch=HEAD, revision=e6cfa720fbe6280153fab13090a483dbd40bece3)"
+2026-10-14T18:09:17.753067308Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.752Z caller=main.go:650 level=info build_context="(go=go1.22.6, platform=linux/amd64, user=root@812ffd741951, date=20240827-10:56:41, tags=netgo,builtinassets,stringlabels)"
+2026-10-14T18:09:17.753072549Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.752Z caller=main.go:651 level=info host_details="(Linux 7.0.0-1009-aws #9-Ubuntu SMP PREEMPT Tue Jun 30 21:23:37 UTC 2026 x86_64 srv-db3s2mui0phs73bc42sg-hibernate-7b66f9669b-ddns4 (none))"
+2026-10-14T18:09:17.754029231Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.753Z caller=main.go:652 level=info fd_limits="(soft=1048576, hard=1048576)"
+2026-10-14T18:09:17.754040201Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.753Z caller=main.go:653 level=info vm_limits="(soft=unlimited, hard=unlimited)"
+2026-10-14T18:09:17.758045425Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.756Z caller=web.go:571 level=info component=web msg="Start listening for connections" address=:9090
+2026-10-14T18:09:17.759067178Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.758Z caller=main.go:1160 level=info msg="Starting TSDB ..."
+2026-10-14T18:09:17.852293537Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.852Z caller=tls_config.go:313 level=info component=web msg="Listening on" address=[::]:9090
+2026-10-14T18:09:17.852578264Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.852Z caller=tls_config.go:316 level=info component=web msg="TLS is disabled." http2=false address=[::]:9090
+2026-10-14T18:09:17.856367972Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.856Z caller=head.go:626 level=info component=tsdb msg="Replaying on-disk memory mappable chunks if any"
+2026-10-14T18:09:17.856565777Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.856Z caller=head.go:713 level=info component=tsdb msg="On-disk memory mappable chunks replay completed" duration=3.31µs
+2026-10-14T18:09:17.85671905Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.856Z caller=head.go:721 level=info component=tsdb msg="Replaying WAL, this may take a while"
+2026-10-14T18:09:17.857602931Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.857Z caller=head.go:793 level=info component=tsdb msg="WAL segment loaded" segment=0 maxSegment=0
+2026-10-14T18:09:17.857673963Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.857Z caller=head.go:830 level=info component=tsdb msg="WAL replay completed" checkpoint_replay_duration=108.062µs wal_replay_duration=759.477µs wbl_replay_duration=120ns chunk_snapshot_load_duration=0s mmap_chunk_replay_duration=3.31µs total_replay_duration=1.206868ms
+2026-10-14T18:09:17.958911858Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.949Z caller=main.go:1181 level=info fs_type=EXT4_SUPER_MAGIC
+2026-10-14T18:09:17.958928909Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.949Z caller=main.go:1184 level=info msg="TSDB started"
+2026-10-14T18:09:17.958943539Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.949Z caller=main.go:1367 level=info msg="Loading configuration file" filename=/tmp/prometheus/prometheus.yml
+2026-10-14T18:09:17.958946469Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.952Z caller=main.go:1404 level=info msg="updated GOGC" old=100 new=75
+2026-10-14T18:09:17.958951059Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.952Z caller=main.go:1415 level=info msg="Completed loading of configuration file" filename=/tmp/prometheus/prometheus.yml totalDuration=3.681346ms db_storage=1.33µs remote_storage=2.03µs web_handler=710ns query_engine=10.08µs scrape=1.328081ms scrape_sd=43.311µs notify=50.771µs notify_sd=12.701µs rules=1.337452ms tracing=8.08µs
+2026-10-14T18:09:17.95895654Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.952Z caller=main.go:1145 level=info msg="Server is ready to receive web requests."
+2026-10-14T18:09:17.95895934Z inst=srv-db3s2mui0phs73bc42sg-ddns4 ts=2026-10-14T18:09:17.952Z caller=manager.go:164 level=info component="rule manager" msg="Starting rule manager..."
+2026-10-14T18:10:36.733534034Z inst=- ==> No open ports detected, continuing to scan...
+2026-10-14T18:10:36.946888519Z inst=- ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2026-10-14T18:10:37.400844895Z inst=- ==> Your service is live 🎉
+2026-10-14T18:10:37.596561258Z inst=- ==> 
+2026-10-14T18:10:37.599414891Z inst=- ==> ///////////////////////////////////////////////////////////
+2026-10-14T18:10:37.60173585Z inst=- ==> 
+2026-10-14T18:10:37.604344268Z inst=- ==> Available at your primary URL https://wasla-prometheus-p80v.onrender.com
+2026-10-14T18:10:37.606651296Z inst=- ==> 
+2026-10-14T18:10:37.608974365Z inst=- ==> ///////////////////////////////////////////////////////////
