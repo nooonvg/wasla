@@ -1,0 +1,7 @@
+# Render logs API GET /v1/logs resource=srv-db3mv6aj9qps738aege0 (wasla-identity) 21:30Z..21:52Z direction=forward, read 2026-10-14T21:53Z. Columns: timestamp type level instance-suffix message[:220]
+2026-10-14T21:49:02.910957999Z app info -2mgbs [observability] Tracing enabled for identity, exporting to https://wasla-observability-kmxe.onrender.com/v1/traces
+2026-10-14T21:49:04.057764783Z app info -2mgbs {"level":30,"time":1792014544056,"pid":1,"hostname":"srv-db3mv6aj9qps738aege0-hibernate-7d86996cbc-2mgbs","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config
+2026-10-14T21:49:04.1484423Z app info -2mgbs {"level":30,"time":1792014544057,"pid":1,"hostname":"srv-db3mv6aj9qps738aege0-hibernate-7d86996cbc-2mgbs","event":"user_assertion_signer","enabled":true,"kid":"ua-2026-10","msg":"user assertion signer config"}
+2026-10-14T21:49:04.14845877Z app info -2mgbs {"level":30,"time":1792014544146,"pid":1,"hostname":"srv-db3mv6aj9qps738aege0-hibernate-7d86996cbc-2mgbs","msg":"Server listening at http://127.0.0.1:10000"}
+2026-10-14T21:49:04.148461981Z app info -2mgbs {"level":30,"time":1792014544146,"pid":1,"hostname":"srv-db3mv6aj9qps738aege0-hibernate-7d86996cbc-2mgbs","msg":"Server listening at http://10.31.198.248:10000"}
+hasMore False
