@@ -1,3 +1,17 @@
+# 2026-10-14 — CLM-0554 — M6-18B / RISK-0067: جردُ المجمعاتِ الكاملُ — الحدُّ النظريُّ 104 لا 28 (تصحيحٌ بالإضافةِ لـCLM-0551) — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0554 — حجزٌ ثانٍ على فرعِ CLM-0551؛ WORK_CLAIM_RULE §6)
+- **Status:** Released (قراءةٌ فقط · يُدمجُ مع PR #708 فورَ نجاح CI · الدمجُ هو الإطلاق)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير؛ إضافةٌ مؤرّخةٌ في السجل: إجراءُ CLM-0510 لا يحدُّ الطلبَ النظريَّ تحتَ السقف).
+- **Evidence (measured, timestamped):** Render API 2026-10-14T06:51:19Z — 21 web_service · numInstances=1 لكلّها · `WASLA_PG_POOL_MAX` غائبٌ عن الخدماتِ ومجموعةِ البيئة · مجموعةُ `wasla-prod-db` مربوطةٌ بـ17 خدمة (14 + 3 بوتات). الكودُ عند `79729e07`: كلُّ عمليةٍ تُنشئُ مجمعَ `service-auth-replay` بـ`max: 4` صريح (`packages/service-auth/src/replay-store.ts:104`)، والبوتاتُ `channel-postgres` 2، وcustomer-bot مجمعَ customers 2. ⇒ 14×6 + 8 + 6 + 6 = **104**. Supabase 06:48:49Z: `max_connections=60` · 8 client backends (منصّة) · `supavisor_logs` 252 سطرًا بتغطيةٍ 2026-10-13T14:18Z→2026-10-14T06:19Z · `EMAXCONN*`=0 ضمنَ التغطية · DR `INACTIVE` (استعلامُ القراءةِ انتهتْ مهلتُه).
+- **Not measured (exact source needed):** Supavisor `default_pool_size`/`max_client_conn` للإنتاج وDR — Management API `GET /v1/projects/{ref}/config/database/pooler` بصلاحية `database_pooling_config_read` أو لقطةُ Dashboard · كلُّ قيمِ DR — قرارُ المالك بإعادةِ تشغيلِ المشروع · اتصالاتُ أدواتِ CI بالإنتاج.
+- **Read paths:** لا `/ready` عامٌّ؛ `/health` مخزَّنُ المجسِّ 1 ث فلا يختبرُ السعة؛ `/delivery/ready` المسارُ المفتوحُ الوحيدُ الذي يمارسُ مجمعًا كلَّ طلب؛ كلُّ مسارٍ مصادَقٍ يكتبُ صفَّ إعادة ⇒ حِملٌ آمنٌ ممثِّلٌ لسقفِ 104 غيرُ ممكنٍ اليوم ⇒ هدفُ الإنتاج HOLD.
+- **Side event:** نشرُ main 79729e07 فشلَ على wasla-search (`update_failed`: تأخّرُ جدولةِ Render 14.5 دقيقة قبلَ بدءِ الحاوية، لا خطأَ كود) ⇒ أُعيدَ تشغيلُ وظيفةِ النشرِ المثبَّتة ⇒ `live` 06:47:35Z.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/README.md) · [pool-inventory.json](../12-testing/ci-evidence/2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/pool-inventory.json) · [read-paths.md](../12-testing/ci-evidence/2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/read-paths.md)
+- **Deployment:** none (docs only). **No load, no write, no config change, no plan edit.**
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Next:** (1) حجزٌ هندسيٌّ مستقلٌّ لإخضاعِ مجمعِ الإعادةِ لميزانيةِ الأسطولِ واستبدالِ اختبارِ `17 × 2 ≤ 40` بفحصٍ بنيويّ؛ (2) حجزُ تصحيحِ الخطة §9.
+
 # 2026-10-14 — CLM-0552 — M0-25: السياقُ المطلوبُ `db-integration (bot-runtime, …)` بلا مُنتِج — إضافةُ الـleg واختباراتِ تكاملٍ حقيقية
 
 - **Work Item(s):** M0-25 (CLM-0552) · M2-04 (CLM-0553 — حجزٌ ثانٍ على الفرعِ نفسِه لتسجيلِ قارئَيِ `DATABASE_URL` في سجلِّ الإعداد؛ WORK_CLAIM_RULE §6)

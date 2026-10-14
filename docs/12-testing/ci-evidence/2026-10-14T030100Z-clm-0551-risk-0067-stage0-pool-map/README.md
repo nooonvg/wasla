@@ -34,3 +34,7 @@ The 2026-10-13 CLM-0545 README §1.3 applied «كل خدمات الـDB تُنش
 **HOLD** — the DR calibration remains blocked on the same owner-gated preconditions already recorded in plan §8.5 (DR project restart, default_pool_size measurement via dashboard/management API, owner approval of the calibration workflow, RISK-0066 resolution before 2026-10-15). This stage 0 evidence adds completeness; it does not change the plan and does not authorize any load.
 
 `RISK-0067` = `mitigating` · `M6-18B` = `Blocked` · `NO-GO` · no load was run · no plan was modified.
+
+## تصحيحٌ بالإضافة — 2026-10-14 (CLM-0554)
+
+الحدُّ النظريُّ «28 ≤ 40» في هذا الملفِّ وفي `pool-map.md` **مُصحَّحٌ إلى 104** (البوتاتُ مربوطةٌ بمجموعةِ البيئة `wasla-prod-db`، ومجمعُ `service-auth-replay` `max: 4` في كلِّ عملية). النصُّ الأصليُّ محفوظ. التفصيل: [`../2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/README.md`](../2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/README.md).

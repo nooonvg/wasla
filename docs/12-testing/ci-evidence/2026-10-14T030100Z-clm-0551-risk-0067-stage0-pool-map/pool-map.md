@@ -82,3 +82,12 @@ This is a correction by addition: the 2026-10-13 evidence and its "42" conclusio
 
 - [`render-inventory-2026-10-14.json`](render-inventory-2026-10-14.json) — full Render inventory with per-service creates_pg_pool and WASLA_PG_POOL_MAX.
 - [`supabase-connector-readings-2026-10-14.md`](supabase-connector-readings-2026-10-14.md) — production pg_stat_activity, max_connections, supavisor_logs coverage, EMAXCONNSESSION count in requested window, DR project status.
+
+## تصحيحٌ بالإضافة — 2026-10-14 (CLM-0554)
+
+> هذا القسمُ يُضافُ ولا يمحو ما فوقه. الاستنتاجُ أعلاه «14 × 1 × 2 = 28 ≤ 40» **خاطئٌ** لسببين مقيسين:
+>
+> 1. **البوتاتُ الثلاثةُ ليست «غيرَ DB»:** تصنيفُها اعتمدَ على env-vars الخدمةِ وحدَها، بينما `DATABASE_URL` و`CUSTOMER_DATABASE_URL` يأتيان من مجموعةِ البيئة `wasla-prod-db` (evg-db40ojmb7d7c739u51jg) المربوطةِ بـ17 خدمة بينها البوتاتُ الثلاثة. `bot-runtime` يُنشئُ مجمعَ `channel-postgres` (2)، وcustomer-bot مجمعَ customers (2).
+> 2. **مجمعُ `service-auth-replay` غائبٌ عن الخريطة:** كلُّ عمليةٍ من الـ17 تُنشئُه بـ`max: 4` صريح (`packages/service-auth/src/replay-store.ts:104`)، و`WASLA_PG_POOL_MAX` لا يحكمُه.
+>
+> **الحدُّ المصحَّح = 104.** الجردُ الكاملُ ومصدرُ كلِّ قيمة: [`../2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/README.md`](../2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/README.md).

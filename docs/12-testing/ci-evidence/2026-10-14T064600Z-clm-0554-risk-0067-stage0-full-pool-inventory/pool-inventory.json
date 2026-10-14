@@ -1,0 +1,564 @@
+{
+  "measured_at": "2026-10-14T06:51:19Z",
+  "source": "Render API GET /v1/services, /v1/services/{id}/env-vars (key names only), /v1/env-groups/evg-db40ojmb7d7c739u51jg (key names, linked services); pool sites from code at main 79729e07",
+  "env_group": {
+    "id": "evg-db40ojmb7d7c739u51jg",
+    "name": "wasla-prod-db",
+    "keys": [
+      "CUSTOMER_DATABASE_URL",
+      "DATABASE_URL"
+    ],
+    "linked_services": 17,
+    "updatedAt": "2026-10-08T21:34:06.654839Z"
+  },
+  "connection_target": "both DATABASE_URL and CUSTOMER_DATABASE_URL: Supavisor pooler aws-0-ap-south-1, port 5432 (session mode), same tenant user and database (compared without printing values)",
+  "services": [
+    {
+      "render_name": "wasla-admin-app",
+      "type": "static_site",
+      "pools": [],
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-alertmanager",
+      "service_id": "srv-db3s2nui0phs73bc45cg",
+      "type": "web_service",
+      "plan": "free",
+      "region": "oregon",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": false,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [],
+      "per_instance_ceiling": 0,
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-audit",
+      "service_id": "srv-db3mvbnavr4c73aevsug",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "audit",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/audit/src/http/server.ts:26"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-customer-app",
+      "type": "static_site",
+      "pools": [],
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-customer-bot",
+      "service_id": "srv-db3n08gm7kps73fb8950",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "channel-postgres",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (createChannelDb passes config.max=undefined)",
+          "site": "packages/channel-postgres/src/db.ts (via packages/bot-runtime/src/runtime.ts:264, DATABASE_URL from env group)"
+        },
+        {
+          "name": "customers (bot-side)",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2",
+          "site": "services/customers/src/infrastructure/drizzle/db.ts:31 (via bots/customer-bot/src/customer-core.ts:267, CUSTOMER_DATABASE_URL from env group — same Supavisor tenant/user/db as DATABASE_URL)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 8,
+      "ceiling": 8
+    },
+    {
+      "render_name": "wasla-customers",
+      "service_id": "srv-db3mvgmi0phs73ar0ed0",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "customers",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/customers/src/infrastructure/drizzle/db.ts:31 (via server.ts:223)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-delivery",
+      "service_id": "srv-db3mvfjtqb8s73eld440",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "delivery",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/delivery/src/http/server.ts:190"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-dispatch",
+      "service_id": "srv-db3mvhugekts73fegn1g",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "dispatch",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/dispatch/src/infrastructure/drizzle/db.ts:51 (via server.ts:121)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-driver-app",
+      "type": "static_site",
+      "pools": [],
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-driver-bot",
+      "service_id": "srv-db3nfr7avr4c73agq9s0",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "channel-postgres",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (createChannelDb passes config.max=undefined)",
+          "site": "packages/channel-postgres/src/db.ts (via packages/bot-runtime/src/runtime.ts:264, DATABASE_URL from env group)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        },
+        {
+          "name": "drivers (bot-side)",
+          "max": 0,
+          "max_source": "NOT CREATED — DRIVER_DATABASE_URL absent from service env and env group",
+          "site": "bots/driver-bot/src/driver-core.ts:294-297"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-drivers",
+      "service_id": "srv-db3mv8e0tbcc7386ejrg",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "drivers",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/drivers/src/infrastructure/drizzle/db.ts:54 (via server.ts:64)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-geography",
+      "service_id": "srv-db3mvdjncjis73b2er2g",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "geography",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/geography/src/infrastructure/drizzle/db.ts:30 (via server.ts:67)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-identity",
+      "service_id": "srv-db3mv6aj9qps738aege0",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "identity",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/identity/src/infrastructure/drizzle/db.ts:30 (via server.ts:47)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-marketplace",
+      "service_id": "srv-db3mvcnlk1mc73c6if70",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "marketplace",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/marketplace/src/db/client.ts:46 (via server.ts:114)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-matching",
+      "service_id": "srv-db3mvenavr4c73af07o0",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "matching",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/matching/src/infrastructure/drizzle/db.ts:48 (via server.ts:73)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-negotiations",
+      "service_id": "srv-db3mv9mi0phs73aqvfo0",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "negotiations",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/negotiations/src/infrastructure/drizzle/db.ts:21 (via server.ts:70)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-observability",
+      "service_id": "srv-db3mucij9qps738abipg",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": false,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [],
+      "per_instance_ceiling": 0,
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-orders",
+      "service_id": "srv-db3mv749v7es73dn9gn0",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "orders",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/orders/src/infrastructure/drizzle/db.ts:53 (via server.ts:88)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-otel-collector",
+      "service_id": "srv-db3mv5om7kps73fb4390",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": false,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [],
+      "per_instance_ceiling": 0,
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-partner-bot",
+      "service_id": "srv-db3nftbtqb8s73en7o20",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "channel-postgres",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (createChannelDb passes config.max=undefined)",
+          "site": "packages/channel-postgres/src/db.ts (via packages/bot-runtime/src/runtime.ts:264, DATABASE_URL from env group)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-prometheus",
+      "service_id": "srv-db3s2mui0phs73bc42sg",
+      "type": "web_service",
+      "plan": "free",
+      "region": "oregon",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": false,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [],
+      "per_instance_ceiling": 0,
+      "ceiling": 0
+    },
+    {
+      "render_name": "wasla-reputation",
+      "service_id": "srv-db3mv8u0tbcc7386emug",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "reputation",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/reputation/src/infrastructure/drizzle/db.ts:38 (via server.ts:56)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-search",
+      "service_id": "srv-db3mv7jncjis73b2e0ng",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "search",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/search/src/http/server.ts:39"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    },
+    {
+      "render_name": "wasla-subscriptions",
+      "service_id": "srv-db3mvagm7kps73fb4ivg",
+      "type": "web_service",
+      "plan": "free",
+      "region": "singapore",
+      "numInstances": 1,
+      "suspended": "not_suspended",
+      "linked_env_group_wasla_prod_db": true,
+      "WASLA_PG_POOL_MAX_present": false,
+      "pools": [
+        {
+          "name": "subscriptions",
+          "max": 2,
+          "max_source": "PG_GUARD_DEFAULTS.poolMax=2 (WASLA_PG_POOL_MAX absent on service and env group)",
+          "site": "services/subscriptions/src/db/client.ts:45 (via server.ts:78)"
+        },
+        {
+          "name": "service-auth-replay",
+          "max": 4,
+          "max_source": "explicit caller value — packages/service-auth/src/replay-store.ts:96-101 `max: 4`; withPgPoolDefaults never overrides a caller-set max (packages/resilience/src/pg-guard.ts)",
+          "opened": "lazily, once per process, on the first service-token-authenticated request (replay-store.ts:136-141); mode defaults to postgres when WASLA_SERVICE_TOKEN_REPLAY_MODE is unset (replay-store.ts:58-60), URL falls back to DATABASE_URL"
+        }
+      ],
+      "per_instance_ceiling": 6,
+      "ceiling": 6
+    }
+  ],
+  "theoretical_fleet_ceiling": 104,
+  "formula": "sum over Render web services of (sum of per-pool max) x numInstances"
+}
