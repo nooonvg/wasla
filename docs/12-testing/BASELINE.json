@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-14T05:32:13Z",
+  "generated_at": "2026-10-14T05:50:07Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "bb5715d8bfb60ccdcee568fb75d84cb0a94e530d",
+    "commit": "274d94255d03e8b2c8d0e6b821ffcb012422f136",
     "branch": "ci/clm-0552-bot-runtime-db-integration",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3235
+    "tracked_files": 3236
   },
   "env": {
     "node": "v20.20.2",
@@ -34,12 +34,12 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-14T052856Z-verify-clm-0552-pass1.txt",
+    "source": "docs/12-testing/baseline-sources/2026-10-14T054500Z-verify-clm-0552-pass2.txt",
     "tests_passed": 6078,
     "test_files_executed": 432,
-    "governance_suite_cases": 673,
-    "governance_suite_failed": 1,
-    "verify_overall": "failed"
+    "governance_suite_cases": 674,
+    "governance_suite_failed": 0,
+    "verify_overall": "passed"
   },
   "fingerprint": "sha256:a9b94a00ccb97138542d17a64534172619123513e2fff6ac936378a9aed3e33d",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
