@@ -63,6 +63,7 @@ export {
   pgSslFromEnv,
   guardPgPool,
   pgGuardOf,
+  guardedPoolFor,
   installedPgGuards,
   attachDatabaseHealth,
   type PgPoolLike,

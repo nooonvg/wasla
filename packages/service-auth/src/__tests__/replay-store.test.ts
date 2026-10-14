@@ -201,3 +201,44 @@ describe("createServiceTokenReplayGuardFromEnv", () => {
     expect(attempt).toBe(2);
   });
 });
+
+/*
+ * RISK-0067 · ADR-070 (CLM-0555): the production executor borrows the host's guarded pool.
+ * Measured before (CLM-0554): a dedicated `max: 4` pool here in each of 17 Render processes
+ * raised the fleet ceiling from 36 to 104 against a 40-slot Supavisor session pool.
+ */
+describe("المُنفِّذُ الإنتاجيُّ يستعيرُ مجمعَ المضيفِ (RISK-0067 · ADR-070)", () => {
+  const HOST_URL = "postgres://u:p@clm-0555-replay-host:5432/wasla";
+
+  it("مجمعُ المضيفِ على الوصلةِ نفسِها يحملُ المخطَّطَ والتسجيلَ، والإغلاقُ لا يُنهيه", async () => {
+    const { EventEmitter } = await import("node:events");
+    const { guardPgPool } = await import("@wasla/resilience");
+    const statements: string[] = [];
+    let ended = 0;
+    class HostPool extends EventEmitter {
+      readonly options = { connectionString: HOST_URL };
+      async query(sql: string): Promise<{ rowCount: number; rows: unknown[] }> {
+        statements.push(sql);
+        return { rowCount: 1, rows: [] };
+      }
+      async connect(): Promise<never> {
+        throw new Error("not used");
+      }
+      async end(): Promise<void> {
+        ended += 1;
+      }
+    }
+    guardPgPool(new HostPool(), { name: "clm-0555-host", log: () => undefined });
+
+    const store = await createServiceTokenReplayStore({ DATABASE_URL: HOST_URL });
+    expect(store.mode).toBe("postgres");
+    const ddl = statements.length;
+    expect(ddl).toBeGreaterThan(0); // المخطَّطُ هُيِّئَ على مجمعِ المضيفِ لا على مجمعٍ جديد
+    const decision = await store.guard.remember({ kid: "k1", jti: "j-clm-0555", expiresAtMs: Date.now() + 60_000 });
+    expect(decision).toBeDefined();
+    expect(statements.length).toBeGreaterThan(ddl);
+    expect(statements.slice(ddl).some((sql) => /INSERT INTO/.test(sql))).toBe(true);
+    await store.close();
+    expect(ended).toBe(0); // المضيفُ يملكُ دورةَ حياةِ مجمعِه
+  });
+});

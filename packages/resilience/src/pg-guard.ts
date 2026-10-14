@@ -313,6 +313,32 @@ export function pgGuardOf(pool: object): PgGuard | undefined {
 }
 
 /**
+ * RISK-0067 · ADR-070 (CLM-0555): guarded runtime pools by connection string, in creation
+ * order. A second component in the same process that needs the same database (today: the
+ * service-token replay store, ADR-035) borrows the host's pool instead of opening its own,
+ * so the process's connection ceiling stays the host pool's `max` and stays governed by
+ * `WASLA_PG_POOL_MAX`. The connection string is held in memory only — never logged.
+ */
+const POOLS_BY_URL: Array<{ readonly url: string; readonly pool: PgPoolLike }> = [];
+
+function connectionStringOf(pool: object): string | undefined {
+  const options = (pool as { options?: { connectionString?: unknown } }).options;
+  const url = options?.connectionString;
+  return typeof url === "string" && url.trim() !== "" ? url.trim() : undefined;
+}
+
+/**
+ * The first guarded runtime pool in this process opened on exactly `connectionString`,
+ * or `undefined`. Exact string match only — a different URL is a different database (or
+ * a different pooler slot) and must not be borrowed.
+ */
+export function guardedPoolFor(connectionString: string): PgPoolLike | undefined {
+  const wanted = connectionString.trim();
+  if (wanted === "") return undefined;
+  return POOLS_BY_URL.find((entry) => entry.url === wanted)?.pool;
+}
+
+/**
  * Installs error listeners, a circuit breaker and a probe on `pool`, in place, and returns
  * the same pool — so every caller that already holds a `Pool` keeps its type and behaviour
  * when the database is healthy. Idempotent.
@@ -497,6 +523,8 @@ export function guardPgPool<P extends PgPoolLike>(pool: P, options: GuardPgPoolO
   const guard: PgGuard = { name, breaker, probe, stats };
   GUARDS.set(pool, guard);
   REGISTRY.push(guard);
+  const url = connectionStringOf(pool);
+  if (url !== undefined) POOLS_BY_URL.push({ url, pool });
   return pool;
 }
 

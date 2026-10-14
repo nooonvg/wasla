@@ -92,4 +92,19 @@ if _rs_mutated "$RS_WRAPPER" "$RS_BK/wrapper"; then
 fi
 _rs_restore
 
+# ── البابُ 5أ: المِغلافُ يكفُّ عن استعارةِ مجمعِ المضيفِ ─────────────────────
+# (RISK-0067 · ADR-070 · CLM-0555): مجمعٌ خاصٌّ في كلِّ عمليةٍ يعيدُ سقفَ 104.
+perl -0pi -e 's/guardedPoolFor\(connectionString\)/(undefined as never)/' "$RS_WRAPPER"
+if _rs_mutated "$RS_WRAPPER" "$RS_BK/wrapper"; then
+  t "البابُ 5: كفُّ المِغلافِ عن استعارةِ مجمعِ المضيفِ يُسقِطُ الحارسَ" fail bash "$RS"
+fi
+_rs_restore
+
+# ── البابُ 5ب: عودةُ `max` يحدّدُهُ المِغلافُ ─────────────────────────────────
+perl -0pi -e 's/withPgPoolDefaults\(\{ connectionString \}\)/withPgPoolDefaults({ connectionString, max: 4 })/' "$RS_WRAPPER"
+if _rs_mutated "$RS_WRAPPER" "$RS_BK/wrapper"; then
+  t "البابُ 5: max يحدّدُهُ المِغلافُ (لا تحكمُهُ البيئةُ) يُسقِطُ الحارسَ" fail bash "$RS"
+fi
+_rs_restore
+
 t "الأصلُ يمرُّ بعدَ كلِّ الطفراتِ (لا أثرَ متبقٍّ)" pass bash "$RS"
