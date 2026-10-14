@@ -100,8 +100,28 @@ async function createPgExecutor(connectionString: string): Promise<{
   const Pool = (pg.default ?? pg).Pool;
   // RISK-0058 · ADR-059: the replay store sits on every authenticated request, so a lost
   // database must fail fast here (circuit breaker) and must not crash the process.
-  const { guardPgPool, withPgPoolDefaults } = await import("@wasla/resilience");
-  const pool = guardPgPool(new Pool(withPgPoolDefaults({ connectionString, max: 4 })), {
+  const { guardPgPool, guardedPoolFor, withPgPoolDefaults } = await import("@wasla/resilience");
+  // RISK-0067 · ADR-070 (CLM-0555): the host process already holds a guarded pool on this
+  // database (every deployed root builds it from `DATABASE_URL` at boot) — borrow it, so
+  // the replay store adds no connections of its own. The host owns its lifecycle, so
+  // `close` does not end it. Measured before this change: a dedicated pool here with a
+  // caller-set `max: 4` (which `WASLA_PG_POOL_MAX` cannot govern) in all 17 Render
+  // processes raised the fleet ceiling from 36 to 104 against a 40-slot session pool.
+  const host = guardedPoolFor(connectionString);
+  if (host !== undefined) {
+    return {
+      executor: {
+        query: (sql, params) =>
+          host.query(sql, params as unknown[]) as Promise<{
+            rowCount: number | null;
+          }>,
+      },
+    };
+  }
+  // No host pool on this URL (a separate `WASLA_SERVICE_TOKEN_REPLAY_URL`, or a root with
+  // no database of its own): a pool of its own, bounded like every other pool — no
+  // caller-set `max`, so `WASLA_PG_POOL_MAX` (default 2) governs it.
+  const pool = guardPgPool(new Pool(withPgPoolDefaults({ connectionString })), {
     name: "service-auth-replay",
   });
   return {

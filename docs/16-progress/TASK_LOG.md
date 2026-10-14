@@ -1,3 +1,16 @@
+# 2026-10-14 — CLM-0555 — M6-18B / RISK-0067: مخزنُ آثارِ الرموزِ يستعيرُ مجمعَ المضيف (ADR-070) — الحدُّ النظريُّ 104 ⇒ 36
+
+- **Work Item(s):** M6-18B (CLM-0555)
+- **Status:** Released (يُدمجُ فورَ نجاح CI · الدمجُ هو الإطلاق)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير — الإصلاحُ نظريٌّ؛ الإغلاقُ يحتاجُ قياسَ حِملٍ حيٍّ بلا `EMAXCONNSESSION` ومراقبةً طوالَ النافذة).
+- **Root cause (CLM-0554, measured):** `packages/service-auth/src/replay-store.ts` فتحَ مجمعًا خاصًّا بـ`max: 4` يحدّدُه المستدعي في كلِّ عمليةٍ من الـ17 ⇒ سقفُ الأسطولِ 104 أمامَ مجمعِ جلسةٍ بـ40.
+- **Fix (at the source, ADR-070):** `guardedPoolFor(connectionString)` في `@wasla/resilience`؛ المخزنُ يستعيرُ مجمعَ المضيفِ المحروسَ على الوصلةِ نفسِها، وإلّا مجمعٌ خاصٌّ بلا `max` من المستدعي. سقفُ الأسطول 36.
+- **Enforcement:** البابُ 5 في `validate-replay-store.sh` + حالتا طفرةٍ في `gov-cases-replay-store.sh` + اختبارا وحدة. لا فحصَ أُزيلَ ولا خُفِّف؛ اختبارُ `17 × 2 = 34` القديمُ باقٍ.
+- **Local proof (advisory):** service-auth 219/219 · resilience 74/74 · bot-runtime 208/208 · audit 18/18 · tsc 0.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T071000Z-clm-0555-replay-store-borrows-host-pool/README.md) · [ADR-070](../15-decisions/ADR-070-replay-store-borrows-host-pool.md)
+- **Deployment:** بدمجِ main ووظيفةِ النشرِ المُثبَّتة (كودُ زمنِ التشغيلِ يتغيّرُ في الخدماتِ الـ17).
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+
 # 2026-10-14 — CLM-0554 — M6-18B / RISK-0067: جردُ المجمعاتِ الكاملُ — الحدُّ النظريُّ 104 لا 28 (تصحيحٌ بالإضافةِ لـCLM-0551) — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0554 — حجزٌ ثانٍ على فرعِ CLM-0551؛ WORK_CLAIM_RULE §6)

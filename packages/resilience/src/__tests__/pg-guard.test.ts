@@ -15,6 +15,7 @@ import {
   connectivityReason,
   DbUnavailableError,
   guardPgPool,
+  guardedPoolFor,
   installedPgGuards,
   isDbUnavailableError,
   pgGuardOf,
@@ -117,6 +118,47 @@ describe("withPgPoolDefaults — bounded pool size (RISK-0067)", () => {
     // The arithmetic this change exists for, stated where it cannot be missed.
     expect(17 * PG_GUARD_DEFAULTS.poolMax).toBeLessThanOrEqual(40);
     expect(PG_GUARD_DEFAULTS.poolMax).toBeLessThanOrEqual(10);
+  });
+});
+
+describe("guardedPoolFor — one pool per database per process (RISK-0067 · ADR-070 · CLM-0555)", () => {
+  class UrlPool extends FakePool {
+    constructor(readonly options: { connectionString?: string }) {
+      super();
+    }
+  }
+
+  it("returns the guarded pool opened on exactly that connection string, first one wins", () => {
+    const url = "postgres://u:p@clm-0555-host:5432/db";
+    const first = guardPgPool(new UrlPool({ connectionString: url }), { name: "host-a", log: () => undefined });
+    guardPgPool(new UrlPool({ connectionString: url }), { name: "host-b", log: () => undefined });
+    expect(guardedPoolFor(url)).toBe(first);
+    expect(guardedPoolFor(`  ${url}  `)).toBe(first);
+  });
+
+  it("does not lend a pool on another URL, an unguarded pool, or a blank URL", () => {
+    const url = "postgres://u:p@clm-0555-only-unguarded:5432/db";
+    new UrlPool({ connectionString: url }); // never guarded ⇒ never lent
+    guardPgPool(new UrlPool({ connectionString: "postgres://u:p@clm-0555-other:5432/db" }), {
+      name: "other",
+      log: () => undefined,
+    });
+    guardPgPool(new UrlPool({}), { name: "no-url", log: () => undefined });
+    expect(guardedPoolFor(url)).toBeUndefined();
+    expect(guardedPoolFor("postgres://u:p@clm-0555-other:5432/db2")).toBeUndefined();
+    expect(guardedPoolFor("   ")).toBeUndefined();
+  });
+
+  it("the Render fleet ceiling measured in CLM-0554 fits the pooler only with one pool per database", () => {
+    // Render, 2026-10-14T06:51:19Z: 17 processes link the database env group, numInstances = 1.
+    // 14 domain services hold one pool; customer-bot holds two (channel + customers); the
+    // other two bots one (channel). The replay store borrows — it adds none.
+    const poolsPerProcess = [...Array<number>(14).fill(1), 2, 1, 1];
+    const ceiling = poolsPerProcess.reduce((sum, pools) => sum + pools * PG_GUARD_DEFAULTS.poolMax, 0);
+    expect(ceiling).toBe(36);
+    expect(ceiling).toBeLessThanOrEqual(40); // last recorded Supavisor session pool_size (2026-10-08)
+    // What it was before ADR-070: a dedicated replay pool with a caller-set max of 4 everywhere.
+    expect(ceiling + 17 * 4).toBe(104);
   });
 });
 
