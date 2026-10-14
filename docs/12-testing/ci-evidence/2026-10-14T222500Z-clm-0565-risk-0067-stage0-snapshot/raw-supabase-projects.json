@@ -1,0 +1,3 @@
+{"source":"Supabase list_projects, read 2026-10-14T22:00Z",
+ "projects":[{"ref":"ppixaauyqoykrogwdxtv","name":"wasla","region":"ap-south-1","status":"ACTIVE_HEALTHY","pg":"17.11.0.002"},
+             {"ref":"pvyuhjadrygqqdoczmnd","name":"wasla-dr-replacement","region":"ap-south-1","status":"INACTIVE","pg":"17.11.0.002"}]}

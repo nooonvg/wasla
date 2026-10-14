@@ -1,0 +1,25 @@
+# Render API GET /v1/services/{id}/env-vars (21 web services) + GET /v1/env-groups/evg-db40ojmb7d7c739u51jg, read 2026-10-14T22:08Z. Only key NAMES and the non-secret WASLA_PG_POOL_MAX value are recorded; no secret value was printed or stored.
+service	WASLA_PG_POOL_MAX	DATABASE_URL-like keys present (names only)
+wasla-alertmanager	(unset)	-
+wasla-prometheus	(unset)	-
+wasla-partner-bot	(unset)	-
+wasla-driver-bot	(unset)	-
+wasla-customer-bot	(unset)	-
+wasla-dispatch	(unset)	-
+wasla-customers	(unset)	-
+wasla-delivery	(unset)	-
+wasla-matching	(unset)	-
+wasla-geography	(unset)	-
+wasla-marketplace	(unset)	-
+wasla-audit	(unset)	-
+wasla-subscriptions	(unset)	-
+wasla-negotiations	(unset)	-
+wasla-reputation	(unset)	-
+wasla-drivers	(unset)	-
+wasla-search	(unset)	-
+wasla-orders	(unset)	-
+wasla-identity	(unset)	-
+wasla-otel-collector	(unset)	-
+wasla-observability	(unset)	-
+
+env-group wasla-prod-db: keys=[CUSTOMER_DATABASE_URL, DATABASE_URL] (values not read into this file) · linked services=17 · WASLA_PG_POOL_MAX absent
