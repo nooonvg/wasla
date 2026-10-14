@@ -1,3 +1,15 @@
+# 2026-10-14 — CLM-0558 — M6-18B / RISK-0067: التحقّقُ بعدَ دمجِ #710 و#711 — النشرُ 21/21 على 6ad1a384 — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0558)
+- **Status:** Released (قراءةٌ فقط · يُدمجُ فورَ نجاح CI)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير)
+- **CI on main:** `6ad1a384` (#710) WASLA CI 38579322582 success · Render deploy 38579322375 success · `2b00cbe1` (#711) WASLA CI 38583046833 success.
+- **Render:** 21/21 web services `live` on `6ad1a384`. **Open `/health`:** 17/17 DB services 200 · `x-wasla-database: up`. This does not exercise the borrow path at runtime (the replay pool opens on the first service-token request); the borrow is proven by unit test + gate 5.
+- **Supabase (read-only):** 14:45:40Z client backends 7 (1 via Supavisor) · supavisor_logs 14:19:50Z→14:22:44Z, `EMAXCONN*`=0.
+- **Plan §9.5:** condition 7 met; conditions 1–6 and 8 still missing.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T144500Z-clm-0558-clm-0555-post-merge-verification/README.md)
+- **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+
 # 2026-10-14 — CLM-0556 + CLM-0557 — M6-18B / RISK-0067: الخطةُ §9 بأهدافٍ مقيسة + إضافةُ RISK-0066 قبلَ مراجعةِ 2026-10-15 — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0556 الخطة · CLM-0557 حزمةُ قرارِ Render — حجزان على فرعٍ واحد) · CLM-0555 مدموجٌ في main `6ad1a384` (#710)
