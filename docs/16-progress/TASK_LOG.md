@@ -1,3 +1,15 @@
+# 2026-10-14 — CLM-0562 — M6-19B: دمجُ #713 ⇒ #714 ⇒ #715 بالتتابع عبرَ الحارس، والتحقّقُ بعدَ كلِّ دمج
+
+- **Work Item(s):** M6-19B (CLM-0562) · يخصُّ CLM-0559 وCLM-0560 وCLM-0561
+- **Status:** Released (توثيقٌ؛ يُدمجُ بعدَ موافقةٍ على رأسِه النهائيّ عبرَ الحارس)
+- **#713:** head `b260b1a5` · approval `b260b1a5` 17:09:45Z · 42/42 success · merged `3c9edc71` 17:30:22Z · main CI 41/41 · Roadmap freshness success · branch deleted.
+- **#714:** rebased after #713 (`bf07036d` ⇒ `255fa3b6`; old approval void; guard DRY_RUN refused 17:48:02Z) · approval `255fa3b6` 17:55:45Z · 42/42 · merged `6280760a` 17:56:06Z · main CI 41/41 · Roadmap freshness success · branch deleted · **Render deploy 38610875264 FAIL: `wasla-alertmanager` update_failed (15-min timeout, identical cached image, still live on `3c9edc7`) — open.**
+- **#715:** rebased after #714 (`09e53d54` ⇒ `b6830343`; old approvals void) · approval `b6830343` 18:01:39Z · 42/42 · merged `09b88a85` 18:10:19Z · main CI 41/41 · Roadmap freshness success · branch deleted · no deploy (docs-only, `paths-ignore`).
+- **Guard limits:** an operational control that refuses when called; protection unchanged, so a direct `gh pr merge` remains technically possible.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T181900Z-clm-0562-post-merge-713-715/README.md)
+- **Deployment:** none by this claim; the automatic deploy of `6280760a` is recorded above, not re-run.
+- **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05. Historical deviations (CLM-0558 §7) unchanged.
+
 # 2026-10-14 — CLM-0561 — M6-18B / RISK-0067: حالةُ قراراتِ المالكِ لمعايرةِ DR وما قِيسَ فعلًا — لا حمل
 
 - **Work Item(s):** M6-18B (CLM-0561)
@@ -9,6 +21,8 @@
 - **Owner decisions pending:** DR restart · S access · calibration workflow under `.github/workflows/` with CODEOWNERS review · RISK-0066 (B / C / D / keep free / other written — not chosen).
 - **Deployment:** none — documentation and read-only measurements; no load, no write, no Render or Supavisor change, no RISK-0058 drill.
 - **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Post-merge (CLM-0562, by addition):** merged as #715 `09b88a85` on an approval whose `commit_id` = the merged head, via the guard; main CI 41/41 and Roadmap freshness success. Timeline: CLM-0562 evidence README.
+
 # 2026-10-14 — CLM-0560 — M0-40: الفحصُ 15 يُعيدُ قراءةَ الواجهةِ بمحاولاتٍ محدودة ويُظهرُ خطأَ gh — الإخفاقُ الدائمُ يبقى إخفاقًا
 
 - **Work Item(s):** M0-40 (CLM-0560)
@@ -20,6 +34,8 @@
 - **Measured after the first fix (4 attempts, 14 s):** the local run surfaced `gh: Server Error (HTTP 502)` for the same run 35026500780 lasting longer than 14 s; minutes later the endpoint answered (31 jobs, 5/5 reads) ⇒ the bound was widened to 45 s. The cause is now readable in the log instead of hidden.
 - **Deployment:** none — a CI governance script and its tests only; no service, Render or database change.
 - **Not changed:** حدودُ الحكم، وتصنيفُ الصفوف، ووجهُ «الجزئيِّ المُعلَن» عندَ غيابِ الواجهة. RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Post-merge (CLM-0562, by addition):** merged as #714 `6280760a` on an approval whose `commit_id` = the merged head, via the guard; main CI 41/41 and Roadmap freshness success. Timeline: CLM-0562 evidence README.
+
 # 2026-10-14 — CLM-0559 — M6-19B / RISK-0064: حارسُ الدمجِ على الرأسِ المعتمَد — معالجةُ الدمجِ على موافقةٍ قديمة (#711 · #708)
 
 - **Work Item(s):** M6-19B (CLM-0559)
@@ -32,6 +48,8 @@
 - **Evidence:** [SINGLE_REVIEWER_DEPENDENCY_REVIEW §7](SINGLE_REVIEWER_DEPENDENCY_REVIEW_2026-10-07.md) · CLM-0558 §7 (PR #712)
 - **Deployment:** none — an agent-side ops script and governance tests only; no service, Render, database or GitHub setting change.
 - **No protection, CODEOWNERS or ruleset change.** RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Post-merge (CLM-0562, by addition):** merged as #713 `3c9edc71` on an approval whose `commit_id` = the merged head, via the guard; main CI 41/41 and Roadmap freshness success. Timeline: CLM-0562 evidence README.
+
 # 2026-10-14 — CLM-0558 — M6-18B / RISK-0067: التحقّقُ بعدَ دمجِ #710 و#711 — النشرُ 21/21 على 6ad1a384 — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0558)
