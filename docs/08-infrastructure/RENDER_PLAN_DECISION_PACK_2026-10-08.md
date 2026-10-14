@@ -53,3 +53,30 @@ The recommended minimum paid footprint is **option B ($140/month)**. A Pro works
 3. RISK-0066 closes once all C1 and C2 services in the approved option are measured on a paid plan.
 
 **No billing change happens until §5.1 is done.**
+
+## 6. Dated addendum — 2026-10-14 (CLM-0557), for the RISK-0066 review due 2026-10-15
+
+This section adds to §1–§5 and changes none of them. **The executor has not chosen an option and has not changed any plan, instance type or billing setting.**
+
+### 6.1 Re-measured state
+
+| Fact | Value | Source |
+|---|---|---|
+| Web services | 21, all `plan=free`, all `not_suspended` | Render API `GET /v1/services`, 2026-10-14T07:30:47Z |
+| Static sites | 3, `not_suspended` | same |
+| Free-hour usage this month | **not measured** — the Render API does not expose it | owner: Render dashboard → Billing → Free usage |
+| Free-plan side effect seen today | the main deploy of `79729e07` failed on `wasla-search` (`update_failed`): the container started 14.5 min after "Deploying…" and the 15-min deploy timeout expired 28 s after it began listening. Re-running the pinned deploy job made it `live` at 06:47:35Z. No code fault | Render deploy log `dep-db7ht3mq1p3s73cip4v0` · CLM-0554 evidence §6 |
+
+### 6.2 Why RISK-0067 now depends on this decision
+
+- The RISK-0067 production load step (plan §4 stage 2, §9) keeps the target services awake and adds instance hours. On `free`, that spends the shared 750-hour pool, and running out suspends **every** web service, including the 3 bots and paging, until the 1st of next month.
+- A cold start (~1 min) or a scheduling delay during a load step would show up as errors or p95 outliers that come from the platform, not from database capacity. The plan's PASS/HOLD/FAIL rules (§8.2) would then return HOLD for reasons that have nothing to do with the thing being measured.
+- So the plan treats an unresolved RISK-0066 as a blocker for the production load step (plan §9.5 row 6).
+
+### 6.3 The decision needed from the owner (nothing is assumed)
+
+1. **Which option (§4: B, C, D, or another written choice), or keep `free` and accept that no production load step runs.** The executor does not pick one.
+2. If you pick a paid option: add a payment method in Render, then give written approval with the option letter. §5 then runs under a new claim.
+3. If you keep `free`: say so in writing. RISK-0066 stays `open` with a new review date that you choose, and the RISK-0067 production load step stays HOLD.
+
+RISK-0066 status is unchanged (`open`, review 2026-10-15).
