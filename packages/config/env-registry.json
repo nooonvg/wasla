@@ -266,6 +266,14 @@
           "mode": "bag"
         },
         {
+          "file": "packages/bot-runtime/src/__tests__/database-health.integration.test.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "packages/bot-runtime/src/__tests__/postgres-persistence.integration.test.ts",
+          "mode": "direct"
+        },
+        {
           "file": "packages/channel-e2e/src/__tests__/m1-02-session-gate.e2e.test.ts",
           "mode": "direct"
         },
