@@ -1,0 +1,4 @@
+{"source":"Supabase connector list_projects (read-only)","read_at":"2026-10-14, immediately before the SQL read at 16:21:45Z (connector returns no timestamp)",
+ "projects":[
+  {"ref":"ppixaauyqoykrogwdxtv","name":"wasla","region":"ap-south-1","status":"ACTIVE_HEALTHY","postgres":"17.11.0.002"},
+  {"ref":"pvyuhjadrygqqdoczmnd","name":"wasla-dr-replacement","region":"ap-south-1","status":"INACTIVE","postgres":"17.11.0.002"}]}

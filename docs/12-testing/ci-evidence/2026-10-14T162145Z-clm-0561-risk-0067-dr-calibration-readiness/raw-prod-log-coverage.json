@@ -1,0 +1,6 @@
+{"source":"Supabase connector query_logs on ppixaauyqoykrogwdxtv (read-only)",
+ "window":{"start":"2026-10-13T16:25:00Z","end":"2026-10-14T16:25:00Z"},
+ "query":"select source, count(*), min(timestamp), max(timestamp), countIf(event_message ILIKE EMAXCONN|max_client_conn|too many) from logs where source in (supavisor_logs, postgres_logs) group by source",
+ "result":[
+  {"source":"supavisor_logs","n":359,"first_ts":"2026-10-13T17:07:28.124175","last_ts":"2026-10-14T16:19:49.899407","maxconn_events":0},
+  {"source":"postgres_logs","n":25,"first_ts":"2026-10-13T17:07:28.325000","last_ts":"2026-10-14T16:16:35.151000","maxconn_events":0}]}

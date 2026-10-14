@@ -1,0 +1,5 @@
+{"source":"Supabase connector execute_sql on ppixaauyqoykrogwdxtv (read-only SELECT on current_setting + pg_stat_activity)",
+ "result":{"measured_at":"2026-10-14 16:21:45.221387+00","max_connections":60,"superuser_reserved":3,"reserved_connections":"0",
+  "total_backends":13,"client_backends":5,
+  "client_by_user":{"authenticator":1,"pgbouncer":1,"postgres":1,"supabase_admin":2},
+  "client_by_app":{"postgres_exporter":1,"PostgREST 14.18":1,"(blank)":2,"mgmt-api":1}}}
