@@ -1,3 +1,14 @@
+# 2026-10-14 — CLM-0560 — M0-40: الفحصُ 15 يُعيدُ قراءةَ الواجهةِ بمحاولاتٍ محدودة ويُظهرُ خطأَ gh — الإخفاقُ الدائمُ يبقى إخفاقًا
+
+- **Work Item(s):** M0-40 (CLM-0560)
+- **Status:** Released (يُدمجُ بعدَ موافقةٍ على الرأسِ النهائيِّ نفسِه ونجاحِ CI)
+- **Incident:** WASLA CI السيرُ 38592494784 (PR #712، الرأس `749da1bd`) — `governance-guard` ⇒ الفحصُ 15: «تعذَّرَ قراءةُ وظائفِ السيرِ 35026500780 للبصمةِ dae3b0c — إخفاقٌ لا تخطٍّ» (2026-10-14T15:49:36Z). كلُّ الصفوفِ الأخرى طابقتِ القياس. المحاولةُ الثانيةُ للوظيفةِ نفسِها طُلبتْ بـ`gh run rerun --failed`؛ تُسجَّلُ المحاولتان.
+- **Root cause:** نداءٌ واحدٌ بلا إعادةِ محاولة، ورسالةُ `gh` مرميّةٌ في `2>/dev/null` — فالسببُ (حدُّ معدّلٍ أم بوّابة) غيرُ مقروءٍ في السجلّ. نمطُ العطلِ نفسُه في SINGLE_REVIEWER_DEPENDENCY_REVIEW §4.
+- **Fix:** `_gh_read` في `scripts/checks/audit-ci-verdicts.sh` — `AUDIT_GH_ATTEMPTS` (5) بانتظارٍ مضاعَف (`AUDIT_GH_BACKOFF` 3 ⇒ 3+6+12+24 = 45 ث) حولَ قراءتَي `actions/runs?head_sha` و`runs/<id>/jobs`؛ بعدَ الاستنفاد **إخفاقٌ** يحملُ «بعدَ N محاولاتٍ: <أوّلُ سطرٍ من خطأِ gh>». لا تحويلَ إلى «جزئي»، ولا تخطّي.
+- **Tests:** +5 حالاتٍ في `scripts/checks/lib/gov-cases-ci-verdict-audit.sh` بـ`gh` بديلٍ بلا شبكة (إخفاقانِ ثمّ جواب ⇒ يمرّ · محاولةٌ واحدة ⇒ يسقط · إخفاقٌ دائم ⇒ يسقط · الرسالةُ تحملُ خطأَ gh للوظائفِ وللتشغيلات). **طفرة:** على نصِّ main الأصليِّ تسقطُ 3 من الخمس. التشغيلُ الحيُّ للفحصِ محليًّا أخضر.
+- **Measured after the first fix (4 attempts, 14 s):** the local run surfaced `gh: Server Error (HTTP 502)` for the same run 35026500780 lasting longer than 14 s; minutes later the endpoint answered (31 jobs, 5/5 reads) ⇒ the bound was widened to 45 s. The cause is now readable in the log instead of hidden.
+- **Deployment:** none — a CI governance script and its tests only; no service, Render or database change.
+- **Not changed:** حدودُ الحكم، وتصنيفُ الصفوف، ووجهُ «الجزئيِّ المُعلَن» عندَ غيابِ الواجهة. RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
 # 2026-10-14 — CLM-0559 — M6-19B / RISK-0064: حارسُ الدمجِ على الرأسِ المعتمَد — معالجةُ الدمجِ على موافقةٍ قديمة (#711 · #708)
 
 - **Work Item(s):** M6-19B (CLM-0559)
