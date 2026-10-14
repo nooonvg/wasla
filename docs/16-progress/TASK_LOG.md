@@ -9,6 +9,7 @@
 - **Plan §9.5:** condition 7 met; conditions 1–6 and 8 still missing.
 - **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T144500Z-clm-0558-clm-0555-post-merge-verification/README.md)
 - **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Correction 2026-10-14T15:29Z (by addition):** #711 merged head `94a2f38f` ≠ approved `c4554315`; #708 merged head `053a1b4c` ≠ approved `9d5610b8`. GitHub accepted both (`dismiss_stale_reviews=false`, `require_last_push_approval=false`) but the owner's rule (CLM-0494 §6.1–§6.2: approval `commit_id` = head, `--match-head-commit`, no merge on a stale approval) was **not met**. Since #650: 58 merged, 7 on a non-head approval (target 0). Evidence README §7. Remediation under a separate claim; branch protection unchanged.
 
 # 2026-10-14 — CLM-0556 + CLM-0557 — M6-18B / RISK-0067: الخطةُ §9 بأهدافٍ مقيسة + إضافةُ RISK-0066 قبلَ مراجعةِ 2026-10-15 — الحالةُ لا تتغيّر
 
