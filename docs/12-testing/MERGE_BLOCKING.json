@@ -21,6 +21,7 @@
         "db-integration (delivery, @wasla/delivery-service, wasla_delivery_test)",
         "db-integration (partners, @wasla/partners-service, wasla_partners_test)",
         "db-integration (billing, @wasla/billing-service, wasla_billing_test)",
+        "db-integration (bot-runtime, @wasla/bot-runtime, wasla_bot_runtime_test)",
         "db-integration (dispatch, @wasla/dispatch-service, wasla_dispatch_test)",
         "db-integration (drivers, @wasla/drivers-service, wasla_drivers_test)",
         "db-integration (geography, @wasla/geography-service, wasla_geo_test)",
@@ -127,6 +128,14 @@
       "raw": "docs/12-testing/ci-evidence/2026-09-28T064800Z-gov-002-live-protection-measurement/raw-branch-protection.json",
       "note": "Phase 2 Governance Remediation live measurement (GOV-002/GOV-005). 40 contexts · strict:true · enforce_admins:true · required_approving_review_count:1 · require_code_owner_reviews:false (FAIL — policy requires true). Rulesets: empty. Evidence chain: commit 814706a → 4 API calls → raw JSON in evidence_dir → verdict.",
       "evidence_dir": "docs/12-testing/ci-evidence/2026-09-28T064800Z-gov-002-live-protection-measurement"
+    },
+    {
+      "measured_at": "2026-10-14T05:05:53Z",
+      "measured_from": "GET /repos/skyosv10-art/wasla/branches/main/protection + GET /repos/skyosv10-art/wasla/branches/main (.protected)",
+      "protected": true,
+      "raw": "docs/12-testing/ci-evidence/2026-10-14T050500Z-clm-0552-bot-runtime-db-integration/raw-branch-protection.json",
+      "note": "CLM-0552 live re-measurement (addition; the 2026-09-28 entry stays as history). 41 contexts · strict:true · enforce_admins:true. Drift found: the live protection requires 'db-integration (bot-runtime, @wasla/bot-runtime, wasla_bot_runtime_test)', which no ci.yml job produced and this snapshot did not list — so every PR was 'expected' a check that could never report (PR #708 blocked; #705–#707 merged before the context was added). Fixed at the source: ci.yml now produces the leg and the snapshot lists it.",
+      "evidence_dir": "docs/12-testing/ci-evidence/2026-10-14T050500Z-clm-0552-bot-runtime-db-integration"
     }
   ],
   "gov_002_codeowner_eligibility": {

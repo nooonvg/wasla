@@ -443,6 +443,15 @@ jobs:
           - leg: billing
             pkg: "@wasla/billing-service"
             db: wasla_billing_test
+          # `CLM-0552` · bot-runtime — the composed bot on a live Postgres: an end-to-end
+          # /start persisted to the three channel tables through the env-built stores,
+          # de-duplication surviving a process restart (the guarantee the in-memory path
+          # loses), and /health probing the real pool (RISK-0058 · ADR-059). The context
+          # was already required on `main` (measured 2026-10-14T05:05:53Z) with no job
+          # producing it, which blocked every PR — this leg is the producer, not a waiver.
+          - leg: bot-runtime
+            pkg: "@wasla/bot-runtime"
+            db: wasla_bot_runtime_test
     services:
       postgres:
         image: postgres:17  # CLM-0414: production (Supabase) is PostgreSQL 17 — CI measures the same major
