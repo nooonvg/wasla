@@ -1,6 +1,6 @@
 # 2026-10-14 — CLM-0552 — M0-25: السياقُ المطلوبُ `db-integration (bot-runtime, …)` بلا مُنتِج — إضافةُ الـleg واختباراتِ تكاملٍ حقيقية
 
-- **Work Item(s):** M0-25 (CLM-0552)
+- **Work Item(s):** M0-25 (CLM-0552) · M2-04 (CLM-0553 — حجزٌ ثانٍ على الفرعِ نفسِه لتسجيلِ قارئَيِ `DATABASE_URL` في سجلِّ الإعداد؛ WORK_CLAIM_RULE §6)
 - **Status:** Released (يُدمجُ فورَ نجاح CI · الدمجُ هو الإطلاق)
 - **Risk(s):** none changed — RISK-0067 `mitigating` · RISK-0058 · RISK-0066 كما هي.
 - **Root cause (measured 2026-10-14T05:05:53Z):** حمايةُ main تشترطُ 41 سياقاً منها `db-integration (bot-runtime, @wasla/bot-runtime, wasla_bot_runtime_test)`، ولا توجدُ وظيفةٌ في `.github/workflows/ci.yml` تُنتجه، ولا سكربتُ `test:integration` في `@wasla/bot-runtime`، ولقطةُ MERGE_BLOCKING.json (40) لم تُدرِجه. PR #705–#707 دُمجت دونه (#707 في 2026-10-13T22:51:17Z) ⇒ أُضيفَ السياقُ إلى الحمايةِ بعدَ ذلك؛ مَن أضافه ولماذا **غيرُ مَقيس** (لا واجهةَ سجلِّ تدقيقٍ لمستودعٍ شخصي). النتيجة: كلُّ PR محجوب — #708 رُدَّ بـ`Required status check … is expected` حتى بـ`--admin` المُفوَّضِ من المالكِ (enforce_admins=true).
