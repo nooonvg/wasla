@@ -1,0 +1,197 @@
+{
+  "collected_at": "2026-10-14T03:00:35Z",
+  "source": "Render API /v1/services?limit=100 + /v1/services/{id}/env-vars (read-only)",
+  "owner": "tea-db0vtkpsrm7s739dm5c0",
+  "totals": {
+    "web_service": 21,
+    "static_site": 3,
+    "all_plan_free": true,
+    "all_numInstances_1": true,
+    "all_not_suspended": true
+  },
+  "regions": {
+    "singapore": 19,
+    "oregon": [
+      "wasla-alertmanager",
+      "wasla-prometheus"
+    ]
+  },
+  "web_services": {
+    "wasla-alertmanager": {
+      "region": "oregon",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": "infra/observability/Dockerfile.alertmanager",
+      "creates_pg_pool": false
+    },
+    "wasla-prometheus": {
+      "region": "oregon",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": "infra/observability/Dockerfile.prometheus",
+      "creates_pg_pool": false
+    },
+    "wasla-partner-bot": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": false
+    },
+    "wasla-driver-bot": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": false
+    },
+    "wasla-customer-bot": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": false
+    },
+    "wasla-dispatch": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-customers": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-delivery": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-matching": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-geography": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-marketplace": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-audit": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-subscriptions": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-negotiations": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-reputation": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-drivers": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-search": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-orders": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-identity": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": true,
+      "wasla_pg_pool_max": "absent"
+    },
+    "wasla-otel-collector": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": "infra/observability",
+      "creates_pg_pool": false
+    },
+    "wasla-observability": {
+      "region": "singapore",
+      "plan": "free",
+      "numInstances": 1,
+      "deploy_context": ".",
+      "creates_pg_pool": false
+    }
+  },
+  "static_sites": {
+    "wasla-admin-app": "static_site",
+    "wasla-driver-app": "static_site",
+    "wasla-customer-app": "static_site"
+  },
+  "code_only_services_not_on_render": {
+    "note": "3 of the 17 L1 harness DB-pool services are NOT deployed on Render; they create pg.Pool in code but have no Render web service.",
+    "billing": "@wasla/billing-service (src/http/server.ts in repo, no Render service)",
+    "partners": "@wasla/partners-service (src/http/server.ts in repo, no Render service)",
+    "support": "@wasla/support-service (src/http/server.ts in repo, no Render service)"
+  },
+  "live_deploy_commit_measured_for_wasla_orders": {
+    "live_commit": "2a5f6c31",
+    "note": "wasla-orders live deploy pinned at 2a5f6c31 (CLM-0547-r2)"
+  }
+}

@@ -14,6 +14,21 @@
 - **Changed (units):** `.github/workflows/ci.yml` · `packages/bot-runtime/package.json` · `packages/bot-runtime/vitest.config.ts` · `packages/bot-runtime/vitest.integration.config.ts` · `packages/bot-runtime/src/__tests__/postgres-persistence.integration.test.ts` · `packages/bot-runtime/src/__tests__/database-health.integration.test.ts` · `packages/bot-runtime/src/__tests__/pg-harness.ts` · `packages/config/env-registry.json` (DATABASE_URL: +2 قارئَين — ملفّا التكامل) · `packages/config/src/registry.generated.ts` · `.env.example` (مُولَّدان: القارئون 99 ⇒ 101) · `docs/12-testing/BASELINE.json` · `docs/12-testing/BASELINE.txt` (إعادةُ توليدٍ بـ`scripts/baseline.sh` — `test_files_tracked` 568 ⇒ 570 لأن ملفَّي اختبارٍ جديدَين أُضيفا) · `docs/12-testing/MERGE_BLOCKING.json` · `docs/12-testing/ci-evidence/2026-10-14T050500Z-clm-0552-bot-runtime-db-integration/{README.md,raw-branch-protection.json,required-contexts-live.txt,required-without-producer.txt,pr-708-head-9d5610b-check-runs.txt,pr-707-head-check-runs.txt}` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
 - **Next:** بعدَ الدمجِ يُعادُ تأسيسُ PR #708 (CLM-0551) على main الجديد ليُنتِجَ CI السياقَ، ثم يُدمجُ بالمسارِ العادي.
 
+# 2026-10-14 — CLM-0551 — M6-18B / RISK-0067: استكمالُ أدلةِ المرحلةِ 0 بخريطةِ المجمعاتِ وتصحيحِ الحدِّ النظريِّ (28 ≤ 40) — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0551)
+- **Status:** In Progress (قراءةٌ فقط · لا حِملَ ولا كتابةَ ولا تغييرَ إعدادات · لا تعديلَ للخطة — حجزٌ مستقلٌ لاحقٌ)
+- **Risk(s):** RISK-0067 → mitigating (لا تغيير — إغلاقُها يحتاجُ حملًا حيًّا بلا `EMAXCONNSESSION`، L1 لا يُثبته)
+- **Evidence (measured, timestamped):**
+  - **خريطةُ المجمعاتِ من Render API بتاريخ 2026-10-14T03:00:35Z:** 21 خدمة ويب = **14 DB-pool + 7 غير DB** (3 بوتات + otel-collector + observability + alertmanager + prometheus). من قائمةِ L1 البالغةِ 17 خدمة: **14 مُنشرٌ على Render** و**3 كودٌ فقط غير مُنشر** (billing · partners · support). `WASLA_PG_POOL_MAX` غائبٌ من env-vars لكلِّ الخدماتِ الـ21 → الحدُّ الفعليُّ لكلِّ مجمعٍ = 2. `numInstances=1` لكلٍّ منها.
+  - **الحدُّ النظريُّ المصحَّحُ للأسطولِ Render:** 14 × 1 × 2 = **28 ≤ 40** (لا 42 > 40 كما وثّقَ CLM-0545 §1.4/§5 — محفوظٌ للتاريخِ · تصحيحٌ بالإضافةِ لا بالحذف).
+  - **قراءاتُ موصلِ Supabase بتاريخ 2026-10-14T02:35Z–02:42Z:** الإنتاجُ `ppixaauyqoykrogwdxtv` ACTIVE_HEALTHY · `pg_stat_activity` = 14 صفاً (6 idle + 1 active + 7 state NULL) — ليست 14 جلسةً نشطةً · `max_connections` (PostgreSQL) = 60 — ليس حدَّ Supavisor · `supavisor_logs` متاحةٌ بـ164 سطراً ضمنَ النافذةِ المطلوبةِ 2026-10-13T07:00Z→2026-10-14T07:00Z بتغطيةٍ فعليةٍ 2026-10-13T14:18:19.921675Z → 23:06:10.526333Z · `EMAXCONNSESSION` = 0 ضمنَ تلكَ التغطيةِ (ليست تغطيةً مستمرةً) · DR `pvyuhjadrygqqdoczmnd` **INACTIVE** · `default_pool_size` **غير مقيسٍ** (لا واجهةَ إداريةً في موصلِ Supabase MCP؛ `pg_settings` لا يُظهرُ Supavisor).
+  - [evidence](../12-testing/ci-evidence/2026-10-14T030100Z-clm-0551-risk-0067-stage0-pool-map/README.md)
+- **Deployment:** none (read-only).
+- **What this does NOT prove:** سلوكَ Supavisor نفسِهِ (`EMAXCONNSESSION`) تحتَ حملٍ حيّ؛ ولا اكتمالَ تغطيةِ سجلاتِ الإنتاج.
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` (RISK-0058/0066/0067) · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-14T030100Z-clm-0551-risk-0067-stage0-pool-map/{README.md,pool-map.md,render-inventory-2026-10-14.json,supabase-connector-readings-2026-10-14.md}` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
+- **Owner-gated next steps (unchanged):** إعادةُ تشغيلِ DR · قياسُ `default_pool_size` من dashboard/API إداري · موافقةُ المالكِ على workflow المعايرةِ · حسمُ RISK-0066 قبلَ 2026-10-15 (قرارُ المالكِ — لا خطةً مدفوعةً نيابةً عنه) · حملُ الإنتاجِ بموافقةٍ كتابيةٍ صريحةٍ فقط.
 # 2026-10-13 — CLM-0550 — M6-18B / RISK-0067: إعادةُ تشغيلِ L1 تأكيدًا بعدَ دمجِ أدلةِ CLM-0549 (run 38477010128) — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0546 · CLM-0547 · CLM-0548 · CLM-0549 · CLM-0550)
