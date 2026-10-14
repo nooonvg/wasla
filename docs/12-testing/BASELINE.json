@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-12T17:47:22Z",
+  "generated_at": "2026-10-14T05:32:13Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "78940ba435883d80b3d4d8dfc482331a0114cf7e",
-    "branch": "fix/clm-0538-baseline-commit-retrieval",
-    "dirty": true,
-    "dirty_files": 1,
-    "dirty_reason": "CLM-0538 (M0-08B): verify log committed as dynamic.source; baseline taken on the branch commit — after the squash merge gate 4(b) retrieves this commit from origin by SHA (no second snapshot PR).",
-    "tracked_files": 3216
+    "commit": "bb5715d8bfb60ccdcee568fb75d84cb0a94e530d",
+    "branch": "ci/clm-0552-bot-runtime-db-integration",
+    "dirty": false,
+    "dirty_files": 0,
+    "dirty_reason": "",
+    "tracked_files": 3235
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 568,
+    "test_files_tracked": 570,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/baseline-sources/2026-10-12T190000Z-verify-clm-0538.txt",
+    "source": "docs/12-testing/baseline-sources/2026-10-14T052856Z-verify-clm-0552-pass1.txt",
     "tests_passed": 6078,
     "test_files_executed": 432,
-    "governance_suite_cases": 674,
-    "governance_suite_failed": 0,
-    "verify_overall": "passed"
+    "governance_suite_cases": 673,
+    "governance_suite_failed": 1,
+    "verify_overall": "failed"
   },
-  "fingerprint": "sha256:65fad767c89be01567934b26f5b402c0dff63294cd22c3e61be5ffaef76b9ffa",
+  "fingerprint": "sha256:a9b94a00ccb97138542d17a64534172619123513e2fff6ac936378a9aed3e33d",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

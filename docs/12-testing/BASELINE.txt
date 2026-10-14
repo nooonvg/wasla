@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-12T17:47:22Z
-الالتزام: 78940ba435883d80b3d4d8dfc482331a0114cf7e  الفرع: fix/clm-0538-baseline-commit-retrieval  شجرةٌ مُعدَّلةٌ (1 ملفّاً)
+التاريخ (UTC): 2026-10-14T05:32:13Z
+الالتزام: bb5715d8bfb60ccdcee568fb75d84cb0a94e530d  الفرع: ci/clm-0552-bot-runtime-db-integration  شجرةٌ نظيفةٌ
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
 القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
@@ -9,18 +9,18 @@
   packages                   74
   packages_with_typecheck    70
   packages_with_test         74
-  test_files_tracked         568
+  test_files_tracked         570
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          28
   risks_not_closed           23
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/baseline-sources/2026-10-12T190000Z-verify-clm-0538.txt):
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/baseline-sources/2026-10-14T052856Z-verify-clm-0552-pass1.txt):
   tests_passed               6078
   test_files_executed        432
-  governance_suite_cases     674
-  governance_suite_failed    0
-  verify_overall             passed
+  governance_suite_cases     673
+  governance_suite_failed    1
+  verify_overall             failed
 
-البصمة: sha256:65fad767c89be01567934b26f5b402c0dff63294cd22c3e61be5ffaef76b9ffa
+البصمة: sha256:a9b94a00ccb97138542d17a64534172619123513e2fff6ac936378a9aed3e33d
 المرجع: docs/12-testing/BASELINE_FORMAT.md
