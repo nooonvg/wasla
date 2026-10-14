@@ -1,0 +1,2 @@
+OK pr=716 head=d907ba327abf95440adf556b9d871999d70e8918 approved_by=xuuux-voox approval_commit=d907ba327abf95440adf556b9d871999d70e8918 approved_at=2026-10-14T19:12:09Z checks: success=42 skipped_or_neutral=0 failed=0 pending=0
+DRY_RUN: would run: gh pr merge 716 --repo skyosv10-art/wasla --squash --match-head-commit d907ba327abf95440adf556b9d871999d70e8918

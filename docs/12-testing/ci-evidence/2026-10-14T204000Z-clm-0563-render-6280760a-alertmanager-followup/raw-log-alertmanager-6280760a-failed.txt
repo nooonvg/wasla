@@ -1,0 +1,71 @@
+# GET /v1/logs resource=srv-db3s2nui0phs73bc45cg 2026-10-14T17:56:00Z..18:12:00Z (deploy dep-db7s4gqjnfac73f00up0, update_failed)
+2026-10-14T17:56:21.983925797Z inst=- ==> Cloning from https://github.com/skyosv10-art/wasla
+2026-10-14T17:56:24.119817489Z inst=- ==> Checking out commit 6280760a9b444eca13d70dd9435abb95b3f27dc5 in branch main
+2026-10-14T17:56:26.142883196Z inst=- #1 [internal] load build definition from Dockerfile.alertmanager
+2026-10-14T17:56:26.142895906Z inst=- #1 transferring dockerfile: 589B done
+2026-10-14T17:56:26.142897644Z inst=- #1 DONE 0.0s
+2026-10-14T17:56:26.142899139Z inst=- 
+2026-10-14T17:56:26.142901004Z inst=- #2 [auth] prom/alertmanager:pull render-prod/docker-mirror-repository/prom/alertmanager:pull token for us-west1-docker.pkg.dev
+2026-10-14T17:56:26.142903787Z inst=- #2 DONE 0.0s
+2026-10-14T17:56:26.142905542Z inst=- 
+2026-10-14T17:56:26.142907195Z inst=- #3 [internal] load metadata for docker.io/prom/alertmanager:v0.27.0
+2026-10-14T17:56:26.395925225Z inst=- #3 DONE 0.5s
+2026-10-14T17:56:26.562807438Z inst=- 
+2026-10-14T17:56:26.562830155Z inst=- #4 [internal] load .dockerignore
+2026-10-14T17:56:26.562832598Z inst=- #4 transferring context: 2B done
+2026-10-14T17:56:26.562834065Z inst=- #4 DONE 0.0s
+2026-10-14T17:56:26.562835306Z inst=- 
+2026-10-14T17:56:26.562836891Z inst=- #5 [internal] load build context
+2026-10-14T17:56:26.562838258Z inst=- #5 DONE 0.0s
+2026-10-14T17:56:26.562839465Z inst=- 
+2026-10-14T17:56:26.562842054Z inst=- #6 [1/3] FROM docker.io/prom/alertmanager:v0.27.0@sha256:e13b6ed5cb929eeaee733479dce55e10eb3bc2e9c4586c705a4e8da41e5eacf5
+2026-10-14T17:56:26.562843649Z inst=- #6 resolve docker.io/prom/alertmanager:v0.27.0@sha256:e13b6ed5cb929eeaee733479dce55e10eb3bc2e9c4586c705a4e8da41e5eacf5 done
+2026-10-14T17:56:26.562845007Z inst=- #6 DONE 0.0s
+2026-10-14T17:56:26.562846173Z inst=- 
+2026-10-14T17:56:26.56284741Z inst=- #7 importing cache manifest
+2026-10-14T17:56:26.562850196Z inst=- #7 inferred cache manifest type: application/vnd.oci.image.manifest.v1+json done
+2026-10-14T17:56:26.562851611Z inst=- #7 DONE 0.2s
+2026-10-14T17:56:26.664742009Z inst=- 
+2026-10-14T17:56:26.664758865Z inst=- #5 [internal] load build context
+2026-10-14T17:56:26.664762552Z inst=- #5 transferring context: 2.43kB done
+2026-10-14T17:56:26.664764089Z inst=- #5 DONE 0.0s
+2026-10-14T17:56:26.664765345Z inst=- 
+2026-10-14T17:56:26.66476797Z inst=- #8 [2/3] COPY alertmanager.yml /etc/alertmanager/alertmanager.yml
+2026-10-14T17:56:26.664769467Z inst=- #8 CACHED
+2026-10-14T17:56:26.664770634Z inst=- 
+2026-10-14T17:56:26.664772046Z inst=- #9 [3/3] COPY alertmanager-entrypoint.sh /etc/alertmanager/entrypoint.sh
+2026-10-14T17:56:26.664773358Z inst=- #9 CACHED
+2026-10-14T17:56:26.664774527Z inst=- 
+2026-10-14T17:56:26.664775798Z inst=- #10 exporting cache to registry
+2026-10-14T17:56:26.664780696Z inst=- #10 sending cache export
+2026-10-14T17:56:26.785538178Z inst=- #10 sending cache export 0.2s done
+2026-10-14T17:56:26.785550174Z inst=- #10 DONE 0.2s
+2026-10-14T17:56:26.785551809Z inst=- 
+2026-10-14T17:56:26.785553734Z inst=- #11 exporting to image
+2026-10-14T17:56:26.785555354Z inst=- #11 exporting layers done
+2026-10-14T17:56:26.785556653Z inst=- #11 pushing layers 0.1s done
+2026-10-14T17:56:26.785558071Z inst=- #11 DONE 0.2s
+2026-10-14T17:56:27.841359592Z inst=- ==> Deploying...
+2026-10-14T17:56:27.937929318Z inst=- ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-10-14T18:01:30.169747345Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.169Z caller=main.go:181 level=info msg="Starting Alertmanager" version="(version=0.27.0, branch=HEAD, revision=0aa3c2aad14cff039931923ab16b26b7481783b5)"
+2026-10-14T18:01:30.169843871Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.169Z caller=main.go:182 level=info build_context="(go=go1.21.7, platform=linux/amd64, user=root@22cd11f671e9, date=20240228-11:51:20, tags=netgo)"
+2026-10-14T18:01:30.189059104Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.188Z caller=nflog.go:275 level=debug component=nflog msg="notification log snapshot file doesn't exist" err="open /tmp/alertmanager/data/nflog: no such file or directory"
+2026-10-14T18:01:30.189080515Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.188Z caller=silence.go:355 level=debug component=silences msg="silences snapshot file doesn't exist" err="open /tmp/alertmanager/data/silences: no such file or directory"
+2026-10-14T18:01:30.466709476Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.466Z caller=main.go:348 level=debug externalURL=http://srv-db3s2nui0phs73bc45cg-hibernate-7c59d88886-6n7zk:9093
+2026-10-14T18:01:30.466722587Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.466Z caller=coordinator.go:113 level=info component=configuration msg="Loading configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T18:01:30.467038595Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.466Z caller=coordinator.go:126 level=info component=configuration msg="Completed loading of configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T18:01:30.468775038Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.468Z caller=main.go:495 level=debug routePrefix=/
+2026-10-14T18:01:30.469570515Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.469Z caller=tls_config.go:313 level=info msg="Listening on" address=[::]:9093
+2026-10-14T18:01:30.469928946Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:01:30.469Z caller=tls_config.go:352 level=info msg="TLS is disabled." http2=false address=[::]:9093
+2026-10-14T18:11:28.579862573Z inst=- ==> Timed Out
+2026-10-14T18:11:28.582011791Z inst=- ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2026-10-14T18:11:32.769524456Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=main.go:181 level=info msg="Starting Alertmanager" version="(version=0.27.0, branch=HEAD, revision=0aa3c2aad14cff039931923ab16b26b7481783b5)"
+2026-10-14T18:11:32.769565467Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=main.go:182 level=info build_context="(go=go1.21.7, platform=linux/amd64, user=root@22cd11f671e9, date=20240228-11:51:20, tags=netgo)"
+2026-10-14T18:11:32.769862513Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=nflog.go:275 level=debug component=nflog msg="notification log snapshot file doesn't exist" err="open /tmp/alertmanager/data/nflog: no such file or directory"
+2026-10-14T18:11:32.770036737Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=silence.go:355 level=debug component=silences msg="silences snapshot file doesn't exist" err="open /tmp/alertmanager/data/silences: no such file or directory"
+2026-10-14T18:11:33.065115526Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.064Z caller=main.go:348 level=debug externalURL=http://srv-db3s2nui0phs73bc45cg-hibernate-5c8789c9bc-c5lvq:9093
+2026-10-14T18:11:33.065187318Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.065Z caller=coordinator.go:113 level=info component=configuration msg="Loading configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T18:11:33.065475044Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.065Z caller=coordinator.go:126 level=info component=configuration msg="Completed loading of configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T18:11:33.067007706Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.066Z caller=main.go:495 level=debug routePrefix=/
+2026-10-14T18:11:33.068109619Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.067Z caller=tls_config.go:313 level=info msg="Listening on" address=[::]:9093
+2026-10-14T18:11:33.068393715Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.068Z caller=tls_config.go:352 level=info msg="TLS is disabled." http2=false address=[::]:9093

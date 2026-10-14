@@ -1,0 +1,11 @@
+# Unauthenticated HTTP probes from the agent sandbox (no credentials sent)
+2026-10-14T18:19:44Z GET https://wasla-alertmanager-6hhq.onrender.com/-/healthy -> 401 in 0.31 s
+(3 sequential probes ending 2026-10-14T20:32:10Z) GET /-/healthy, /-/ready, / -> no response within 60 s each (code 000)
+2026-10-14T20:32:15Z..20:35:05Z GET /-/healthy -> no response within 170 s (code 000)
+2026-10-14T20:37:19Z Render log: new instance "Starting Alertmanager", Listening on [::]:9093 (replicaset 779c5977f4)
+2026-10-14T20:37:27Z..20:39:27Z GET wasla-identity /health, wasla-audit /health, wasla-observability /healthz, wasla-otel-collector / -> no response within 120 s (TLS connected to 216.24.57.18:443, no HTTP answer); wasla-identity: 0 Render log lines 20:25Z..20:41Z
+2026-10-14T20:35:15Z..20:37:00Z GET wasla-prometheus /-/healthy -> no response within 100 s
+2026-10-14T20:40:19Z GET https://wasla-alertmanager-6hhq.onrender.com/-/healthy -> HTTP/2 401 in 0.25 s
+  www-authenticate: Basic
+  x-render-origin-server: Render
+  server: cloudflare

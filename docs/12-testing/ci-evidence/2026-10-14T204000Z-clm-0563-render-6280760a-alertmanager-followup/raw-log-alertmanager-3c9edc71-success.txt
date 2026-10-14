@@ -1,0 +1,69 @@
+# GET /v1/logs resource=srv-db3s2nui0phs73bc45cg 2026-10-14T17:30:00Z..17:32:00Z (deploy dep-db7roebl550s73d3nir0, live)
+2026-10-14T17:30:57.784209258Z inst=- ==> Cloning from https://github.com/skyosv10-art/wasla
+2026-10-14T17:31:03.680551433Z inst=- ==> Checking out commit 3c9edc719484c6f330e0b8487987116a0f750703 in branch main
+2026-10-14T17:31:04.873598456Z inst=- #1 [internal] load build definition from Dockerfile.alertmanager
+2026-10-14T17:31:04.873612818Z inst=- #1 transferring dockerfile: 589B done
+2026-10-14T17:31:04.873613962Z inst=- #1 DONE 0.0s
+2026-10-14T17:31:04.873614792Z inst=- 
+2026-10-14T17:31:04.873616041Z inst=- #2 [internal] load metadata for docker.io/prom/alertmanager:v0.27.0
+2026-10-14T17:31:05.027176679Z inst=- #2 ...
+2026-10-14T17:31:05.027183053Z inst=- 
+2026-10-14T17:31:05.027184481Z inst=- #3 [auth] prom/alertmanager:pull render-prod/docker-mirror-repository/prom/alertmanager:pull token for us-west1-docker.pkg.dev
+2026-10-14T17:31:05.02718663Z inst=- #3 DONE 0.0s
+2026-10-14T17:31:05.176570012Z inst=- 
+2026-10-14T17:31:05.176585288Z inst=- #2 [internal] load metadata for docker.io/prom/alertmanager:v0.27.0
+2026-10-14T17:31:06.534276122Z inst=- #2 DONE 1.8s
+2026-10-14T17:31:06.677096888Z inst=- 
+2026-10-14T17:31:06.677120995Z inst=- #4 [internal] load .dockerignore
+2026-10-14T17:31:06.677123825Z inst=- #4 transferring context: 2B done
+2026-10-14T17:31:06.677124704Z inst=- #4 DONE 0.0s
+2026-10-14T17:31:06.677125464Z inst=- 
+2026-10-14T17:31:06.677126287Z inst=- #5 [internal] load build context
+2026-10-14T17:31:06.677127093Z inst=- #5 DONE 0.0s
+2026-10-14T17:31:06.67712791Z inst=- 
+2026-10-14T17:31:06.677129158Z inst=- #6 [1/3] FROM docker.io/prom/alertmanager:v0.27.0@sha256:e13b6ed5cb929eeaee733479dce55e10eb3bc2e9c4586c705a4e8da41e5eacf5
+2026-10-14T17:31:06.677129933Z inst=- #6 resolve docker.io/prom/alertmanager:v0.27.0@sha256:e13b6ed5cb929eeaee733479dce55e10eb3bc2e9c4586c705a4e8da41e5eacf5 done
+2026-10-14T17:31:06.677130762Z inst=- #6 DONE 0.0s
+2026-10-14T17:31:06.677131517Z inst=- 
+2026-10-14T17:31:06.677132298Z inst=- #7 importing cache manifest
+2026-10-14T17:31:06.677133417Z inst=- #7 inferred cache manifest type: application/vnd.oci.image.manifest.v1+json done
+2026-10-14T17:31:06.677134233Z inst=- #7 DONE 0.1s
+2026-10-14T17:31:06.796256269Z inst=- 
+2026-10-14T17:31:06.796261321Z inst=- #5 [internal] load build context
+2026-10-14T17:31:06.796262598Z inst=- #5 transferring context: 2.43kB done
+2026-10-14T17:31:06.796263459Z inst=- #5 DONE 0.0s
+2026-10-14T17:31:06.796264245Z inst=- 
+2026-10-14T17:31:06.796265528Z inst=- #8 [2/3] COPY alertmanager.yml /etc/alertmanager/alertmanager.yml
+2026-10-14T17:31:06.79626642Z inst=- #8 CACHED
+2026-10-14T17:31:06.79626727Z inst=- 
+2026-10-14T17:31:06.79626811Z inst=- #9 [3/3] COPY alertmanager-entrypoint.sh /etc/alertmanager/entrypoint.sh
+2026-10-14T17:31:06.796271102Z inst=- #9 CACHED
+2026-10-14T17:31:06.796271905Z inst=- 
+2026-10-14T17:31:06.796272715Z inst=- #10 exporting cache to registry
+2026-10-14T17:31:06.796274459Z inst=- #10 sending cache export
+2026-10-14T17:31:06.901505273Z inst=- #10 sending cache export 0.2s done
+2026-10-14T17:31:06.901517917Z inst=- #10 DONE 0.2s
+2026-10-14T17:31:06.901518992Z inst=- 
+2026-10-14T17:31:06.901520211Z inst=- #11 exporting to image
+2026-10-14T17:31:06.901521514Z inst=- #11 exporting layers done
+2026-10-14T17:31:06.901522411Z inst=- #11 pushing layers 0.1s done
+2026-10-14T17:31:06.901523303Z inst=- #11 DONE 0.2s
+2026-10-14T17:31:08.517463415Z inst=- ==> Deploying...
+2026-10-14T17:31:08.73708468Z inst=- ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-10-14T17:31:12.367268239Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.367Z caller=main.go:181 level=info msg="Starting Alertmanager" version="(version=0.27.0, branch=HEAD, revision=0aa3c2aad14cff039931923ab16b26b7481783b5)"
+2026-10-14T17:31:12.368339142Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.367Z caller=main.go:182 level=info build_context="(go=go1.21.7, platform=linux/amd64, user=root@22cd11f671e9, date=20240228-11:51:20, tags=netgo)"
+2026-10-14T17:31:12.368351843Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.367Z caller=nflog.go:275 level=debug component=nflog msg="notification log snapshot file doesn't exist" err="open /tmp/alertmanager/data/nflog: no such file or directory"
+2026-10-14T17:31:12.368356103Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.367Z caller=silence.go:355 level=debug component=silences msg="silences snapshot file doesn't exist" err="open /tmp/alertmanager/data/silences: no such file or directory"
+2026-10-14T17:31:12.670738664Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.670Z caller=main.go:348 level=debug externalURL=http://srv-db3s2nui0phs73bc45cg-hibernate-5c8789c9bc-89glz:9093
+2026-10-14T17:31:12.670763505Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.670Z caller=coordinator.go:113 level=info component=configuration msg="Loading configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T17:31:12.670767074Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.670Z caller=coordinator.go:126 level=info component=configuration msg="Completed loading of configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T17:31:12.672324648Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.672Z caller=main.go:495 level=debug routePrefix=/
+2026-10-14T17:31:12.673313429Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.673Z caller=tls_config.go:313 level=info msg="Listening on" address=[::]:9093
+2026-10-14T17:31:12.774463014Z inst=srv-db3s2nui0phs73bc45cg-89glz ts=2026-10-14T17:31:12.764Z caller=tls_config.go:352 level=info msg="TLS is disabled." http2=false address=[::]:9093
+2026-10-14T17:31:21.810513519Z inst=- ==> Your service is live 🎉
+2026-10-14T17:31:22.39104793Z inst=- ==> 
+2026-10-14T17:31:22.394601475Z inst=- ==> ///////////////////////////////////////////////////////////
+2026-10-14T17:31:22.424906398Z inst=- ==> 
+2026-10-14T17:31:22.427272148Z inst=- ==> Available at your primary URL https://wasla-alertmanager-6hhq.onrender.com
+2026-10-14T17:31:22.429706381Z inst=- ==> 
+2026-10-14T17:31:22.432603624Z inst=- ==> ///////////////////////////////////////////////////////////

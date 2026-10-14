@@ -1,0 +1,27 @@
+# GET /v1/logs resource=srv-db3s2nui0phs73bc45cg 2026-10-14T18:11:30Z..20:36:00Z
+2026-10-14T18:11:32.769524456Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=main.go:181 level=info msg="Starting Alertmanager" version="(version=0.27.0, branch=HEAD, revision=0aa3c2aad14cff039931923ab16b26b7481783b5)"
+2026-10-14T18:11:32.769565467Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=main.go:182 level=info build_context="(go=go1.21.7, platform=linux/amd64, user=root@22cd11f671e9, date=20240228-11:51:20, tags=netgo)"
+2026-10-14T18:11:32.769862513Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=nflog.go:275 level=debug component=nflog msg="notification log snapshot file doesn't exist" err="open /tmp/alertmanager/data/nflog: no such file or directory"
+2026-10-14T18:11:32.770036737Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:32.769Z caller=silence.go:355 level=debug component=silences msg="silences snapshot file doesn't exist" err="open /tmp/alertmanager/data/silences: no such file or directory"
+2026-10-14T18:11:33.065115526Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.064Z caller=main.go:348 level=debug externalURL=http://srv-db3s2nui0phs73bc45cg-hibernate-5c8789c9bc-c5lvq:9093
+2026-10-14T18:11:33.065187318Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.065Z caller=coordinator.go:113 level=info component=configuration msg="Loading configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T18:11:33.065475044Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.065Z caller=coordinator.go:126 level=info component=configuration msg="Completed loading of configuration file" file=/tmp/alertmanager/alertmanager.yml
+2026-10-14T18:11:33.067007706Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.066Z caller=main.go:495 level=debug routePrefix=/
+2026-10-14T18:11:33.068109619Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.067Z caller=tls_config.go:313 level=info msg="Listening on" address=[::]:9093
+2026-10-14T18:11:33.068393715Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:11:33.068Z caller=tls_config.go:352 level=info msg="TLS is disabled." http2=false address=[::]:9093
+2026-10-14T18:14:28.981622253Z inst=- ==> Port scan timeout reached, no open ports detected. Bind your service to at least one port. If you don't need to receive traffic on any port, create a background worker instead.
+2026-10-14T18:14:29.123197815Z inst=- ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2026-10-14T18:15:19.590496919Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:15:19.552Z caller=main.go:542 level=info msg="Received SIGTERM, exiting gracefully..."
+2026-10-14T18:15:19.619154472Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:15:19.596Z caller=silence.go:413 level=debug component=silences msg="Running maintenance"
+2026-10-14T18:15:19.619168973Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:15:19.596Z caller=nflog.go:334 level=debug component=nflog msg="Running maintenance"
+2026-10-14T18:15:19.695101805Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:15:19.683Z caller=nflog.go:341 level=debug component=nflog msg="Maintenance done" duration=87.579025ms size=0
+2026-10-14T18:15:19.695290167Z inst=srv-db3s2nui0phs73bc45cg-6n7zk ts=2026-10-14T18:15:19.684Z caller=silence.go:421 level=debug component=silences msg="Maintenance done" duration=66.024924ms size=0
+2026-10-14T18:26:32.772499056Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:26:32.772Z caller=silence.go:413 level=debug component=silences msg="Running maintenance"
+2026-10-14T18:26:32.772551207Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:26:32.772Z caller=nflog.go:334 level=debug component=nflog msg="Running maintenance"
+2026-10-14T18:26:32.775286926Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:26:32.775Z caller=nflog.go:341 level=debug component=nflog msg="Maintenance done" duration=2.871922ms size=0
+2026-10-14T18:26:32.775302706Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:26:32.775Z caller=silence.go:421 level=debug component=silences msg="Maintenance done" duration=2.80774ms size=0
+2026-10-14T18:34:44.185033173Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:34:44.171Z caller=main.go:542 level=info msg="Received SIGTERM, exiting gracefully..."
+2026-10-14T18:34:44.186349171Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:34:44.185Z caller=nflog.go:334 level=debug component=nflog msg="Running maintenance"
+2026-10-14T18:34:44.186438853Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:34:44.185Z caller=silence.go:413 level=debug component=silences msg="Running maintenance"
+2026-10-14T18:34:44.194717298Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:34:44.194Z caller=nflog.go:341 level=debug component=nflog msg="Maintenance done" duration=8.419249ms size=0
+2026-10-14T18:34:44.194730849Z inst=srv-db3s2nui0phs73bc45cg-c5lvq ts=2026-10-14T18:34:44.194Z caller=silence.go:421 level=debug component=silences msg="Maintenance done" duration=6.939228ms size=0

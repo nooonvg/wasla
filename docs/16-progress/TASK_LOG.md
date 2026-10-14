@@ -1,3 +1,14 @@
+# 2026-10-14 — CLM-0563 — M6-19B: إغلاقُ CLM-0562 (#716 عبرَ الحارس) + متابعةٌ مستقلّةٌ لفشلِ نشرِ alertmanager — السببُ غيرُ محسوم
+
+- **Work Item(s):** M6-19B (CLM-0563)
+- **Status:** Released (توثيقٌ وقراءةٌ فقط)
+- **(أ) #716:** head `d907ba32` · approval `d907ba32` 2026-10-14T19:12:09Z (id 5523294458) · 42/42 success · DRY_RUN OK 20:27:02Z · merged by `scripts/ops/merge-on-approved-head.sh 716 --squash` → `47a1a76d` 20:27:19Z · main WASLA CI 38632212599 41/41 · Roadmap freshness success · branch deleted. **CLM-0562 closed.** Evidence: [closure](../12-testing/ci-evidence/2026-10-14T202719Z-clm-0563-clm-0562-closure/README.md)
+- **Correction (by addition):** CLM-0562 §2 classified the alertmanager failure as a free-plan platform symptom; the evidence does not prove that. Root cause: **unresolved**. Verdict stays FAIL, 20/21 services on `6280760a`.
+- **(ب) Alertmanager follow-up — OPEN:** web_service · docker · free · **oregon** · `healthCheckPath` empty (readiness = port scan). Failed attempt: container start +5m03s, listening on 9093 at 18:01:30, no port detected, `Timed Out` 18:11:28; then `Port scan timeout … no open ports detected` (18:14:28) even for the previous version detected in 9 s at 17:31. Prometheus (oregon) +12m20s start in the same window; singapore services normal. `/-/healthy` → 401 `www-authenticate: Basic` from Alertmanager's own basic auth, not used by Render during deploy. Evidence: [follow-up](../12-testing/ci-evidence/2026-10-14T204000Z-clm-0563-render-6280760a-alertmanager-followup/README.md)
+- **Owner decision required:** re-run `render-deploy.yml` on a named SHA in a chosen window (not 2026-10-15 01:00–02:00Z Render maintenance), or wait for the next non-docs deploy, or a written exception. Closure only by live verification of all 21 services on the target SHA.
+- **Deployment:** none — no deploy re-run, no Render/Supavisor/auth/health-check/branch-protection change.
+- **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05. No load, no DR calibration, no RISK-0058 drill.
+
 # 2026-10-14 — CLM-0562 — M6-19B: دمجُ #713 ⇒ #714 ⇒ #715 بالتتابع عبرَ الحارس، والتحقّقُ بعدَ كلِّ دمج
 
 - **Work Item(s):** M6-19B (CLM-0562) · يخصُّ CLM-0559 وCLM-0560 وCLM-0561
@@ -9,6 +20,7 @@
 - **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T181900Z-clm-0562-post-merge-713-715/README.md)
 - **Deployment:** none by this claim; the automatic deploy of `6280760a` is recorded above, not re-run.
 - **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05. Historical deviations (CLM-0558 §7) unchanged.
+- **Correction / closure (CLM-0563, by addition):** #716 merged as `47a1a76d` on approval `d907ba32` (19:12:09Z) via the guard; CLM-0562 closed. The alertmanager root-cause classification above is superseded: **unresolved** (CLM-0563 follow-up record); verdict stays FAIL, 20/21.
 
 # 2026-10-14 — CLM-0561 — M6-18B / RISK-0067: حالةُ قراراتِ المالكِ لمعايرةِ DR وما قِيسَ فعلًا — لا حمل
 
