@@ -1,0 +1,1 @@
+OK pr=714 head=255fa3b6fd5d06db0e4807084e5aa86b636ed940 approved_by=xuuux-voox approval_commit=255fa3b6fd5d06db0e4807084e5aa86b636ed940 approved_at=2026-10-14T17:55:45Z checks: success=42 skipped_or_neutral=0 failed=0 pending=0
