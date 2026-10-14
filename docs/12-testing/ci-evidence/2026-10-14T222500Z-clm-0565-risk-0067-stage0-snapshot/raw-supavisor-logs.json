@@ -1,0 +1,3 @@
+{"source":"Supabase query_logs, project ppixaauyqoykrogwdxtv, source=supavisor_logs (default 24 h window), read 2026-10-14T21:58Z",
+ "coverage":{"n":498,"first_ts":"2026-10-13T22:50:10.517156","last_ts":"2026-10-14T21:57:41.317014","emaxconn":0},
+ "pool_size_probe":{"query":"event_message or log_attributes containing 'pool' / 'pool_size'","result":"no line exposes pool_size / default_pool_size / max_client_conn — these logs cannot replace the Management API reading"}}

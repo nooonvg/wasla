@@ -1,3 +1,16 @@
+# 2026-10-14 — CLM-0565 — M6-18B: إغلاقُ CLM-0564 + لقطةُ المرحلة 0 الطازجة لـRISK-0067 (قراءةٌ فقط)
+
+- **Work Item(s):** M6-18B (CLM-0565) · يُغلِقُ CLM-0564 (M0-07)
+- **Status:** Released (توثيقٌ وقراءةٌ فقط)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open` (لا تغيير)
+- **(أ) #718:** head `c1d0de28` · approval `c1d0de28` 22:21:31Z (`xuuux-voox`) · 43/43 · DRY_RUN OK · merged by `scripts/ops/merge-on-approved-head.sh 718 --squash` → `580458a5` 22:23:15Z · main WASLA CI 38647286764 41/41 · Roadmap freshness success · branch deleted. **CLM-0564 closed.**
+- **(ب) Stage 0 snapshot (21:58–22:08Z):** 21 web services `numInstances=1`; `WASLA_PG_POOL_MAX` absent (services + env group `wasla-prod-db`) ⇒ default 2; no pool code change since `6ad1a384` ⇒ theoretical \(C = 36\) (calculation, not a live reading); prod `max_connections` 60, reserved 3, 9 client backends; `supavisor_logs` 498 lines, 0 `EMAXCONN`; DR `INACTIVE`. **New:** `supavisor_logs` do not expose `pool_size` ⇒ \(S\) stays unmeasured ⇒ \(C \le L\) unverifiable ⇒ **HOLD**. Plan §11.
+- **(ج) Alert path:** Prometheus/Alertmanager 502 `no-deploy` until 22:03Z; Render incident resolved 22:18Z; both answer again 22:23Z (401 / 302), Prometheus started 22:23:41Z with 0 send errors to 22:24:56Z. Link to the incident: hypothesis. Issue #689 stays open until the next scheduled service-health pass.
+- **Missing for DR calibration:** owner decision to restart DR · \(S\) via Management API token (`database_pooling_config_read`, secure form) or dated Dashboard capture · \(E\) and log coverage on DR (follow restart) · owner approval for the calibration workflow · RISK-0066 decision.
+- **Deployment:** none. No load, no DR calibration, no RISK-0058 drill, no Render/Supavisor change.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T222500Z-clm-0565-risk-0067-stage0-snapshot/README.md)
+
 # 2026-10-14 — CLM-0564 — M0-07: مراجعةُ المخاطرِ المستحقّةِ 2026-10-15/16 (قبلَ أن يُسقِطَ الفحص 10 البوّابة)
 
 - **Work Item(s):** M0-07 (CLM-0564) · يمسُّ RISK-0066 (حزمةُ القرار §7)

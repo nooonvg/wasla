@@ -245,3 +245,11 @@ L = \min\big(\text{pool\_size}_{\text{session}},\ \text{max\_connections} - \tex
 ### 10.4 الحكم
 
 **معايرةُ DR لا تبدأ** — الشروطُ 1 و2 و5 و6 في 10.2 تنتظرُ قرارَ المالك، و3 و4 تتبعُ 1. لا حِمل. RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+
+## 11. إضافةٌ مؤرّخةٌ رابعة (CLM-0565 · 2026-10-14T22:25Z): لقطةُ المرحلة 0 الطازجة
+
+> **إضافةٌ لا تمسُّ §1–§10.** قراءةٌ فقط؛ لا حِمل ولا معايرة ولا تغييرَ إعداد. الأدلّة: [`ci-evidence/2026-10-14T222500Z-clm-0565-risk-0067-stage0-snapshot/`](ci-evidence/2026-10-14T222500Z-clm-0565-risk-0067-stage0-snapshot/README.md).
+
+- **مُعادُ القياس (21:58–22:08Z):** 21 خدمةً `numInstances=1` · `WASLA_PG_POOL_MAX` غائبٌ في الخدماتِ ومجموعةِ البيئة ⇒ 2 · لا تغييرَ في شفرةِ المجمعاتِ منذ `6ad1a384` ⇒ \( C = 36 \) (حساب) · `max_connections` 60 / محجوز 3 · 9 `client backend` · `supavisor_logs` 498 سطرًا / 0 `EMAXCONN` · DR `INACTIVE`.
+- **جديد:** `supavisor_logs` **لا تكشفُ** `pool_size` / `default_pool_size` / `max_client_conn` — فلا بديلَ عن Management API أو لقطةِ Dashboard لقياسِ \( S \) (§10.2 الصفّ 2).
+- **الحكم بلا تغيير:** \( C \le L \) غيرُ قابلٍ للتحقّق ⇒ **HOLD**؛ معايرةُ DR لا تبدأ؛ شروطُ §10.2 كما هي (RISK-0066 مراجعتُه التالية 2026-10-22).
