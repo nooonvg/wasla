@@ -1,3 +1,17 @@
+# 2026-10-14 — CLM-0554 — M6-18B / RISK-0067: جردُ المجمعاتِ الكاملُ — الحدُّ النظريُّ 104 لا 28 (تصحيحٌ بالإضافةِ لـCLM-0551) — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0554 — حجزٌ ثانٍ على فرعِ CLM-0551؛ WORK_CLAIM_RULE §6)
+- **Status:** Released (قراءةٌ فقط · يُدمجُ مع PR #708 فورَ نجاح CI · الدمجُ هو الإطلاق)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير؛ إضافةٌ مؤرّخةٌ في السجل: إجراءُ CLM-0510 لا يحدُّ الطلبَ النظريَّ تحتَ السقف).
+- **Evidence (measured, timestamped):** Render API 2026-10-14T06:51:19Z — 21 web_service · numInstances=1 لكلّها · `WASLA_PG_POOL_MAX` غائبٌ عن الخدماتِ ومجموعةِ البيئة · مجموعةُ `wasla-prod-db` مربوطةٌ بـ17 خدمة (14 + 3 بوتات). الكودُ عند `79729e07`: كلُّ عمليةٍ تُنشئُ مجمعَ `service-auth-replay` بـ`max: 4` صريح (`packages/service-auth/src/replay-store.ts:104`)، والبوتاتُ `channel-postgres` 2، وcustomer-bot مجمعَ customers 2. ⇒ 14×6 + 8 + 6 + 6 = **104**. Supabase 06:48:49Z: `max_connections=60` · 8 client backends (منصّة) · `supavisor_logs` 252 سطرًا بتغطيةٍ 2026-10-13T14:18Z→2026-10-14T06:19Z · `EMAXCONN*`=0 ضمنَ التغطية · DR `INACTIVE` (استعلامُ القراءةِ انتهتْ مهلتُه).
+- **Not measured (exact source needed):** Supavisor `default_pool_size`/`max_client_conn` للإنتاج وDR — Management API `GET /v1/projects/{ref}/config/database/pooler` بصلاحية `database_pooling_config_read` أو لقطةُ Dashboard · كلُّ قيمِ DR — قرارُ المالك بإعادةِ تشغيلِ المشروع · اتصالاتُ أدواتِ CI بالإنتاج.
+- **Read paths:** لا `/ready` عامٌّ؛ `/health` مخزَّنُ المجسِّ 1 ث فلا يختبرُ السعة؛ `/delivery/ready` المسارُ المفتوحُ الوحيدُ الذي يمارسُ مجمعًا كلَّ طلب؛ كلُّ مسارٍ مصادَقٍ يكتبُ صفَّ إعادة ⇒ حِملٌ آمنٌ ممثِّلٌ لسقفِ 104 غيرُ ممكنٍ اليوم ⇒ هدفُ الإنتاج HOLD.
+- **Side event:** نشرُ main 79729e07 فشلَ على wasla-search (`update_failed`: تأخّرُ جدولةِ Render 14.5 دقيقة قبلَ بدءِ الحاوية، لا خطأَ كود) ⇒ أُعيدَ تشغيلُ وظيفةِ النشرِ المثبَّتة ⇒ `live` 06:47:35Z.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/README.md) · [pool-inventory.json](../12-testing/ci-evidence/2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/pool-inventory.json) · [read-paths.md](../12-testing/ci-evidence/2026-10-14T064600Z-clm-0554-risk-0067-stage0-full-pool-inventory/read-paths.md)
+- **Deployment:** none (docs only). **No load, no write, no config change, no plan edit.**
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Next:** (1) حجزٌ هندسيٌّ مستقلٌّ لإخضاعِ مجمعِ الإعادةِ لميزانيةِ الأسطولِ واستبدالِ اختبارِ `17 × 2 ≤ 40` بفحصٍ بنيويّ؛ (2) حجزُ تصحيحِ الخطة §9.
+
 # 2026-10-14 — CLM-0552 — M0-25: السياقُ المطلوبُ `db-integration (bot-runtime, …)` بلا مُنتِج — إضافةُ الـleg واختباراتِ تكاملٍ حقيقية
 
 - **Work Item(s):** M0-25 (CLM-0552) · M2-04 (CLM-0553 — حجزٌ ثانٍ على الفرعِ نفسِه لتسجيلِ قارئَيِ `DATABASE_URL` في سجلِّ الإعداد؛ WORK_CLAIM_RULE §6)
@@ -14,6 +28,21 @@
 - **Changed (units):** `.github/workflows/ci.yml` · `packages/bot-runtime/package.json` · `packages/bot-runtime/vitest.config.ts` · `packages/bot-runtime/vitest.integration.config.ts` · `packages/bot-runtime/src/__tests__/postgres-persistence.integration.test.ts` · `packages/bot-runtime/src/__tests__/database-health.integration.test.ts` · `packages/bot-runtime/src/__tests__/pg-harness.ts` · `packages/config/env-registry.json` (DATABASE_URL: +2 قارئَين — ملفّا التكامل) · `packages/config/src/registry.generated.ts` · `.env.example` (مُولَّدان: القارئون 99 ⇒ 101) · `docs/12-testing/BASELINE.json` · `docs/12-testing/BASELINE.txt` (إعادةُ توليدٍ بـ`scripts/baseline.sh` — `test_files_tracked` 568 ⇒ 570 لأن ملفَّي اختبارٍ جديدَين أُضيفا) · `docs/12-testing/MERGE_BLOCKING.json` · `docs/12-testing/ci-evidence/2026-10-14T050500Z-clm-0552-bot-runtime-db-integration/{README.md,raw-branch-protection.json,required-contexts-live.txt,required-without-producer.txt,pr-708-head-9d5610b-check-runs.txt,pr-707-head-check-runs.txt}` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
 - **Next:** بعدَ الدمجِ يُعادُ تأسيسُ PR #708 (CLM-0551) على main الجديد ليُنتِجَ CI السياقَ، ثم يُدمجُ بالمسارِ العادي.
 
+# 2026-10-14 — CLM-0551 — M6-18B / RISK-0067: استكمالُ أدلةِ المرحلةِ 0 بخريطةِ المجمعاتِ وتصحيحِ الحدِّ النظريِّ (28 ≤ 40) — الحالةُ لا تتغيّر
+
+- **Work Item(s):** M6-18B (CLM-0551)
+- **Status:** Released (قراءةٌ فقط · استكمالُ أدلةٍ فقط · لا حِملَ ولا كتابةَ ولا تغييرَ إعدادات · لا تعديلَ للخطة — الحجوزاتُ المتبقيةُ لِسنا بقرارِ مالك: DR restart · default_pool_size من dashboard/API إداري · موافقةُ workflow المعايرة · حسمُ RISK-0066 قبل 2026-10-15)
+- **Risk(s):** RISK-0067 → mitigating (لا تغيير — إغلاقُها يحتاجُ حملًا حيًّا بلا `EMAXCONNSESSION`، L1 لا يُثبته)
+- **Evidence (measured, timestamped):**
+  - **خريطةُ المجمعاتِ من Render API بتاريخ 2026-10-14T03:00:35Z:** 21 خدمة ويب = **14 DB-pool + 7 غير DB** (3 بوتات + otel-collector + observability + alertmanager + prometheus). من قائمةِ L1 البالغةِ 17 خدمة: **14 مُنشرٌ على Render** و**3 كودٌ فقط غير مُنشر** (billing · partners · support). `WASLA_PG_POOL_MAX` غائبٌ من env-vars لكلِّ الخدماتِ الـ21 → الحدُّ الفعليُّ لكلِّ مجمعٍ = 2. `numInstances=1` لكلٍّ منها.
+  - **الحدُّ النظريُّ المصحَّحُ للأسطولِ Render:** 14 × 1 × 2 = **28 ≤ 40** (لا 42 > 40 كما وثّقَ CLM-0545 §1.4/§5 — محفوظٌ للتاريخِ · تصحيحٌ بالإضافةِ لا بالحذف).
+  - **قراءاتُ موصلِ Supabase بتاريخ 2026-10-14T02:35Z–02:42Z:** الإنتاجُ `ppixaauyqoykrogwdxtv` ACTIVE_HEALTHY · `pg_stat_activity` = 14 صفاً (6 idle + 1 active + 7 state NULL) — ليست 14 جلسةً نشطةً · `max_connections` (PostgreSQL) = 60 — ليس حدَّ Supavisor · `supavisor_logs` متاحةٌ بـ164 سطراً ضمنَ النافذةِ المطلوبةِ 2026-10-13T07:00Z→2026-10-14T07:00Z بتغطيةٍ فعليةٍ 2026-10-13T14:18:19.921675Z → 23:06:10.526333Z · `EMAXCONNSESSION` = 0 ضمنَ تلكَ التغطيةِ (ليست تغطيةً مستمرةً) · DR `pvyuhjadrygqqdoczmnd` **INACTIVE** · `default_pool_size` **غير مقيسٍ** (لا واجهةَ إداريةً في موصلِ Supabase MCP؛ `pg_settings` لا يُظهرُ Supavisor).
+  - [evidence](../12-testing/ci-evidence/2026-10-14T030100Z-clm-0551-risk-0067-stage0-pool-map/README.md)
+- **Deployment:** none (read-only).
+- **What this does NOT prove:** سلوكَ Supavisor نفسِهِ (`EMAXCONNSESSION`) تحتَ حملٍ حيّ؛ ولا اكتمالَ تغطيةِ سجلاتِ الإنتاج.
+- **Statuses unchanged:** RISK-0067 `mitigating` · M6-18B `Blocked` (RISK-0058/0066/0067) · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
+- **Changed (units):** `docs/12-testing/ci-evidence/2026-10-14T030100Z-clm-0551-risk-0067-stage0-pool-map/{README.md,pool-map.md,render-inventory-2026-10-14.json,supabase-connector-readings-2026-10-14.md}` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`
+- **Owner-gated next steps (unchanged):** إعادةُ تشغيلِ DR · قياسُ `default_pool_size` من dashboard/API إداري · موافقةُ المالكِ على workflow المعايرةِ · حسمُ RISK-0066 قبلَ 2026-10-15 (قرارُ المالكِ — لا خطةً مدفوعةً نيابةً عنه) · حملُ الإنتاجِ بموافقةٍ كتابيةٍ صريحةٍ فقط.
 # 2026-10-13 — CLM-0550 — M6-18B / RISK-0067: إعادةُ تشغيلِ L1 تأكيدًا بعدَ دمجِ أدلةِ CLM-0549 (run 38477010128) — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0546 · CLM-0547 · CLM-0548 · CLM-0549 · CLM-0550)
