@@ -1,3 +1,15 @@
+# 2026-10-14 — CLM-0559 — M6-19B / RISK-0064: حارسُ الدمجِ على الرأسِ المعتمَد — معالجةُ الدمجِ على موافقةٍ قديمة (#711 · #708)
+
+- **Work Item(s):** M6-19B (CLM-0559)
+- **Status:** Released (يُدمجُ بعدَ موافقةٍ على الرأسِ النهائيِّ نفسِه ونجاحِ CI · الدمجُ هو الإطلاق)
+- **Risk(s):** RISK-0064 → `accepted` (لا تغيير؛ إضافةٌ مؤرّخة)
+- **Measured:** منذ #650: 58 دمجًا، 7 على موافقةٍ ليست على الرأس (#660 #661 #673 #681 #702 #708 #711) — الهدفُ 0. الحماية: `dismiss_stale_reviews=false` · `require_last_push_approval=false` · لا rulesets (API، 2026-10-14T15:29:20Z).
+- **Root cause:** الإعدادُ لا يفرضُ §6.1، والقاعدةُ كانت سلوكيّةً بلا أداة؛ وتعليمةُ «دمجِ كلِّ أخضر» طُبِّقتْ كأنّها تُغني عنها.
+- **Control:** `scripts/ops/merge-on-approved-head.sh` + 10 حالاتٍ في `scripts/checks/lib/gov-cases-merge-guard.sh` يستدعيها `scripts/checks/test-governance.sh`؛ تشغيلٌ حيٌّ `DRY_RUN=1` على #712 رفضَ الموافقةَ القديمة.
+- **Owner decision (not taken here):** البديلُ E (`require_last_push_approval` أو `dismiss_stale_reviews`) — قرارٌ مكتوبٌ جديد.
+- **Evidence:** [SINGLE_REVIEWER_DEPENDENCY_REVIEW §7](SINGLE_REVIEWER_DEPENDENCY_REVIEW_2026-10-07.md) · CLM-0558 §7 (PR #712)
+- **Deployment:** none — an agent-side ops script and governance tests only; no service, Render, database or GitHub setting change.
+- **No protection, CODEOWNERS or ruleset change.** RISK-0067 `mitigating` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05 كما هي.
 # 2026-10-14 — CLM-0558 — M6-18B / RISK-0067: التحقّقُ بعدَ دمجِ #710 و#711 — النشرُ 21/21 على 6ad1a384 — الحالةُ لا تتغيّر
 
 - **Work Item(s):** M6-18B (CLM-0558)
