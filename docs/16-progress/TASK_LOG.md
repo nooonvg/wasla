@@ -1,3 +1,14 @@
+# 2026-10-14 — CLM-0561 — M6-18B / RISK-0067: حالةُ قراراتِ المالكِ لمعايرةِ DR وما قِيسَ فعلًا — لا حمل
+
+- **Work Item(s):** M6-18B (CLM-0561)
+- **Status:** Released (توثيقٌ وقياسٌ قراءةً فقط؛ يُدمجُ بعدَ موافقةٍ على الرأسِ النهائيِّ نفسِه)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open` (لا تغيير)
+- **What:** `docs/12-testing/M6-18B_RISK-0067_LOAD_MEASUREMENT_PLAN.md` §10 + أدلّةٌ خامٌ في `docs/12-testing/ci-evidence/2026-10-14T162145Z-clm-0561-risk-0067-dr-calibration-readiness/`.
+- **Measured (read-only, 2026-10-14T16:21:45Z):** DR `INACTIVE` · prod `max_connections=60` · `superuser_reserved=3` · `reserved_connections=0` · 13 backends / 5 client · `supavisor_logs` 359 lines 2026-10-13T17:07Z–2026-10-14T16:19Z, 0 max-connection events (covered range only).
+- **Not measured:** `pool_size`/`default_pool_size` (DR and prod) — needs `database_pooling_config_read` via the secure secret form, or a dated Dashboard screenshot · E and log coverage on DR (needs DR restart) · process count (code-inferred = 1; does not block DR, gates production).
+- **Owner decisions pending:** DR restart · S access · calibration workflow under `.github/workflows/` with CODEOWNERS review · RISK-0066 (B / C / D / keep free / other written — not chosen).
+- **Deployment:** none — documentation and read-only measurements; no load, no write, no Render or Supavisor change, no RISK-0058 drill.
+- **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
 # 2026-10-14 — CLM-0560 — M0-40: الفحصُ 15 يُعيدُ قراءةَ الواجهةِ بمحاولاتٍ محدودة ويُظهرُ خطأَ gh — الإخفاقُ الدائمُ يبقى إخفاقًا
 
 - **Work Item(s):** M0-40 (CLM-0560)
