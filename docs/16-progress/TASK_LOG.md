@@ -1,3 +1,16 @@
+# 2026-10-14 — CLM-0564 — M0-07: مراجعةُ المخاطرِ المستحقّةِ 2026-10-15/16 (قبلَ أن يُسقِطَ الفحص 10 البوّابة)
+
+- **Work Item(s):** M0-07 (CLM-0564) · يمسُّ RISK-0066 (حزمةُ القرار §7)
+- **Status:** Released (توثيقٌ وقراءةٌ فقط)
+- **Risk(s):** RISK-0010 → mitigating · RISK-0017 → open · RISK-0046 → mitigating · RISK-0047 → open · RISK-0048 → mitigating · RISK-0049 → open · RISK-0058 → mitigating · RISK-0066 → open (all unchanged; reviewed, next review dates only)
+- **Trigger (measured):** `RISK_TODAY=2026-10-16 validate-risk-register.sh` ⇒ FAIL ×3 (RISK-0010 · RISK-0017 · RISK-0066); `2026-10-17` ⇒ +5 (RISK-0046 · 0047 · 0048 · 0049 · 0058). Without a review every PR turns red from 2026-10-16.
+- **Review:** each risk re-measured from a named source (main `ae28df09`, WASLA CI 38636572774; trivy/SBOM; `git grep`; dr-replacement-restore 38527739832; Render API 21:58:17Z) and the result appended to its row. Next review: RISK-0058 · RISK-0066 → 2026-10-22; the other six → 2026-10-29. **No status changed; nothing closed.** Owners may amend the dates in writing (RISK-0010/0017 owner `@uxxxu`).
+- **RISK-0066 new evidence:** service-health run 38642657952 FAIL (identity 502 ×3, no wake: no log lines 21:16:37Z→21:49:02Z; issue #689 open); Prometheus logged 24 `Error sending alert … 502` 21:04–21:16Z; Prometheus + Alertmanager (oregon) answer 502 `x-render-routing: no-deploy` through 22:03Z while Render's status page shows "deploys not starting / free deploys paused" (since 19:32Z). Causal link: hypothesis. Paging path: **not delivering (measured)**. Owner decision (§6.3) not given; executor chose nothing.
+- **Unmeasured:** free-hour usage (API does not expose it); identity 502 headers during the failed run (not stored; artifact download returned 401 to the executor).
+- **Deployment:** none. No Render/Supavisor/GitHub/plan change, no load, no DR calibration, no RISK-0058 drill.
+- **Statuses unchanged:** RISK-0067 `mitigating` · RISK-0066 `open` · M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-14T220000Z-clm-0564-risk-reviews-due-2026-10-15-16/README.md)
+
 # 2026-10-14 — CLM-0563 — M6-19B: إغلاقُ CLM-0562 (#716 عبرَ الحارس) + متابعةٌ مستقلّةٌ لفشلِ نشرِ alertmanager — السببُ غيرُ محسوم
 
 - **Work Item(s):** M6-19B (CLM-0563)

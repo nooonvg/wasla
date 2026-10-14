@@ -80,3 +80,26 @@ This section adds to §1–§5 and changes none of them. **The executor has not 
 3. If you keep `free`: say so in writing. RISK-0066 stays `open` with a new review date that you choose, and the RISK-0067 production load step stays HOLD.
 
 RISK-0066 status is unchanged (`open`, review 2026-10-15).
+
+## 7. Dated addendum — 2026-10-14T22:05Z (CLM-0564), RISK-0066 review
+
+This section adds to §1–§6 and changes none of them. **The executor has still not chosen an option and has not changed any plan, instance type, service or billing setting.**
+
+### 7.1 Re-measured state (Render API, read-only, 2026-10-14T21:58:17Z)
+
+21 web services, all `plan=free`, `numInstances=1`, `not_suspended`; 3 static sites. Free-hour usage this month: **not measured** (not exposed by the API; source: Render dashboard → Billing → Free usage).
+
+### 7.2 New free-plan symptoms measured today
+
+| Fact | Source |
+|---|---|
+| Scheduled service-health run FAILED: 13/14 answered 200 after cold starts of 23.5–85.4 s; **identity answered 502 in 0.2 s on all 3 attempts**. No identity log line between 21:16:37Z and 21:49:02Z, then a new instance started — the probe did not wake it. Issue #689 opened by the workflow. | run 38642657952 · Render logs API |
+| **Paging path not delivering:** Prometheus logged 24 `Error sending alert … bad response status 502 Bad Gateway` (21:04:18Z–21:16:48Z) before it slept. | Render logs API, `wasla-prometheus` |
+| Prometheus and Alertmanager (both `oregon`) answer **502 with `x-render-routing: no-deploy`** at 21:55–22:03Z although the API lists a `live` deploy for each; singapore services answer 200. | HTTP GET `/`, response headers |
+| Render status page: incident "Builds, deploys, and queued deploys are not starting in all regions" since 19:32Z; deploys to free services paused (updates 20:41Z, 21:43Z). | [status.render.com](https://status.render.com/) |
+
+The link between these symptoms and Render's incident is a **hypothesis** (timing and the routing header support it; Render has not confirmed it). The measured fact is that, on `free`, the platform today produced failures unrelated to the code and stopped the alert path itself.
+
+### 7.3 Decision still needed
+
+Unchanged from §6.3: an option (§4: B, C, D or another written choice), or a written decision to keep `free` with a review date you choose. Until then RISK-0066 stays `open` (next review 2026-10-22, set by the executor as the registered row owner; you may change it) and the RISK-0067 production load step stays HOLD. Evidence: [`CLM-0564 README`](../12-testing/ci-evidence/2026-10-14T220000Z-clm-0564-risk-reviews-due-2026-10-15-16/README.md).
