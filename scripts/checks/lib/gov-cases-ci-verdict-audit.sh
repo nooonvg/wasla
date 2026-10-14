@@ -144,3 +144,48 @@ fi
 t "الحارسُ يحلُّ البصمةَ المختصرةَ إلى كاملةٍ قبلَ سؤالِ الواجهةِ" pass \
   bash -c 'grep -q "git rev-parse -q --verify" "$1" && grep -q "head_sha=\$FULL" "$1"' \
   _ "$AV_GUARD"
+
+# (١٣) CLM-0560 — إخفاقُ الواجهةِ العابرُ يُعادُ بمحاولاتٍ محدودة، والإخفاقُ الدائمُ
+#      يبقى إخفاقًا ويحملُ رسالةَ `gh`. الحادثة: السيرُ 38592494784 (PR #712،
+#      2026-10-14T15:49:36Z) سقطَ بنداءٍ واحدٍ على `runs/35026500780/jobs` وخطؤه
+#      مرميٌّ في /dev/null. والمشهدُ بلا شبكة: `gh` بديلٌ يُخفقُ N مرّةً ثمّ يجيب.
+AV_GH="$AV_S/ghbin"; mkdir -p "$AV_GH"
+AV_SHA=3cb44c35a7c1e6b8f0d2a4c6e8f0a1b2c3d4e5f6
+cat > "$AV_GH/gh" <<'STUB'
+#!/usr/bin/env bash
+# gh بديل: repos/o/r · commits/* · actions/runs?head_sha · runs/9/jobs (يُخفقُ $AV_JOBS_FAILS مرّةً)
+url="$2"
+case "$url" in
+  repos/o/r) echo o/r ;;
+  repos/o/r/commits/*) echo "${url##*/}" ;;
+  repos/o/r/actions/runs\?head_sha=*)
+    if [[ "${AV_RUNS_FAIL:-0}" == 1 ]]; then echo 'HTTP 502: Bad Gateway (runs)' >&2; exit 1; fi
+    echo '{"workflow_runs":[{"name":"WASLA CI","id":9}]}' ;;
+  repos/o/r/actions/runs/9/jobs*)
+    n=$(cat "$AV_COUNT" 2>/dev/null || echo 0); n=$((n+1)); echo "$n" > "$AV_COUNT"
+    if (( n <= ${AV_JOBS_FAILS:-0} )); then echo 'HTTP 403: API rate limit exceeded (jobs)' >&2; exit 1; fi
+    echo '{"jobs":[{"conclusion":"failure","steps":[],"runner_id":0}]}' ;;
+  *) echo "stub: unexpected $url" >&2; exit 1 ;;
+esac
+STUB
+chmod +x "$AV_GH/gh"
+_av_board 1
+_av_ledger "| \`$AV_SHA\` | M9-01 | \`blackout\` | 1 | 31 وظيفةً · لا خطواتٍ |"
+_av_stub() { # _av_stub <jobs-fails> <attempts> [runs-fail]
+  rm -f "$AV_S/count"
+  env PATH="$AV_GH:/usr/bin:/bin" WASLA_REPO=o/r AV_COUNT="$AV_S/count" AV_JOBS_FAILS="$1" \
+    AUDIT_GH_ATTEMPTS="$2" AUDIT_GH_BACKOFF=0 AV_RUNS_FAIL="${3:-0}" \
+    bash "$AV_GUARD" "$AV_S/board.md" "$AV_S/audit.md"
+}
+t "إخفاقانِ عابرانِ في قراءةِ الوظائفِ ثمّ جوابٌ ⇒ يمرُّ بالمحاولاتِ (4)" pass _av_stub 2 4
+t "الإخفاقُ نفسُه بمحاولةٍ واحدة ⇒ يسقطُ (المحاولاتُ هيَ ما أنقذَ الحالةَ السابقة)" fail _av_stub 1 1
+t "إخفاقٌ دائمٌ في قراءةِ الوظائف ⇒ يبقى إخفاقًا لا تخطّيًا" fail _av_stub 99 4
+_av_msg() { # _av_msg <نصٌّ متوقَّع> <وسائطُ _av_stub...> — يُخفقُ الحارسُ ويحملُ النصّ
+  local want="$1" out; shift
+  out="$(_av_stub "$@" 2>&1)" && return 1
+  grep -qF -- "$want" <<< "$out"
+}
+t "الإخفاقُ الدائمُ يحملُ عددَ المحاولاتِ وأوّلَ سطرٍ من خطأِ gh" pass \
+  _av_msg "بعدَ 4 محاولاتٍ: HTTP 403: API rate limit exceeded (jobs)" 99 4
+t "إخفاقٌ دائمٌ في قراءةِ التشغيلات ⇒ إخفاقٌ يحملُ خطأَ gh" pass \
+  _av_msg "HTTP 502: Bad Gateway (runs)" 0 3 1

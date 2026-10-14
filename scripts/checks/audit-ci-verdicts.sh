@@ -100,6 +100,35 @@ elif ! gh api "repos/$REPO" --jq '.full_name' > /dev/null 2>&1; then
   LIVE=0; LIVE_WHY='تعذَّرَ سؤالُ الواجهةِ (لا شبكةَ أو لا صلاحيةَ)'
 fi
 
+# ── قراءةُ الواجهةِ بمحاولاتٍ محدودة (CLM-0560) ─────────────────────────────
+# سجلُّ الحادثة: 2026-10-14T15:49:36Z في السيرِ 38592494784 (PR #712)، رجعَ نداءٌ
+# واحدٌ على `actions/runs/35026500780/jobs` بإخفاقٍ عابر، فسقطَ الفحصُ 15 مع أنّ
+# المحتوى المُدقَّقَ لم يتغيّر. وكانت رسالةُ `gh` نفسُها تُرمى في `2>/dev/null`،
+# فلم يكنْ في السجلّ ما يُعرَفُ به السبب. وهذا نمطُ العطلِ الموثّقُ في
+# SINGLE_REVIEWER_DEPENDENCY_REVIEW §4.
+# الإصلاح: AUDIT_GH_ATTEMPTS محاولاتٍ (5 افتراضًا) بانتظارٍ مضاعَف
+# (AUDIT_GH_BACKOFF ثانيةً للأولى ثمّ ضعفُها: 3 ⇒ 3+6+12+24 = 45 ث)، ثمّ يبقى الإخفاقُ
+# **إخفاقًا** ومعه أولُ سطرٍ من خطأِ `gh`. لا تخطّيَ ولا تحويلَ إلى «جزئي».
+# قِيسَ بعدَ الإصلاحِ الأوّل (4 محاولاتٍ، 14 ث): `gh: Server Error (HTTP 502)` على
+# السيرِ نفسِه دامَ أطولَ من 14 ث ثمّ أجابَ بعدَ دقائق (31 وظيفة) — فاتّسعَ الحدّ.
+GH_ERR_FILE="$(mktemp)"; trap 'rm -f "$GH_ERR_FILE"' EXIT
+# `$(...)` قشرةٌ فرعيّة: المتغيّرُ لا يعبرُ منها، فالرسالةُ تُنقَلُ في ملفّ.
+_gh_err() { cat "$GH_ERR_FILE" 2>/dev/null; }
+_gh_read() { # _gh_read <api-path> — يطبعُ الجواب؛ يرجعُ ≠0 بعدَ استنفادِ المحاولات
+  local GH_LAST_ERR='' attempts="${AUDIT_GH_ATTEMPTS:-5}" wait="${AUDIT_GH_BACKOFF:-3}" i out errf
+  [[ "$attempts" =~ ^[1-9][0-9]*$ ]] || attempts=5
+  [[ "$wait" =~ ^[0-9]+$ ]] || wait=3
+  errf="$(mktemp)"
+  for (( i=1; i<=attempts; i++ )); do
+    if out="$(gh api "$1" 2>"$errf")" && [[ -n "$out" ]]; then
+      rm -f "$errf"; printf '%s' "$out"; return 0
+    fi
+    GH_LAST_ERR="$(head -n1 "$errf" | cut -c1-200)"; [[ -n "$GH_LAST_ERR" ]] || GH_LAST_ERR='جوابٌ فارغ'
+    (( i < attempts )) && sleep "$wait" && wait=$(( wait * 2 ))
+  done
+  rm -f "$errf"; printf 'بعدَ %s محاولاتٍ: %s' "$attempts" "$GH_LAST_ERR" > "$GH_ERR_FILE"; return 1
+}
+
 declare -A FULLSHA=()
 UNRESOLVED=0
 while IFS=$'\t' read -r sha cls; do
@@ -133,18 +162,18 @@ else
     # مختصرةً صفرُ تشغيلاتٍ، وكاملةً السيرُ 34877247715 بحكمِ `success`.
     FULL="${FULLSHA[$sha]:-}"
     [[ -n "$FULL" ]] || continue  # أُنذِرَ عنها في البابِ ٢
-    RUNS_JSON="$(gh api "repos/$REPO/actions/runs?head_sha=$FULL&per_page=100" 2>/dev/null)" || RUNS_JSON=''
+    RUNS_JSON="$(_gh_read "repos/$REPO/actions/runs?head_sha=$FULL&per_page=100")" || RUNS_JSON=''
     if [[ -z "$RUNS_JSON" ]]; then
-      fail "تعذَّرَ قراءةُ تشغيلاتِ $sha — وتعذُّرُ القياسِ إخفاقٌ لا تخطٍّ"
+      fail "تعذَّرَ قراءةُ تشغيلاتِ $sha ($(_gh_err)) — وتعذُّرُ القياسِ إخفاقٌ لا تخطٍّ"
       ERRORS=$((ERRORS+1)); continue
     fi
     RUN_ID="$(python3 "$LIB/audit_runs.py" run-id <<< "$RUNS_JSON")"
     if [[ -z "$RUN_ID" ]]; then
       MEASURED='no_verdict'
     else
-      JOBS_JSON="$(gh api "repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100" 2>/dev/null)" || JOBS_JSON=''
+      JOBS_JSON="$(_gh_read "repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100")" || JOBS_JSON=''
       if [[ -z "$JOBS_JSON" ]]; then
-        fail "تعذَّرَ قراءةُ وظائفِ السيرِ $RUN_ID للبصمةِ $sha — إخفاقٌ لا تخطٍّ"
+        fail "تعذَّرَ قراءةُ وظائفِ السيرِ $RUN_ID للبصمةِ $sha ($(_gh_err)) — إخفاقٌ لا تخطٍّ"
         ERRORS=$((ERRORS+1)); continue
       fi
       MEASURED="$(python3 "$LIB/audit_runs.py" started <<< "$JOBS_JSON")"
