@@ -1,0 +1,3 @@
+# Render API PATCH /v1/services/srv-db3nftbtqb8s73en7o20 body {"serviceDetails":{"plan":"0.5c-512mb"}} at 2026-10-15T06:24:15Z
+HTTP 400 {"message":"cannot change between free and paid plans"}
+# GET /v1/services/srv-db3nftbtqb8s73en7o20 immediately after: serviceDetails.plan = "free" (unchanged)

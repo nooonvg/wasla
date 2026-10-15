@@ -1,0 +1,247 @@
+{
+ "source": "Render API GET /v1/services?ownerId=tea-db0vtkpsrm7s739dm5c0&limit=50",
+ "read_at": "2026-10-15T06:22:19Z",
+ "fields": "name,id,type,plan,region,numInstances,suspended,updatedAt (subset; no env values)",
+ "services": [
+  {
+   "name": "wasla-alertmanager",
+   "id": "srv-db3s2nui0phs73bc45cg",
+   "type": "web_service",
+   "plan": "free",
+   "region": "oregon",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:31:21.923715Z"
+  },
+  {
+   "name": "wasla-prometheus",
+   "id": "srv-db3s2mui0phs73bc42sg",
+   "type": "web_service",
+   "plan": "free",
+   "region": "oregon",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T18:10:37.263825Z"
+  },
+  {
+   "name": "wasla-partner-bot",
+   "id": "srv-db3nftbtqb8s73en7o20",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:58:12.689114Z"
+  },
+  {
+   "name": "wasla-driver-bot",
+   "id": "srv-db3nfr7avr4c73agq9s0",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:47.396236Z"
+  },
+  {
+   "name": "wasla-customer-bot",
+   "id": "srv-db3n08gm7kps73fb8950",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:46.761724Z"
+  },
+  {
+   "name": "wasla-admin-app",
+   "id": "srv-db3mvrm0tbcc7386gog0",
+   "type": "static_site",
+   "plan": null,
+   "region": null,
+   "numInstances": null,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:56:36.4043Z"
+  },
+  {
+   "name": "wasla-driver-app",
+   "id": "srv-db3mvpegekts73fehb80",
+   "type": "static_site",
+   "plan": null,
+   "region": null,
+   "numInstances": null,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:56:51.873715Z"
+  },
+  {
+   "name": "wasla-customer-app",
+   "id": "srv-db3mvn7lk1mc73c6jmv0",
+   "type": "static_site",
+   "plan": null,
+   "region": null,
+   "numInstances": null,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:56:49.323805Z"
+  },
+  {
+   "name": "wasla-dispatch",
+   "id": "srv-db3mvhugekts73fegn1g",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:48.878939Z"
+  },
+  {
+   "name": "wasla-customers",
+   "id": "srv-db3mvgmi0phs73ar0ed0",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:47.604918Z"
+  },
+  {
+   "name": "wasla-delivery",
+   "id": "srv-db3mvfjtqb8s73eld440",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:48.929496Z"
+  },
+  {
+   "name": "wasla-matching",
+   "id": "srv-db3mvenavr4c73af07o0",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:54.365027Z"
+  },
+  {
+   "name": "wasla-geography",
+   "id": "srv-db3mvdjncjis73b2er2g",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:56.398076Z"
+  },
+  {
+   "name": "wasla-marketplace",
+   "id": "srv-db3mvcnlk1mc73c6if70",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:55.834998Z"
+  },
+  {
+   "name": "wasla-audit",
+   "id": "srv-db3mvbnavr4c73aevsug",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:45.347707Z"
+  },
+  {
+   "name": "wasla-subscriptions",
+   "id": "srv-db3mvagm7kps73fb4ivg",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:58:36.112269Z"
+  },
+  {
+   "name": "wasla-negotiations",
+   "id": "srv-db3mv9mi0phs73aqvfo0",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:56.441617Z"
+  },
+  {
+   "name": "wasla-reputation",
+   "id": "srv-db3mv8u0tbcc7386emug",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:58:10.557411Z"
+  },
+  {
+   "name": "wasla-drivers",
+   "id": "srv-db3mv8e0tbcc7386ejrg",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:48.645407Z"
+  },
+  {
+   "name": "wasla-search",
+   "id": "srv-db3mv7jncjis73b2e0ng",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:56.485933Z"
+  },
+  {
+   "name": "wasla-orders",
+   "id": "srv-db3mv749v7es73dn9gn0",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:58:02.804127Z"
+  },
+  {
+   "name": "wasla-identity",
+   "id": "srv-db3mv6aj9qps738aege0",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:55.595838Z"
+  },
+  {
+   "name": "wasla-otel-collector",
+   "id": "srv-db3mv5om7kps73fb4390",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:12.915167Z"
+  },
+  {
+   "name": "wasla-observability",
+   "id": "srv-db3mucij9qps738abipg",
+   "type": "web_service",
+   "plan": "free",
+   "region": "singapore",
+   "numInstances": 1,
+   "suspended": "not_suspended",
+   "updatedAt": "2026-10-14T17:57:51.575952Z"
+  }
+ ]
+}

@@ -103,3 +103,9 @@ The link between these symptoms and Render's incident is a **hypothesis** (timin
 ### 7.3 Decision still needed
 
 Unchanged from §6.3: an option (§4: B, C, D or another written choice), or a written decision to keep `free` with a review date you choose. Until then RISK-0066 stays `open` (next review 2026-10-22, set by the executor as the registered row owner; you may change it) and the RISK-0067 production load step stays HOLD. Evidence: [`CLM-0564 README`](../12-testing/ci-evidence/2026-10-14T220000Z-clm-0564-risk-reviews-due-2026-10-15-16/README.md).
+
+## 8. Owner decision — 2026-10-15 (recorded by CLM-0567)
+
+> **Option B selected.** Minimum paid footprint: the 20 named services (C1 + C2) on the current 0.5 CPU / 512 MB plan, estimated $7 per service per month ($140/month base). `wasla-otel-collector` stays free or is stopped. No workspace upgrade, no additional paid services or add-ons, no change beyond this footprint. The owner adds the payment method; the agent does not add or change payment methods. Stop and report if plan IDs/prices differ, the base exceeds $140/month, a service outside the footprint would become paid, or additional billing is required. Separate claim; one service at a time in the §5 order; health and deploy parity after each; raw API evidence kept. RISK-0066 closes only when the footprint is live and verified on paid plans.
+
+**Execution 2026-10-15 (CLM-0567): HOLD — 0/20 changed.** Pre-checks matched (20 services, `0.5c-512mb` = $7, total $140). The first change (`wasla-partner-bot`) was refused by the Render API: HTTP 400 `cannot change between free and paid plans` (also with the new plan ID). Nothing changed or was billed. The free → paid change has to be made in the Render Dashboard (§5 step 2 cannot be done by API). Evidence: [`CLM-0567 README`](../12-testing/ci-evidence/2026-10-15T062000Z-clm-0567-risk-0066-option-b-rollout/README.md).
