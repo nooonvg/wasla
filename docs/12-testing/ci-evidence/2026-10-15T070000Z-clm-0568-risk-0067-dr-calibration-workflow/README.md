@@ -21,7 +21,7 @@
 
 ## Not done (and why)
 
-- **S not measured** — the secure credential form for a narrowly scoped Management API token was sent 2026-10-15; no Dashboard screenshot yet ⇒ **HOLD** for the run.
+- **S — production measured, DR not.** Owner delivered a narrowly scoped Management API token through the secure vault (never in chat/Git/logs). Read 2026-10-15T06:43Z ([`raw-pooler-config-2026-10-15.json`](raw-pooler-config-2026-10-15.json)): production `default_pool_size = 60`, `pool_mode = transaction` (value for this day only; production stays HOLD). DR returned an **empty list** while `INACTIVE` ⇒ DR S is **unmeasured**; it is re-read after the authorized restart on the calibration day, and the run is HOLD without it.
 - **DR not restarted** — the restart is coordinated with the calibration window, after this PR is merged.
 - No load, no write, no settings change, no production connection.
 

@@ -1,0 +1,29 @@
+{
+ "source": "Supabase Management API GET /v1/projects/{ref}/config/database/pooler (narrow bearer token via secure credential vault; token not stored)",
+ "reads": [
+  {
+   "ref": "ppixaauyqoykrogwdxtv",
+   "read_at": "2026-10-15T06:43:00Z",
+   "http": 200,
+   "entries": 1,
+   "fields": [
+    {
+     "database_type": "PRIMARY",
+     "identifier": "ppixaauyqoykrogwdxtv",
+     "pool_mode": "transaction",
+     "default_pool_size": 60,
+     "max_client_conn": null,
+     "db_port": 6543
+    }
+   ]
+  },
+  {
+   "ref": "pvyuhjadrygqqdoczmnd",
+   "read_at": "2026-10-15T06:43:01Z",
+   "http": 200,
+   "entries": 0,
+   "fields": []
+  }
+ ],
+ "note": "connection strings, host and user fields omitted. DR returned an empty list while the project is INACTIVE \u21d2 DR S unmeasured; re-read after the authorized restart on the calibration day."
+}
