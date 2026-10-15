@@ -3,7 +3,7 @@
 - **Work Item(s):** M6-18B (CLM-0568) · يُغلِقُ CLM-0567 (#721)
 - **Status:** Released — بُني ولم يُشغَّل
 - **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open`
-- **(a) #721:** head `936588a6` · approval `936588a6` 06:36:02Z (`xuuux-voox`) · required 41/41 (+Devin SUCCESS) · merged via `merge-on-approved-head.sh 721 --squash` → `f84b2004` 06:52:49Z · main WASLA CI 38695102596 · Roadmap freshness 38695102576 · branch deleted. **CLM-0567 closed (result HOLD 0/20).**
+- **(a) #721:** head `936588a6` · approval `936588a6` 06:36:02Z (`xuuux-voox`) · required 41/41 (+Devin SUCCESS) · merged via `merge-on-approved-head.sh 721 --squash` → `f84b2004` 06:52:49Z · main WASLA CI 38695102596 success 41/41 · Roadmap freshness 38695102576 success · branch deleted. **CLM-0567 closed (result HOLD 0/20).**
 - **(b) قرارُ المالك 2026-10-15 (B):** تحضيرُ معايرةِ DR مأذون؛ حِملُ الإنتاجِ ممنوع — plan §12.1.
 - **Built:** `calibrate.mjs` (single guard: `postgres.pvyuhjadrygqqdoczmnd` @ `*.pooler.supabase.com:5432` only; prod/retired/TEST refused by name anywhere; direct and 6543 refused) · read-only calibrator (k_normal = S−E−2, k_neg = S−E+1, tag `risk0067-calibration-<run_id>`, stop conditions, 10-min hard stop, cleanup proof, TLS verify-full) · `judge()` (CLIENT_OK needs one EMAXCONNSESSION at k_neg with pool_size = S) · workflow (`selftest` on PR without secret; `calibrate` on dispatch from main with typed confirmation) · supply-chain declaration (secrets yes, write no).
 - **Measured today:** prod pooler `default_pool_size = 60`, `pool_mode = transaction` (Management API, 06:43:00Z, narrow token via secure vault). DR: empty list while `INACTIVE` ⇒ **S unmeasured** (re-read after the authorized restart).
