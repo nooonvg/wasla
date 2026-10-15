@@ -1,0 +1,6 @@
+# Render logs API GET /v1/logs resource=srv-db3s2mui0phs73bc42sg (wasla-prometheus), window 2026-10-14T22:20:00Z..2026-10-15T05:35:00Z, read 2026-10-15T05:30Z
+text="Error sending alert"          -> 0 lines (hasMore=false)
+text="level=error"                  -> 0 lines (hasMore=false)
+text="Starting Prometheus Server"   -> 1 line  2026-10-14T22:23:41Z
+text="See you next time"            -> 1 line  2026-10-14T22:38:47Z (process stopped = free-plan spin-down)
+# => the Prometheus process ran only 2026-10-14T22:23:41Z..22:38:47Z (~15 min) in this window; no alert evaluation/sending happened after 22:38:47Z.
