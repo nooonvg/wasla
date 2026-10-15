@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-15T07:21:04Z
-الالتزام: 517437612349842e49b00fd1f3aee43b370c8721  الفرع: feat/clm-0568-risk-0067-dr-calibration-workflow  شجرةٌ نظيفةٌ
+التاريخ (UTC): 2026-10-15T07:21:22Z
+الالتزام: e6dad338a2d704d6cc7148a577556ef6829b6909  الفرع: feat/clm-0568-risk-0067-dr-calibration-workflow  شجرةٌ نظيفةٌ
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
 القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
@@ -15,7 +15,7 @@
   governance_checks          28
   risks_not_closed           23
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من /tmp/verify568.log):
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-15T070000Z-clm-0568-risk-0067-dr-calibration-workflow/raw-verify-log-pass.txt):
   tests_passed               6082
   test_files_executed        432
   governance_suite_cases     690
