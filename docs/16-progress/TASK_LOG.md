@@ -1,3 +1,16 @@
+# 2026-10-15 — CLM-0566 — M6-18C: issue #689 بعدَ التشغيلِ المجدولِ التالي + انحرافُ الالتزام (قراءةٌ فقط)
+
+- **Work Item(s):** M6-18C (CLM-0566) · يُغلِقُ CLM-0565 (M6-18B)
+- **Status:** Released (توثيقٌ وقراءةٌ فقط)
+- **Risk(s):** RISK-0066 → `open` (لا تغيير) · RISK-0067 → `mitigating` (لا تغيير)
+- **(a) #719:** head `31efa2f7` · approval `31efa2f7` 22:46:36Z (`xuuux-voox`) · 43/43 · merged via `merge-on-approved-head.sh 719 --squash` → `f8ce36ea` 22:47:59Z · main WASLA CI 38650069824 success 41/41 · Roadmap freshness success. **CLM-0565 closed.**
+- **(b) issue #689:** next scheduled service-health run 38683300086 (head `f8ce36ea`, 04:47:17Z) **success, healthy 14/14** (identity 200 in 43.8 s); issue job skipped. Prometheus logs 2026-10-14T22:20Z→2026-10-15T05:35Z: **0** `Error sending alert`, **0** `level=error`; the process ran only 22:23:41Z→22:38:47Z (named limit: absence of errors ≠ continuous alerting; the free-plan-sleep limit stays with M6-18C/RISK-0066). Closure conditions met ⇒ #689 closed after this evidence merges.
+- **(c) Commit drift:** Render API 05:29:47Z — 20/21 live on `6280760a`; `wasla-alertmanager` live on `3c9edc71`, latest deploy `update_failed`; no newer deploy. **Open** until 21/21 after the next non-docs deploy; `render-deploy.yml` not re-run.
+- **Hypothesis (separate):** the 2026-10-14 failures relate to Render's incident (19:32–22:18Z) — not proven.
+- **Deployment:** none. No load, no DR, no RISK-0058 drill, no plan/billing change.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-15T053000Z-clm-0566-issue-689-scheduled-service-health/README.md)
+
 # 2026-10-14 — CLM-0565 — M6-18B: إغلاقُ CLM-0564 + لقطةُ المرحلة 0 الطازجة لـRISK-0067 (قراءةٌ فقط)
 
 - **Work Item(s):** M6-18B (CLM-0565) · يُغلِقُ CLM-0564 (M0-07)
