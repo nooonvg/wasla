@@ -1,5 +1,6 @@
 # WASLA MARKET — Roadmap
 
+CLM-0569 (2026-10-15): CLM-0568 مُغلَق (#722 ⇒ `85b7b155` عبرَ الحارس)؛ التحقّقُ بعدَ الدمج: main WASLA CI 38815711562 success 30/30 · render-deploy success · Render API 22:29:54Z: 21/21 live على `85b7b155` ⇒ انحرافُ alertmanager 20/21 انحسم · /health 14/14 · معايرةُ DR لم تُشغَّل (DR INACTIVE · \(S_{DR}\) غيرُ مقيس ⇒ HOLD). راجع `docs/16-progress/TASK_LOG.md` (CLM-0569).
 CLM-0568 (2026-10-15): سيرُ عملِ معايرةِ DR لـRISK-0067 (DR وحدَه، قراءةٌ فقط، حارسٌ يرفضُ الإنتاجَ بالاسم) — بُني ولم يُشغَّل؛ S للإنتاج = 60 (اليوم)، S لـDR غيرُ مقيس (INACTIVE). CLM-0567 مُغلَق (#721). راجع `docs/16-progress/TASK_LOG.md` (CLM-0568).
 CLM-0567 (2026-10-15): RISK-0066 الخيار B بقرارِ المالك؛ التنفيذ HOLD — 0/20: واجهةُ Render رفضت free → paid (HTTP 400)، لا تغييرَ ولا فوترة؛ يلزمُ تحويلُ الـ20 من Dashboard ثمّ تحقّقٌ بالواجهة. CLM-0566 مُغلَق (#720). راجع `docs/16-progress/TASK_LOG.md` (CLM-0567).
 CLM-0566 (2026-10-15): CLM-0565 مُغلَق (#719 ⇒ `f8ce36ea`)؛ issue #689: التشغيلُ المجدولُ 38683300086 نجحَ 14/14 وPrometheus بلا أخطاءِ إرسال (غطّى 15 دقيقةً فقط) ⇒ يُغلَق؛ انحرافُ الالتزام 20/21 (alertmanager `3c9edc71`) مفتوحٌ حتى 21/21. راجع `docs/16-progress/TASK_LOG.md` (CLM-0566).

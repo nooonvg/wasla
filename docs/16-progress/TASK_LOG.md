@@ -1,3 +1,15 @@
+# 2026-10-15 — CLM-0569 — M6-18B: التحقّقُ بعدَ الدمجِ لِـCLM-0568 (#722) — main أخضر · 21/21 على `85b7b155` (قراءةٌ فقط)
+
+- **Work Item(s):** M6-18B (CLM-0569) · يُغلِقُ CLM-0568 (#722)
+- **Status:** Released — التحقّقُ بعدَ الدمجِ (قراءةٌ فقط)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open` (لا تغيير)
+- **(أ) #722:** head `04624a34` · approval `04624a34` 16:50:08Z (`xuuux-voox`) · 43 success + 1 skipped (بوّابةُ DR-only على PR) · merged via `merge-on-approved-head.sh 722 --squash` → `85b7b155` 22:14:14Z · main WASLA CI 38815711562 success **30/30** (22:14:17Z→22:25:39Z) · Roadmap freshness 38815711731 success · render-deploy 38815711514 success · branch deleted. **CLM-0568 closed.**
+- **(ب) الالتزامُ الحيّ:** قياسُ Render API 22:29:54Z — **21/21 خدمة `web_service` live على `85b7b155`**، منها `wasla-alertmanager` آخرَ متبقٍّ على `3c9edc71` ⇒ **انحرافُ 20/21 انحسم إلى 21/21** (يغلقُ متابعةَ CLM-0563/CLM-0566). `/health` 14/14 (سجلُّ الأهدافِ `render-singapore`، 22:30:04Z).
+- **(ج) معايرةُ DR:** لم تُشغَّل؛ شروطُ §12.3 كما هي — DR `INACTIVE` و\(S_{DR}\) غيرُ مقيس؛ يلزمُ رمزُ Management API ضيّقٌ عبرَ النموذجِ الآمنِ بعدَ إعادةِ التشغيلِ المأذونة ⇒ **HOLD**، ولا حِملَ ولا قيمةَ بديلةً عن القياس.
+- **Deployment:** none (قراءةٌ فقط). لا حِمل، لا كتابة، لا RISK-0058، لا تغييرَ لخططِ Render.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-15T223000Z-clm-0569-clm-0568-post-merge-verification/README.md)
+
 # 2026-10-15 — CLM-0568 — M6-18B: سيرُ عملِ معايرةِ DR (Supavisor، DR وحدَه) — تحضيرٌ بلا تشغيل
 
 - **Work Item(s):** M6-18B (CLM-0568) · يُغلِقُ CLM-0567 (#721)

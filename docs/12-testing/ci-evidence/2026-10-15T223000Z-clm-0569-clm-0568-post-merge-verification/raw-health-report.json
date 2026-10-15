@@ -1,0 +1,120 @@
+{
+  "environment": "render-singapore",
+  "checked_at": "2026-10-15T22:30:04Z",
+  "healthy": 14,
+  "total": 14,
+  "results": [
+    {
+      "service": "audit",
+      "url": "https://wasla-audit-pz7l.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 0.4,
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "service": "customers",
+      "url": "https://wasla-customers-nzgs.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.6,
+      "body": "{\"status\":\"ok\",\"service\":\"customers-service\",\"persistence\":\"postgres\",\"order_intake\":\"configured\"}"
+    },
+    {
+      "service": "delivery",
+      "url": "https://wasla-delivery-3rm5.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.6,
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "service": "dispatch",
+      "url": "https://wasla-dispatch-bsba.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.6,
+      "body": "{\"last_tick_at\":null,\"persistence\":\"postgres\",\"service\":\"dispatch-service\",\"status\":\"ok\"}"
+    },
+    {
+      "service": "drivers",
+      "url": "https://wasla-drivers-1bwi.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.2,
+      "body": "{\"last_tick_at\":null,\"persistence\":\"postgres\",\"status\":\"ok\"}"
+    },
+    {
+      "service": "geography",
+      "url": "https://wasla-geography-ossq.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.2,
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "service": "identity",
+      "url": "https://wasla-identity-rl0b.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 0.8,
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "service": "marketplace",
+      "url": "https://wasla-marketplace-qa01.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.2,
+      "body": "{\"mode\":\"postgres\",\"status\":\"ok\"}"
+    },
+    {
+      "service": "matching",
+      "url": "https://wasla-matching-h26c.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.7,
+      "body": "{\"active_ruleset_version\":1,\"persistence\":\"postgres\",\"service\":\"matching-service\",\"status\":\"ok\"}"
+    },
+    {
+      "service": "negotiations",
+      "url": "https://wasla-negotiations-i32q.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.6,
+      "body": "{\"last_tick_at\":null,\"persistence\":\"postgres\",\"status\":\"ok\"}"
+    },
+    {
+      "service": "orders",
+      "url": "https://wasla-orders-9p85.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.1,
+      "body": "{\"status\":\"ok\",\"service\":\"orders-service\",\"persistence\":\"postgres\"}"
+    },
+    {
+      "service": "reputation",
+      "url": "https://wasla-reputation-a0ph.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.0,
+      "body": "{\"last_tick_at\":null,\"persistence\":\"postgres\",\"status\":\"ok\"}"
+    },
+    {
+      "service": "search",
+      "url": "https://wasla-search-wjcz.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.3,
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "service": "subscriptions",
+      "url": "https://wasla-subscriptions-5t78.onrender.com/health",
+      "http_status": 200,
+      "attempt": 1,
+      "elapsed_s": 1.6,
+      "body": "{\"last_tick_at\":null,\"mode\":\"postgres\",\"status\":\"ok\"}"
+    }
+  ]
+}
