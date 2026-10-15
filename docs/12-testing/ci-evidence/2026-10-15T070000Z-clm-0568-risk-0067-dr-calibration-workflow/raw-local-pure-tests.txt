@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: guard accepts only the DR session pooler
+ok 1 - guard accepts only the DR session pooler
+  ---
+  duration_ms: 1.944107
+  ...
+# Subtest: guard refuses production, retired production and TEST by name
+ok 2 - guard refuses production, retired production and TEST by name
+  ---
+  duration_ms: 0.183586
+  ...
+# Subtest: guard refuses direct, transaction mode, other ports, other refs, empty
+ok 3 - guard refuses direct, transaction mode, other ports, other refs, empty
+  ---
+  duration_ms: 0.409718
+  ...
+# Subtest: guard: localhost only in self-test
+ok 4 - guard: localhost only in self-test
+  ---
+  duration_ms: 0.174318
+  ...
+# Subtest: checkInputs: S measured today, with evidence, in range
+ok 5 - checkInputs: S measured today, with evidence, in range
+  ---
+  duration_ms: 0.581509
+  ...
+# Subtest: derive follows §9.4
+ok 6 - derive follows §9.4
+  ---
+  duration_ms: 0.21319
+  ...
+# Subtest: judge: the PASS-shaped run is CLIENT_OK
+ok 7 - judge: the PASS-shaped run is CLIENT_OK
+  ---
+  duration_ms: 0.333777
+  ...
+# Subtest: judge: HOLD wins over everything
+ok 8 - judge: HOLD wins over everything
+  ---
+  duration_ms: 0.130313
+  ...
+# Subtest: judge: every deviation is FAIL
+ok 9 - judge: every deviation is FAIL
+  ---
+  duration_ms: 0.410241
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.582383

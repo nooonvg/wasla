@@ -1,3 +1,19 @@
+# 2026-10-15 — CLM-0568 — M6-18B: سيرُ عملِ معايرةِ DR (Supavisor، DR وحدَه) — تحضيرٌ بلا تشغيل
+
+- **Work Item(s):** M6-18B (CLM-0568) · يُغلِقُ CLM-0567 (#721)
+- **Status:** Released — بُني ولم يُشغَّل
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open`
+- **(a) #721:** head `936588a6` · approval `936588a6` 06:36:02Z (`xuuux-voox`) · required 41/41 (+Devin SUCCESS) · merged via `merge-on-approved-head.sh 721 --squash` → `f84b2004` 06:52:49Z · main WASLA CI 38695102596 success 41/41 · Roadmap freshness 38695102576 success · branch deleted. **CLM-0567 closed (result HOLD 0/20).**
+- **(b) قرارُ المالك 2026-10-15 (B):** تحضيرُ معايرةِ DR مأذون؛ حِملُ الإنتاجِ ممنوع — plan §12.1.
+- **Built:** `calibrate.mjs` (single guard: `postgres.pvyuhjadrygqqdoczmnd` @ `*.pooler.supabase.com:5432` only; prod/retired/TEST refused by name anywhere; direct and 6543 refused) · read-only calibrator (k_normal = S−E−2, k_neg = S−E+1, tag `risk0067-calibration-<run_id>`, stop conditions, 10-min hard stop, cleanup proof, TLS verify-full) · `judge()` (CLIENT_OK needs one EMAXCONNSESSION at k_neg with pool_size = S) · workflow (`selftest` on PR without secret; `calibrate` on dispatch from main with typed confirmation) · supply-chain declaration (secrets yes, write no).
+- **Measured today:** prod pooler `default_pool_size = 60`, `pool_mode = transaction` (Management API, 06:43:00Z, narrow token via secure vault). DR: empty list while `INACTIVE` ⇒ **S unmeasured** (re-read after the authorized restart).
+- **Changed units:** `.github/workflows/risk-0067-dr-calibration.yml` · `scripts/ops/risk-0067-dr-calibration/calibrate.mjs` · `scripts/ops/risk-0067-dr-calibration/calibrate.test.mjs` (9/9 locally) · `scripts/checks/validate-workflow-supply-chain.sh` (inventory line only).
+- **Baseline:** re-snapshot `test_files_tracked` 570 → 571 (new `calibrate.test.mjs`) via `scripts/baseline.sh --log` on the in-tree verify log (pass failed only on the stale baseline); `docs/12-testing/BASELINE.json` / `BASELINE.txt`.
+- **Deployment:** none — a dispatch-only workflow plus a PR self-test; no service, Render, Supabase or Supavisor change.
+- **Not done:** DR not restarted; no calibration run; no load; no write; no settings change.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-15T070000Z-clm-0568-risk-0067-dr-calibration-workflow/README.md)
+
 # 2026-10-15 — CLM-0567 — M6-18C: RISK-0066 الخيار B — HOLD (0/20؛ واجهةُ Render ترفضُ free → paid)
 
 - **Work Item(s):** M6-18C (CLM-0567) · يُغلِقُ CLM-0566 (#720)

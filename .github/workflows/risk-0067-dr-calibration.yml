@@ -1,0 +1,194 @@
+name: RISK-0067 DR calibration — Supavisor session pool (DR only)
+# M6-18B · CLM-0568 · RISK-0067 — owner decision 2026-10-15 (plan §12):
+# DR calibration preparation authorized; production load remains prohibited.
+#
+# Target: the GitHub secret DR_REPLACEMENT_DB_URL and nothing else. The guard
+# (scripts/ops/risk-0067-dr-calibration/calibrate.mjs · guard()) accepts only the DR
+# project pvyuhjadrygqqdoczmnd on the Supavisor session pooler (port 5432); it refuses the
+# production, retired-production and TEST refs by name, direct connections and port 6543.
+# No other database secret is referenced in this file and nothing falls back.
+#
+# What the run does (read-only — `SELECT 1` and pg_stat_activity reads; no table is written):
+#   preflight: tag visibility, E (sessions already open through the pool), refusal on foreign
+#              tagged sessions · k_normal = S − E − 2 · k_neg = S − E + 1
+#   normal control:   k_normal sessions held 60 s, SELECT 1 every 10 s — expect 0 errors
+#   negative control: sessions opened one by one up to k_neg — expect exactly one
+#                     EMAXCONNSESSION at session k_neg with server pool_size == S
+#   cleanup:          zero sessions tagged risk0067-calibration-<run_id> remain
+# Exit: 0 CLIENT_OK · 1 FAIL · 3 HOLD · 2 guard refusal. CLIENT_OK is not PASS: PASS also
+# needs the event in DR supavisor_logs inside the window and full log coverage (plan §12).
+#
+# Triggers:
+#   pull_request → `selftest` only: pure tests + a throwaway postgres:17 (no secret).
+#   workflow_dispatch on main → `calibrate`, only with S measured on the run day and the
+#   typed confirmation. Dispatched only inside the owner-authorized DR window.
+
+on:
+  workflow_dispatch:
+    inputs:
+      s_pool_size:
+        description: "S — Supavisor pool_size of the DR project, measured today (integer)"
+        required: true
+      s_evidence:
+        description: "Where S was read (Management API read id / dashboard screenshot ref)"
+        required: true
+      s_measured_on:
+        description: "UTC date S was measured (YYYY-MM-DD) — must be the run day"
+        required: true
+      confirm_target:
+        description: "Type exactly: DR-ONLY pvyuhjadrygqqdoczmnd"
+        required: true
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/risk-0067-dr-calibration.yml'
+      - 'scripts/ops/risk-0067-dr-calibration/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: risk-0067-dr-calibration
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "20.20.1"
+  PNPM_VERSION: "9.15.9"
+  PG_PORT: "55435"
+
+jobs:
+  selftest:
+    name: DR calibration — self-test (no secret, throwaway postgres)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Activate pinned pnpm and install
+        run: |
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          pnpm install --frozen-lockfile
+      - name: Pure tests — guard, inputs, derivation, judgement
+        run: node --test scripts/ops/risk-0067-dr-calibration/calibrate.test.mjs
+      - name: Guard refuses a production-shaped URL (exit 2)
+        env:
+          DR_REPLACEMENT_DB_URL: "postgresql://postgres.ppixaauyqoykrogwdxtv:x@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
+        run: |
+          set +e; node scripts/ops/risk-0067-dr-calibration/calibrate.mjs --guard-only; rc=$?; set -e
+          test "$rc" = 2 || { echo "::error::expected guard refusal (2), got $rc"; exit 1; }
+      - name: Throwaway postgres:17, max_connections=10, non-superuser role (7 usable slots)
+        run: |
+          docker run -d --name cal-pg -e POSTGRES_HOST_AUTH_METHOD=trust -p 127.0.0.1:${PG_PORT}:5432 postgres:17 >/dev/null
+          for _ in $(seq 1 60); do docker exec cal-pg pg_isready -U postgres >/dev/null 2>&1 && break; sleep 1; done
+          sleep 2
+          docker exec cal-pg psql -U postgres -c "ALTER SYSTEM SET max_connections = 10;" >/dev/null
+          docker restart cal-pg >/dev/null
+          for _ in $(seq 1 60); do docker exec cal-pg pg_isready -U postgres >/dev/null 2>&1 && break; sleep 1; done
+          sleep 2
+          docker exec cal-pg psql -U postgres -c "CREATE ROLE calib LOGIN;" >/dev/null
+          docker exec cal-pg psql -U postgres -tc "SHOW max_connections; SHOW superuser_reserved_connections;"
+      - name: "Case A: S below the floor → HOLD (3), nothing opened"
+        env:
+          RISK0067_SELFTEST: "1"
+          DR_REPLACEMENT_DB_URL: "postgres://calib@127.0.0.1:${{ env.PG_PORT }}/postgres"
+          CAL_S: "2"
+          CAL_S_EVIDENCE: "selftest"
+          CAL_RUN_ID: "st-a-${{ github.run_id }}"
+          CAL_OUT: "out-a.json"
+        run: |
+          export CAL_S_MEASURED_ON="$(date -u +%F)"
+          set +e; node scripts/ops/risk-0067-dr-calibration/calibrate.mjs; rc=$?; set -e
+          test "$rc" = 3 || { echo "::error::case A expected HOLD (3), got $rc"; exit 1; }
+          node -e 'const r=require("./out-a.json"); if (r.window_start) throw new Error("case A opened a window")'
+      - name: "Case B: S not measured today → HOLD (3)"
+        env:
+          RISK0067_SELFTEST: "1"
+          DR_REPLACEMENT_DB_URL: "postgres://calib@127.0.0.1:${{ env.PG_PORT }}/postgres"
+          CAL_S: "7"
+          CAL_S_EVIDENCE: "selftest"
+          CAL_S_MEASURED_ON: "2000-01-01"
+          CAL_RUN_ID: "st-b-${{ github.run_id }}"
+          CAL_OUT: "out-b.json"
+        run: |
+          set +e; node scripts/ops/risk-0067-dr-calibration/calibrate.mjs; rc=$?; set -e
+          test "$rc" = 3 || { echo "::error::case B expected HOLD (3), got $rc"; exit 1; }
+      - name: "Case C: full run — normal clean, rejection is 53300 not EMAXCONNSESSION → FAIL (1), cleanup 0"
+        env:
+          RISK0067_SELFTEST: "1"
+          DR_REPLACEMENT_DB_URL: "postgres://calib@127.0.0.1:${{ env.PG_PORT }}/postgres"
+          CAL_S: "7"
+          CAL_S_EVIDENCE: "selftest"
+          CAL_HOLD_NORMAL_S: "3"
+          CAL_RUN_ID: "st-c-${{ github.run_id }}"
+          CAL_OUT: "out-c.json"
+        run: |
+          export CAL_S_MEASURED_ON="$(date -u +%F)"
+          set +e; node scripts/ops/risk-0067-dr-calibration/calibrate.mjs; rc=$?; set -e
+          test "$rc" = 1 || { echo "::error::case C expected FAIL (1), got $rc"; exit 1; }
+          node -e '
+            const r = require("./out-c.json"); const a = (c, m) => { if (!c) throw new Error(m) };
+            a(r.e === 0, "E should be 0, got " + r.e);
+            a(r.kNormal === 5 && r.kNeg === 8, "derivation");
+            a(r.normal.opened === 5 && r.normal.errors.length === 0, "normal control should be clean");
+            a(r.negative.opened === 7, "7 sessions should be held before the rejection");
+            a(r.negative.rejections.length === 1 && r.negative.rejections[0].index === 8, "one rejection at session 8");
+            a(r.negative.rejections[0].code === "53300", "rejection code should be 53300");
+            a(r.reasons.some((x) => x.includes("not EMAXCONNSESSION")), "verdict must name the wrong kind");
+            a(r.cleanup.remaining === 0, "cleanup must reach 0");
+            console.log("case C ok:", r.verdict, r.reasons.join(" | "));'
+      - name: Upload self-test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-0067-dr-calibration-selftest-${{ github.run_id }}
+          path: out-*.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  calibrate:
+    name: DR calibration — DR project only (Supavisor session pool)
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DR_REPLACEMENT_DB_URL: ${{ secrets.DR_REPLACEMENT_DB_URL }}
+      CAL_S: ${{ inputs.s_pool_size }}
+      CAL_S_EVIDENCE: ${{ inputs.s_evidence }}
+      CAL_S_MEASURED_ON: ${{ inputs.s_measured_on }}
+      CONFIRM_TARGET: ${{ inputs.confirm_target }}
+      CAL_RUN_ID: ${{ github.run_id }}
+      CAL_OUT: risk0067-dr-calibration-report.json
+    steps:
+      - name: Typed confirmation
+        run: |
+          test "$CONFIRM_TARGET" = "DR-ONLY pvyuhjadrygqqdoczmnd" \
+            || { echo "::error::confirm_target must be exactly: DR-ONLY pvyuhjadrygqqdoczmnd"; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Target guard (DR session pooler only — before any install or connection)
+        run: node scripts/ops/risk-0067-dr-calibration/calibrate.mjs --guard-only
+      - name: Activate pinned pnpm and install
+        run: |
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          pnpm install --frozen-lockfile
+      - name: Calibrate (read-only; exit 0 CLIENT_OK · 1 FAIL · 3 HOLD)
+        run: node scripts/ops/risk-0067-dr-calibration/calibrate.mjs
+      - name: Upload calibration report (counts, timings, error codes — no secrets)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-0067-dr-calibration-${{ github.run_id }}
+          path: risk0067-dr-calibration-report.json
+          if-no-files-found: warn
+          retention-days: 90
