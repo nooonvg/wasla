@@ -1,0 +1,24 @@
+{
+ "service": "wasla-partner-bot",
+ "started": "2026-10-15T06:23:47Z",
+ "id": "srv-db3nftbtqb8s73en7o20",
+ "before": {
+  "plan": "free",
+  "numInstances": 1,
+  "suspended": "not_suspended",
+  "live_deploy": "dep-db7s4nnavr4c73doprs0",
+  "live_commit": "6280760a9b444eca13d70dd9435abb95b3f27dc5",
+  "latest_deploy": {
+   "id": "dep-db7s4nnavr4c73doprs0",
+   "status": "live"
+  }
+ },
+ "patch": {
+  "at": "2026-10-15T06:23:47Z",
+  "http": 400,
+  "plan_in_response": null,
+  "error": {
+   "message": "cannot change between free and paid plans"
+  }
+ }
+}

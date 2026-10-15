@@ -1,3 +1,17 @@
+# 2026-10-15 — CLM-0567 — M6-18C: RISK-0066 الخيار B — HOLD (0/20؛ واجهةُ Render ترفضُ free → paid)
+
+- **Work Item(s):** M6-18C (CLM-0567) · يُغلِقُ CLM-0566 (#720)
+- **Status:** Released — النتيجة HOLD
+- **Risk(s):** RISK-0066 → `open` (Option B selected, not live) · RISK-0067 → `mitigating` (لا تغيير)
+- **(a) #720:** head `a94a6a3b` · approval `a94a6a3b` 05:40:33Z (`xuuux-voox`) · 43/43 · merged via `merge-on-approved-head.sh 720 --squash` → `a93b8286` 05:43:37Z · main WASLA CI 38688344984 41/41 · issue #689 closed with the evidence link. **CLM-0566 closed.**
+- **(b) Owner decision 2026-10-15:** Option B — recorded verbatim in the decision pack §8.
+- **Pre-checks (06:20Z):** 21 web services `free`; footprint = 20 named (C1 7 + C2 13), otel-collector excluded; `0.5c-512mb`/`starter` = $7 (render.com/pricing); 20 × $7 = $140. Payment method not readable by API.
+- **Step 1 `wasla-partner-bot`:** `PATCH plan=starter` 06:23:47Z ⇒ **HTTP 400 `cannot change between free and paid plans`**; retry `0.5c-512mb` 06:24:15Z ⇒ same. Post-check 06:27:53Z: 21/21 `free`, no deploy, `updatedAt` unchanged. **Stopped; 19 others not attempted.**
+- **Needed:** the owner makes the 20 changes in the Render Dashboard in the §5 order (or another written route); the executor then verifies each by API under a new claim.
+- **Deployment:** none. No billing, workspace, payment-method, Supavisor or production change.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05; Alertmanager drift 20/21 open.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-15T062000Z-clm-0567-risk-0066-option-b-rollout/README.md)
+
 # 2026-10-15 — CLM-0566 — M6-18C: issue #689 بعدَ التشغيلِ المجدولِ التالي + انحرافُ الالتزام (قراءةٌ فقط)
 
 - **Work Item(s):** M6-18C (CLM-0566) · يُغلِقُ CLM-0565 (M6-18B)
