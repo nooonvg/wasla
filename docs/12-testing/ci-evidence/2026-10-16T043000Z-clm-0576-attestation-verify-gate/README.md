@@ -49,7 +49,23 @@ gh attestation verify artifacts/sbom/pass1.cdx.json \
 
 ## 4. حكمُ CI على فرعِ الإصلاح
 
-يُسجَّلُ في §4 بإضافةٍ بعدَ التشغيل (`ci-run-*.md` في هذا المجلد) — لا يُعَدُّ الإصلاحُ مُثبَتًا قبلَه.
+**التشغيلُ الأوّلُ على الفرع:** WASLA CI [38853825282](https://github.com/skyosv10-art/wasla/actions/runs/38853825282) (`pull_request`، رأسُ `b165f9dd`، المحاولة 1) — **success** · فحوصُ PR #730: **43/43 pass**. الوظيفة `image-supply-chain` [116820736773](https://github.com/skyosv10-art/wasla/actions/runs/38853825282/job/116820736773) success (05:03:55Z → 05:06:01Z)؛ كلُّ خطواتِها success: 4 «اختباراتُ وحدة…» · 13 «إثباتُ أصلِ قوائمِ الموادِ» · 14 «تحقُّقٌ من الإثبات» · 15 «حالاتٌ موجبةٌ وسالبةٌ حيّة» · 16 رفعُ الأدلّة. الأرتفاكت `image-supply-chain-attestation-verify-evidence` (12026840388) منسوخٌ كما هو في [`ci-run-38853825282/`](ci-run-38853825282/):
+
+| الحالة | exit | السبب في المخرَج |
+|---|---|---|
+| تحقُّقُ الخطوة 14 — الملفّان ([`positive-both.txt`](ci-run-38853825282/positive-both.txt)) | 0 | `gh 2.102.0 (≥ 2.50.0)` · `✓ VERIFIED pass1 (sha256:929b96eb…)` · `✓ VERIFIED pass2 (sha256:c91ce259…)` · الموقّع `…/.github/workflows/ci.yml@refs/pull/730/merge` · `runs/38853825282/attempts/1` · **2/2** |
+| `positive-pass1` · `positive-pass2` | 0 · 0 | VERIFIED |
+| `negative-tampered-pass1` · `negative-tampered-pass2` | 1 · 1 | `HTTP 404` — لا إثباتَ لبصمةِ الملفِّ المعدَّل |
+| `negative-one-of-two-bad` | 1 | `1/2 — فشلَ 1` ⇒ فشلُ الكلّ |
+| `negative-no-gh-token` | 2 | «GH_TOKEN غائبٌ أو فارغ» |
+| `negative-invalid-gh-token` | 1 | `HTTP 401: Bad credentials` |
+| `negative-wrong-signer-workflow` | 1 | رفضُ سياسةِ سيرِ التوقيع (`render-deploy.yml`) |
+| `negative-wrong-repo` | 1 | `no attestations found` |
+| `negative-raw-gh-no-token` | 4 | `gh` الخامُ بلا رمز يفشل |
+| [`summary.txt`](ci-run-38853825282/live/summary.txt) | — | **10 مطابقة · 0 مخالفة** |
+| [`unit-tests.txt`](ci-run-38853825282/unit-tests.txt) | 0 | **16 نجح · 0 فشل** |
+
+لا رمزَ في الأدلّة (`ghs_`/`gho_`/`ghp_` غائبة). **حدودُ الإثبات:** فشلُ الوظيفةِ بأكملِها عندَ فشلِ ملفٍّ يقومُ على: البوّابةُ تخرجُ غيرَ صفرٍ (مُثبَتٌ حيًّا) + الخطوةُ `bash -euo pipefail` بلا قناعٍ ولا `continue-on-error` (يفرضُه البابُ 7 والحالاتُ 17–22). لم يُشغَّل تشغيلٌ أحمرُ متعمَّدٌ للوظيفةِ كاملةً على الفرع. التشغيلُ على الرأسِ النهائيِّ (بعدَ إضافةِ هذه الأدلّة) يُقرأ قبلَ الدمج.
 
 ## 5. ما بعدَ الدمج (بعدَ رفعِ الحاجزِ فقط)
 
