@@ -190,9 +190,22 @@ for f in "${ON_DISK[@]}"; do
       && fail "$f: تحقُّقُ الإثباتِ مقنَّعٌ بـ '||' — فشلُه يصيرُ أخضرَ. يُحذَفُ القناعُ (CLM-0576)."
     grep -Eq 'WARN: attestation verify' <<< "$LIVE" \
       && fail "$f: تحذيرُ الإصدارِ يُمرِّرُ فشلَ التحقّق — ممنوعٌ (CLM-0576)."
-    grep -Eq 'GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}' <<< "$LIVE" \
-      || fail "$f: GH_TOKEN غيرُ ممرَّرٍ إلى خطوةِ تحقُّقِ الإثبات — gh يفشلُ بلا مصادقة (CLM-0576)."
     ISC="$(awk '/^  image-supply-chain:/{on=1; next} on && /^  [A-Za-z0-9_-]+:[[:space:]]*$/{on=0} on' <<< "$LIVE")"
+    # الرمزُ يُقاسُ في خطوةِ التحقّقِ الموجبةِ نفسِها — الخطوةِ التي تستدعي
+    # scripts/ci/verify-sbom-attestations.sh مباشرةً — لا في أيِّ مكانٍ من الملفّ.
+    # وجودُه في خطوةِ الاختباراتِ الحيّةِ وحدَها لا يُغني: الخطوةُ الموجبةُ تفشلُ
+    # حينئذٍ بلا مصادقة، أو تُقنَّعُ لاحقًا. (CLM-0576 · مراجعةُ المالك)
+    POS_TOKEN="$(awk '
+      function flush() { if (has_call) { n++; if (has_tok) ok++ } has_call=0; has_tok=0 }
+      /^      - / { flush() }
+      /scripts\/ci\/verify-sbom-attestations\.sh/ { has_call=1 }
+      /^[[:space:]]+GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}[[:space:]]*$/ { has_tok=1 }
+      END { flush(); printf "%d %d", n, ok }' <<< "$ISC")"
+    read -r POS_N POS_OK <<< "$POS_TOKEN"
+    (( POS_N >= 1 )) \
+      || fail "$f: لا خطوةَ في image-supply-chain تستدعي scripts/ci/verify-sbom-attestations.sh (CLM-0576)."
+    (( POS_N >= 1 && POS_OK == POS_N )) \
+      || fail "$f: GH_TOKEN: \${{ github.token }} غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها (verify-sbom-attestations.sh) — وجودُه في خطوةٍ أخرى لا يُغني؛ gh يفشلُ بلا مصادقة (CLM-0576)."
     grep -Eq '^[[:space:]]*continue-on-error:[[:space:]]*true' <<< "$ISC" \
       && fail "$f: continue-on-error في وظيفةِ image-supply-chain — فشلُ التحقّقِ لا يُفشِلُ الوظيفة (CLM-0576)."
   fi

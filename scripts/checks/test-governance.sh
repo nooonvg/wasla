@@ -1552,6 +1552,24 @@ _wf_sed()    { local R; R="$(_wf_root)"; sed -i "$1" "$R/.github/workflows/$2"; 
 _wf_append() { local R; R="$(_wf_root)"; printf '%s' "$2" >> "$R/.github/workflows/$1"; bash "$WFG" "$R" >/dev/null 2>&1; }
 _wf_rm()     { local R; R="$(_wf_root)"; rm -f "$R/.github/workflows/$1"; bash "$WFG" "$R" >/dev/null 2>&1; }
 _wf_new()    { local R; R="$(_wf_root)"; printf 'name: sneak\non: [push]\npermissions:\n  contents: read\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: "true"\n' > "$R/.github/workflows/$1"; bash "$WFG" "$R" >/dev/null 2>&1; }
+# _wf_why <sed> <ملفّ> <نصُّ السببِ المتوقَّع> — طفرةٌ يجبُ أن تُرفَضَ **لسببٍ واحدٍ بعينه**:
+# الطفرةُ غيّرت الملفَّ فعلًا · الحارسُ خرجَ غيرَ صفر · السببُ المتوقَّعُ مطبوع ·
+# ولا رفضَ آخرَ لـ ci.yml. يعيدُ 0 فقط إن تحقّقَ كلُّ ذلك (فيُستعملُ مع pass).
+_wf_why() {
+  local R out rc=0; R="$(_wf_root)"
+  sed -i "$1" "$R/.github/workflows/$2"
+  cmp -s "$T/.github/workflows/$2" "$R/.github/workflows/$2" && { echo "الطفرةُ لم تُغيّر الملفّ"; return 1; }
+  out="$(bash "$WFG" "$R" 2>&1)" || rc=$?
+  (( rc != 0 )) || { echo "الحارسُ قبِلَ الطفرة"; return 1; }
+  grep -qF "$3" <<< "$out" || { echo "السببُ المتوقَّعُ غائب:"; printf '%s\n' "$out"; return 1; }
+  [[ "$(grep -c "✗.*$2:" <<< "$out")" == 1 ]] || { echo "رفضٌ لأكثرَ من سبب:"; printf '%s\n' "$out"; return 1; }
+  printf '%s\n' "$out" | grep "✗.*$2:"
+}
+# _live_step_has_token <sed> — بعدَ الطفرة: خطوةُ الحالاتِ الحيّةِ ما تزالُ تحملُ GH_TOKEN (سطرٌ واحد).
+_live_step_has_token() {
+  local R; R="$(_wf_root)"; sed -i "$1" "$R/.github/workflows/ci.yml"
+  awk '/^      - /{inlive=0} /^      - name: "تحقُّقُ الإثباتِ — حالاتٌ موجبةٌ وسالبةٌ حيّة/{inlive=1} inlive && /^[[:space:]]+GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}/{n++} END{exit !(n==1)}' "$R/.github/workflows/ci.yml"
+}
 
 # (1) الحالةُ الموجبةُ: الشجرةُ كما هي تمرُّ — فلو أخفقت لكانَ كلُّ رفضٍ بعدَها بلا معنى.
 t "الحارسُ يمرُّ على شجرةِ المستودعِ" pass bash "$WFG" "$T"
@@ -1629,6 +1647,14 @@ t "continue-on-error في image-supply-chain يُرفَض" fail \
   _wf_sed 's|^    name: image-supply-chain$|    name: image-supply-chain\n    continue-on-error: true|' ci.yml
 t "سيرُ توقيعٍ غيرُ ci.yml في التحقّقِ يُرفَض" fail \
   _wf_sed 's|verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/ci.yml|verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/other.yml|' ci.yml
+
+# (23)–(24) CLM-0576 (مراجعةُ المالك): الرمزُ يُقاسُ في خطوةِ التحقّقِ الموجبةِ نفسِها.
+# الطفرةُ تحذفُه منها وحدَها وتُبقيه في الخطوةِ الحيّة (وفي وظائفَ أخرى من ci.yml)؛
+# الحارسُ السابقُ (بحثٌ في الملفِّ كلِّه) كان يقبلُها. يجبُ أن يُرفَضَ لهذا السببِ تحديدًا.
+POS_TOKEN_MUT='/^          GH_TOKEN: ${{ github.token }}$/{N;/ATTEST_EVIDENCE_DIR/s/^[^\n]*\n//}'
+t "طفرةُ الرمزِ تُبقيه في الخطوةِ الحيّة" pass _live_step_has_token "$POS_TOKEN_MUT"
+t "غيابُ GH_TOKEN عن الخطوةِ الموجبةِ وحدَها يُرفَضُ لهذا السبب" pass \
+  _wf_why "$POS_TOKEN_MUT" ci.yml "غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها"
 
 printf '\n\033[1m[ي] تدقيقُ الاعتمادياتِ والثغرات (M0-06)\033[0m\n'
 # الحارسُ يسأل مُسجَّلَ npm عبرَ الشبكةِ، ويقرأ `package.json` و`SECURITY_RULES.md`.
