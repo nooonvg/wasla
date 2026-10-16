@@ -1,0 +1,17 @@
+# captured_at_utc: 2026-10-16T03:18:01Z · WASLA_OBS_ENVIRONMENT=render-singapore · scripts/ops/health/check-health.py (GET /health, no auth)
+OK  audit          200 0.4s
+OK  customers      200 1.3s
+OK  delivery       200 0.8s
+OK  dispatch       200 1.3s
+OK  drivers        200 0.8s
+OK  geography      200 0.8s
+OK  identity       200 0.9s
+OK  marketplace    200 0.9s
+OK  matching       200 0.9s
+OK  negotiations   200 0.8s
+OK  orders         200 1.3s
+OK  reputation     200 1.3s
+OK  search         200 0.9s
+OK  subscriptions  200 0.8s
+healthy 14/14
+# exit 0
