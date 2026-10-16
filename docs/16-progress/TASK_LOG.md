@@ -1,3 +1,19 @@
+# 2026-10-16 — CLM-0573 — M6-18B: إصلاحُ معايِرِ DR — نطاقُ \(E\) وحدٌّ زمنيٌّ فعليٌّ وتنظيفٌ محدود (بلا تشغيلٍ حيّ)
+
+- **Work Item(s):** M6-18B (CLM-0573) · يُغلِقُ CLM-0572 (#726)
+- **Status:** Released — بُني واختُبر؛ لم يُشغَّل حيًّا
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open` (لا تغيير)
+- **(a) #726 بعدَ الدمج:** head `22533b1a` · موافقةُ `xuuux-voox` على `22533b1a` 01:31:58Z · 42/42 · دُمجَ عبرَ `merge-on-approved-head.sh 726 --squash` → `8ba3e208` · main WASLA CI success · Roadmap freshness success · الفرعُ حُذف. **CLM-0572 مغلق.**
+- **Fixed — \(E\):** `computeE()` نقيّة على صفوفِ `pg_stat_activity` الخامّ — تعدُّ فقط خلفياتِ المستخدمِ + قاعدةِ البيانات (`datname` صريحًا) + عقدةِ المجمّع؛ المستبعدُ مفصّل؛ **أيُّ خلفيةٍ مطابقةٍ ⇒ HOLD** (وضعُ الجلسةِ مقابلَ المعاملاتِ غيرُ قابلٍ للرصد) — لا تقريب.
+- **Fixed — الحدّ:** `LIMITS` مجمّدة: 600 000 ms إجماليّ يشملُ نافذةَ تنظيفٍ معلنةً 90 000 ms (7 000 ms بعدَ SIGINT/SIGTERM)؛ `bounded()` لكلِّ اتصالٍ/استعلامٍ/انتظارٍ بالوقتِ المتبقي مع تدميرِ العميل؛ انقضاءُ مهلةٍ إيقافٌ لا رفض؛ خروجٌ صريحٌ بعدَ التقرير؛ watchdog (احتياطٌ غيرُ مختبَر)؛ خطوةُ CI `timeout-minutes: 11`. `--preflight-only` جديد.
+- **Tests:** `calibrate.test.mjs` 25/25 محليًّا (+16: \(E\) الصحيح، قواعد/مستخدمون/عقد أخرى، تعليقُ الاتصالِ حتى الموعد، انتظارٌ يتجاوزُ المتبقي، قصُّ k_neg، الانقطاع، تعليقُ التنظيف، الإنهاءُ الأخير) · اختبارُ طفرة: حذفُ `datname` ⇒ 4 إخفاقات، اتصالٌ غيرُ محدود ⇒ 7 · selftest D/E/F على Postgres حقيقيّ (استبعاد/HOLD/SIGTERM مع 0 متبقٍّ) — محليًّا على PG 18 ناجحة؛ حكمُ CI هو المرجع.
+- **Changed units:** `scripts/ops/risk-0067-dr-calibration/calibrate.mjs` · `scripts/ops/risk-0067-dr-calibration/calibrate.test.mjs` · `.github/workflows/risk-0067-dr-calibration.yml` (حالات D/E/F، حدُّ الخطوة، رفعُ السجلّات).
+- **\(S\):** غيرُ مقيس — 60 مقرونةٌ بوضعِ المعاملاتِ 6543؛ تُطلبُ لقطاتُ Dashboard مؤرّخةٌ للإنتاجِ وDR (الدليل §5).
+- **Deployment:** none — سكربتٌ يُشغَّلُ بالإرسالِ اليدويّ وسيرُ selftest؛ لا خدمة ولا Render ولا Supabase ولا Supavisor.
+- **Not done:** لا إعادةَ تشغيلٍ لـDR، لا `workflow_dispatch`، لا حمل، لا RISK-0058.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-16T023000Z-clm-0573-risk-0067-calibrator-e-deadline/README.md) · [الخطة §12.6](../12-testing/M6-18B_RISK-0067_LOAD_MEASUREMENT_PLAN.md)
+
 # 2026-10-16 — CLM-0572 — M6-18B: تصحيحاتٌ مؤرّخةٌ على أدلةِ CLM-0571 والخطةِ §12.3.1 (تصحيحًا بالإضافة)
 
 - **Work Item(s):** M6-18B (CLM-0572) · يُغلِقُ CLM-0571 (#725)
