@@ -1,3 +1,16 @@
+# 2026-10-16 — CLM-0575 — M6-18B: محاولتا `image-supply-chain` في #728 (تعافٍ من إخفاقِ شبكةٍ خارجيّ) والتحقّقُ النهائيُّ بعدَ دمجِ #728 (قراءةٌ فقط)
+
+- **Work Item(s):** M6-18B (CLM-0575) · يُغلِقُ CLM-0574 (#728)
+- **Status:** Released — توثيقٌ وقراءةٌ فقط
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open` (لا تغيير)
+- **(أ) `image-supply-chain` — التشغيل 38845059289:** المحاولة 1 (الوظيفة 116793593794، 03:20:59Z→03:23:19Z) فشلت في الخطوة «إثباتُ أصلِ قوائمِ الموادِ (M6-19C)» بـ`network timeout` عندَ `https://rekor.sigstore.dev` (03:23:17Z) ولم تُخزّن إثباتًا (404)؛ المحاولة 2 (116795772617، 03:29:14Z→03:30:58Z، بإعادةِ الوظيفةِ الفاشلةِ وحدَها) نجحت وأنشأت الإثبات 56518457. **التصنيف: تعافٍ بعدَ إعادةِ المحاولةِ من إخفاقِ شبكةٍ خارجيّ** — لا عيبَ كودٍ مثبت. سجلُّ الفشلِ الأصليّ محفوظ؛ لا فحصَ خُفّف؛ لا إعادةَ تشغيلٍ لسيرٍ كامل.
+- **(ب) ملاحظةٌ مفتوحة:** خطوةُ «تحقُّقٌ من الإثبات» تنجحُ بلا تحقّق (`gh` بلا `GH_TOKEN` + `|| echo WARN`). تحقّقٌ مستقلٌّ محليّ: `gh attestation verify` ⇒ exit 0 للبصمة `3e0e0d81…` (الموقّع `ci.yml@refs/pull/728/merge`، المحاولة 2)، والملفُّ المعدَّلُ ⇒ exit 1. الإصلاحُ يحتاجُ حجزًا مستقلًّا (تعديلُ سيرِ العملِ يُطلقُ نشرًا).
+- **(ج) بعدَ دمجِ #728:** head `a4187feb` · approval `a4187feb` 03:28:10Z (`xuuux-voox`) · merged → `4c2833af60a0ba51f7fde1bfa8fb848e1acadc45` 03:33:33Z · WASLA CI 38846122272 success **41/41** · Roadmap freshness 38846122282 success · لا Render deploy · **`health-report.json` غائبٌ عن الجذر** (مصدرُه: مخرجُ `check-health.py` الافتراضيّ، غيرُ مُتجاهَلٍ في git). **CLM-0574 closed.**
+- **(د) العوائق:** INC-0007 `Open` (لا تدويرَ — `updated_at` بلا تغيير) · RISK-0066 HOLD 0/20 · RISK-0067 HOLD (DR `INACTIVE`؛ S لـ5432، تدفّقُ Supavisor، النافذة، `PREFLIGHT_OK` — غائبة).
+- **Deployment:** none — `docs/**` و`*.md` فقط. لا حِمل، لا `workflow_dispatch`، لا RISK-0058.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-16T034500Z-clm-0575-supply-chain-retry-and-728-verification/README.md)
+
 # 2026-10-16 — CLM-0574 — M6-18B: التحقّقُ بعدَ الدمجِ لِـCLM-0573 (#727) — main أخضر · 24 موردًا `wasla-*` على `becf3c7c` (قراءةٌ فقط)
 
 - **Work Item(s):** M6-18B (CLM-0574) · يُغلِقُ CLM-0573 (#727)

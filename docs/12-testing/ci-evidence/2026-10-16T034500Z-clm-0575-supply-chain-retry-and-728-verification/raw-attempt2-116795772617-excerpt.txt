@@ -1,0 +1,98 @@
+# image-supply-chain · run 38845059289 · attempt 2 · job 116795772617 · excerpt (steps 12–13) — gh run view --attempt 2 --log --job 116795772617, captured 2026-10-16T03:59:19Z
+﻿2026-10-16T03:30:51.0038831Z ##[group]Run actions/attest-build-provenance@v2
+2026-10-16T03:30:51.0039119Z with:
+2026-10-16T03:30:51.0039393Z   subject-path: artifacts/sbom/pass1.cdx.json
+artifacts/sbom/pass2.cdx.json
+
+2026-10-16T03:30:51.0039738Z   push-to-registry: false
+2026-10-16T03:30:51.0039936Z   show-summary: true
+2026-10-16T03:30:51.0042049Z   github-token: ***
+2026-10-16T03:30:51.0042241Z env:
+2026-10-16T03:30:51.0042406Z   NODE_VERSION: 20.20.1
+2026-10-16T03:30:51.0042608Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:30:51.0042790Z ##[endgroup]
+2026-10-16T03:30:51.0087756Z ##[start-action display=Run actions/attest-build-provenance/predicate@1176ef556905f349f669722abf30bce1a6e16e01;id=__actions_attest-build-provenance.generate-build-provenance-predicate]
+2026-10-16T03:30:51.0115469Z ##[group]Run actions/attest-build-provenance/predicate@1176ef556905f349f669722abf30bce1a6e16e01
+2026-10-16T03:30:51.0115848Z env:
+2026-10-16T03:30:51.0116025Z   NODE_VERSION: 20.20.1
+2026-10-16T03:30:51.0116218Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:30:51.0116446Z ##[endgroup]
+2026-10-16T03:30:51.6772838Z ##[end-action id=__actions_attest-build-provenance.generate-build-provenance-predicate;outcome=success;conclusion=success;duration_ms=668]
+2026-10-16T03:30:51.6777475Z ##[start-action display=Run actions/attest@ce27ba3b4a9a139d9a20a4a07d69fabb52f1e5bc;id=__actions_attest-build-provenance.attest]
+2026-10-16T03:30:51.6826320Z ##[group]Run actions/attest@ce27ba3b4a9a139d9a20a4a07d69fabb52f1e5bc
+2026-10-16T03:30:51.6826618Z with:
+2026-10-16T03:30:51.6826882Z   subject-path: artifacts/sbom/pass1.cdx.json
+artifacts/sbom/pass2.cdx.json
+
+2026-10-16T03:30:51.6827250Z   predicate-type: https://slsa.dev/provenance/v1
+2026-10-16T03:30:51.6829354Z   predicate: {"buildDefinition":{"buildType":"https://actions.github.io/buildtypes/workflow/v1","externalParameters":{"workflow":{"ref":"refs/pull/728/merge","repository":"https://github.com/skyosv10-art/wasla","path":".github/workflows/ci.yml"}},"internalParameters":{"github":{"event_name":"pull_request","repository_id":"1352934013","repository_owner_id":"291345653","runner_environment":"github-hosted"}},"resolvedDependencies":[{"uri":"git+https://github.com/skyosv10-art/wasla@refs/pull/728/merge","digest":{"gitCommit":"8791c428a9a1de831071ffe22a3731c0b1a060dc"}}]},"runDetails":{"builder":{"id":"https://github.com/skyosv10-art/wasla/.github/workflows/ci.yml@refs/pull/728/merge"},"metadata":{"invocationId":"https://github.com/skyosv10-art/wasla/actions/runs/38845059289/attempts/2"}}}
+2026-10-16T03:30:51.6831555Z   push-to-registry: false
+2026-10-16T03:30:51.6831759Z   show-summary: true
+2026-10-16T03:30:51.6833931Z   github-token: ***
+2026-10-16T03:30:51.6834123Z env:
+2026-10-16T03:30:51.6834293Z   NODE_VERSION: 20.20.1
+2026-10-16T03:30:51.6834490Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:30:51.6834676Z ##[endgroup]
+2026-10-16T03:30:53.1359269Z Attestation created for 2 subjects
+2026-10-16T03:30:53.1360979Z ##[group]^[[36mAttestation signed using certificate from Public Good Sigstore instance^[[39m
+2026-10-16T03:30:53.1362222Z -----BEGIN CERTIFICATE-----
+2026-10-16T03:30:53.1362917Z MIIG8jCCBnigAwIBAgIUKlSQmx2k5jKFHVXFZPjx/oYRhwYwCgYIKoZIzj0EAwMw
+2026-10-16T03:30:53.1363758Z NzEVMBMGA1UEChMMc2lnc3RvcmUuZGV2MR4wHAYDVQQDExVzaWdzdG9yZS1pbnRl
+2026-10-16T03:30:53.1364618Z cm1lZGlhdGUwHhcNMjYxMDE2MDMzMDUyWhcNMjYxMDE2MDM0MDUyWjAAMFkwEwYH
+2026-10-16T03:30:53.1365571Z KoZIzj0CAQYIKoZIzj0DAQcDQgAEFGTfZhYyWF0EanP5+ms1ruSN02/eKc3RIgGB
+2026-10-16T03:30:53.1366384Z 2dYqIRB5eMdGBOH8TwC7FwuxKLNR1wVoL30yH1+4X9L9gk0n46OCBZcwggWTMA4G
+2026-10-16T03:30:53.1367187Z A1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDAzAfBgNVHSMEGDAWgBTf
+2026-10-16T03:30:53.1368016Z 0+nPViQRlvmo2OkoVaLGLhhkPzBgBgNVHREBAf8EVjBUhlJodHRwczovL2dpdGh1
+2026-10-16T03:30:53.1368847Z Yi5jb20vc2t5b3N2MTAtYXJ0L3dhc2xhLy5naXRodWIvd29ya2Zsb3dzL2NpLnlt
+2026-10-16T03:30:53.1369676Z bEByZWZzL3B1bGwvNzI4L21lcmdlMDkGCisGAQQBg78wAQEEK2h0dHBzOi8vdG9r
+2026-10-16T03:30:53.1370593Z ZW4uYWN0aW9ucy5naXRodWJ1c2VyY29udGVudC5jb20wGgYKKwYBBAGDvzABAgQM
+2026-10-16T03:30:53.1371554Z cHVsbF9yZXF1ZXN0MDYGCisGAQQBg78wAQMEKDg3OTFjNDI4YTlhMWRlODMxMDcx
+2026-10-16T03:30:53.1372847Z ZmZlMjJhMzczMWMwYjFhMDYwZGMwFgYKKwYBBAGDvzABBAQIV0FTTEEgQ0kwIAYK
+2026-10-16T03:30:53.1373726Z KwYBBAGDvzABBQQSc2t5b3N2MTAtYXJ0L3dhc2xhMCEGCisGAQQBg78wAQYEE3Jl
+2026-10-16T03:30:53.1374597Z ZnMvcHVsbC83MjgvbWVyZ2UwOwYKKwYBBAGDvzABCAQtDCtodHRwczovL3Rva2Vu
+2026-10-16T03:30:53.1375545Z LmFjdGlvbnMuZ2l0aHVidXNlcmNvbnRlbnQuY29tMGIGCisGAQQBg78wAQkEVAxS
+2026-10-16T03:30:53.1376323Z aHR0cHM6Ly9naXRodWIuY29tL3NreW9zdjEwLWFydC93YXNsYS8uZ2l0aHViL3dv
+2026-10-16T03:30:53.1377182Z cmtmbG93cy9jaS55bWxAcmVmcy9wdWxsLzcyOC9tZXJnZTA4BgorBgEEAYO/MAEK
+2026-10-16T03:30:53.1378052Z BCoMKDg3OTFjNDI4YTlhMWRlODMxMDcxZmZlMjJhMzczMWMwYjFhMDYwZGMwHQYK
+2026-10-16T03:30:53.1378835Z KwYBBAGDvzABCwQPDA1naXRodWItaG9zdGVkMDUGCisGAQQBg78wAQwEJwwlaHR0
+2026-10-16T03:30:53.1379680Z cHM6Ly9naXRodWIuY29tL3NreW9zdjEwLWFydC93YXNsYTA4BgorBgEEAYO/MAEN
+2026-10-16T03:30:53.1380515Z BCoMKDg3OTFjNDI4YTlhMWRlODMxMDcxZmZlMjJhMzczMWMwYjFhMDYwZGMwIwYK
+2026-10-16T03:30:53.1381392Z KwYBBAGDvzABDgQVDBNyZWZzL3B1bGwvNzI4L21lcmdlMBoGCisGAQQBg78wAQ8E
+2026-10-16T03:30:53.1382194Z DAwKMTM1MjkzNDAxMzAvBgorBgEEAYO/MAEQBCEMH2h0dHBzOi8vZ2l0aHViLmNv
+2026-10-16T03:30:53.1382978Z bS9za3lvc3YxMC1hcnQwGQYKKwYBBAGDvzABEQQLDAkyOTEzNDU2NTMwYgYKKwYB
+2026-10-16T03:30:53.1383814Z BAGDvzABEgRUDFJodHRwczovL2dpdGh1Yi5jb20vc2t5b3N2MTAtYXJ0L3dhc2xh
+2026-10-16T03:30:53.1384580Z Ly5naXRodWIvd29ya2Zsb3dzL2NpLnltbEByZWZzL3B1bGwvNzI4L21lcmdlMDgG
+2026-10-16T03:30:53.1385511Z CisGAQQBg78wARMEKgwoODc5MWM0MjhhOWExZGU4MzEwNzFmZmUyMmEzNzMxYzBi
+2026-10-16T03:30:53.1386354Z MWEwNjBkYzAcBgorBgEEAYO/MAEUBA4MDHB1bGxfcmVxdWVzdDBZBgorBgEEAYO/
+2026-10-16T03:30:53.1387333Z MAEVBEsMSWh0dHBzOi8vZ2l0aHViLmNvbS9za3lvc3YxMC1hcnQvd2FzbGEvYWN0
+2026-10-16T03:30:53.1388270Z aW9ucy9ydW5zLzM4ODQ1MDU5Mjg5L2F0dGVtcHRzLzIwFgYKKwYBBAGDvzABFgQI
+2026-10-16T03:30:53.1389220Z DAZwdWJsaWMwSQYKKwYBBAGDvzABGAQ7DDlyZXBvOnNreW9zdjEwLWFydEAyOTEz
+2026-10-16T03:30:53.1390143Z NDU2NTMvd2FzbGFAMTM1MjkzNDAxMzpwdWxsX3JlcXVlc3QwgYoGCisGAQQB1nkC
+2026-10-16T03:30:53.1391028Z BAIEfAR6AHgAdgDdPTBqxscRMmMZHhyZZzcCokpeuN48rf+HinKALynujgAAAaFC
+2026-10-16T03:30:53.1391898Z wzbeAAAEAwBHMEUCIQC7AoeMUdj0Cg2tpZkK6qonOmxCEykPkqC/TNTd24XA5QIg
+2026-10-16T03:30:53.1393060Z SGauMBRF4fQLvnyKMO/yo548y1TTkGuzmXiIJNqloxswCgYIKoZIzj0EAwMDaAAw
+2026-10-16T03:30:53.1393950Z ZQIwUAv4SK81x3p90hzhE6cH2rk+/qf1aUxI2gqPzbBdmTYQ2gs23xNug09mG8aM
+2026-10-16T03:30:53.1394836Z d74pAjEAudgPhPVOZvmLx3nfqAa4f1NC03nc8IjlOwFdbrKJ7VrV/VVnYKwoZyor
+2026-10-16T03:30:53.1395720Z eo0hDEey
+2026-10-16T03:30:53.1396154Z -----END CERTIFICATE-----
+2026-10-16T03:30:53.1396541Z 
+2026-10-16T03:30:53.1397262Z ##[endgroup]
+2026-10-16T03:30:53.1398119Z ^[[36mAttestation signature uploaded to Rekor transparency log^[[39m
+2026-10-16T03:30:53.1399020Z https://search.sigstore.dev?logIndex=3273229917
+2026-10-16T03:30:53.1399779Z ^[[36mAttestation uploaded to repository^[[39m
+2026-10-16T03:30:53.1400488Z https://github.com/skyosv10-art/wasla/attestations/56518457
+2026-10-16T03:30:53.1640104Z ##[end-action id=__actions_attest-build-provenance.attest;outcome=success;conclusion=success;duration_ms=1486]
+﻿2026-10-16T03:30:53.1703092Z ##[group]Run gh attestation verify artifacts/sbom/pass1.cdx.json \
+2026-10-16T03:30:53.1703526Z ^[[36;1mgh attestation verify artifacts/sbom/pass1.cdx.json \^[[0m
+2026-10-16T03:30:53.1703940Z ^[[36;1m  --repo skyosv10-art/wasla || echo "WARN: attestation verify requires gh CLI 2.50+"^[[0m
+2026-10-16T03:30:53.1759494Z shell: /usr/bin/bash -e {0}
+2026-10-16T03:30:53.1759723Z env:
+2026-10-16T03:30:53.1759892Z   NODE_VERSION: 20.20.1
+2026-10-16T03:30:53.1760086Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:30:53.1760274Z ##[endgroup]
+2026-10-16T03:30:56.1093629Z gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable. Example:
+2026-10-16T03:30:56.1094101Z   env:
+2026-10-16T03:30:56.1094285Z     GH_TOKEN: ${{ github.token }}
+2026-10-16T03:30:56.1153483Z WARN: attestation verify requires gh CLI 2.50+
+﻿2026-10-16T03:30:56.1235904Z Post job cleanup.
+2026-10-16T03:30:56.1951314Z [command]/usr/bin/git version
