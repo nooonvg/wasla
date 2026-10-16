@@ -39,6 +39,16 @@ gh attestation verify artifacts/sbom/pass1.cdx.json \
 - الحارسُ السابق (`28e802b8`) ⇒ **exit 0** — أي أنّ الثغرةَ كانت حقيقيّة.
 **في حزمةِ الحوكمة** (`test-governance.sh`، الحالتان 23–24): `_live_step_has_token` يُثبتُ أنّ الطفرةَ تُبقي الرمزَ في الخطوةِ الحيّة، و`_wf_why` يُثبتُ أنّ الطفرةَ غيّرت الملفَّ، وأنّ الحارسَ رفضَها، وأنّ السببَ المطبوعَ هو هذا بعينِه، وأنّه **لا رفضَ آخرَ** لـ`ci.yml`. النتيجة [`governance-tests-after-positive-step-fix.txt`](governance-tests-after-positive-step-fix.txt): **699 ناجح · 0 فاشل**؛ والحارسُ على الشجرة [`guard-supply-chain-tree.txt`](guard-supply-chain-tree.txt) ✓. حكمُ CI على الرأسِ الجديدِ يُسجَّلُ في §4b.
 
+## 2c. تصحيحٌ ثانٍ بعدَ مراجعةِ المالك — الاستدعاءُ التنفيذيُّ يُقاس، لا ظهورُ الاسم (2026-10-16)
+
+**الثغرة:** الحارسُ (حتى `62745cb9`) كان يعُدُّ أيَّ سطرٍ غيرِ مُعلَّقٍ يذكرُ `scripts/ci/verify-sbom-attestations.sh` «استدعاءً». قِيسَ على الحارسِ السابق: تحويلُ الاستدعاءِ إلى `echo scripts/ci/verify-sbom-attestations.sh …` ⇒ **exit 0**، وإلى `true  # bash scripts/ci/verify-sbom-attestations.sh …` ⇒ **exit 0**. والتعليقُ الكاملُ (`# bash …`) رُفضَ لكن **بثلاثةِ أسبابٍ متشابكة** (منها سببُ رمزٍ مضلِّلٌ والرمزُ حاضر).
+**الإصلاح:** `scripts/checks/lib/attest_verify_step.py` (جديد) يقرأُ كتلةَ `run:` لكلِّ خطوةٍ في `image-supply-chain`، ويحذفُ تعليقاتِ YAML وتعليقاتِ shell (الكاملةَ واللاحقةَ خارجَ الاقتباس)، ويضمُّ الأسطرَ المستمرّةَ بـ`\`، ويعُدُّ الخطوةَ موجبةً فقط إن كان فيها **أمرٌ** يبدأُ بـ`[bash ]scripts/ci/verify-sbom-attestations.sh` (في أوّلِ السطرِ المنطقيِّ أو بعدَ `;`/`&&`). ثمّ يقيسُ في تلك الخطوةِ نفسِها `GH_TOKEN: ${{ github.token }}` في `env:` والملفَّينِ و`.github/workflows/ci.yml` في الأمرِ نفسِه. البابُ 7 في `validate-workflow-supply-chain.sh` صارَ يستعملُه، ويُصدرُ عندَ غيابِ الاستدعاءِ **سببًا واحدًا**: «لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run: في خطوةٍ من image-supply-chain».
+**الدليل** — [`guard-executable-call-mutation.txt`](guard-executable-call-mutation.txt):
+- **النسخةُ السليمة** ⇒ المحلّل `STEP 12 token=1 args=- · CALLS 1` · الحارس **exit 0**.
+- **الاستدعاءُ المعلَّق** (`# bash scripts/ci/…`، و`GH_TOKEN` باقٍ في الخطوةِ الموجبة: سطرٌ واحد) ⇒ `CALLS 0` · الحارسُ الجديد **exit 1 بسببٍ واحد** (غيابُ الاستدعاءِ التنفيذيّ) · الحارسُ السابق exit 1 بثلاثةِ أسباب.
+- صيغتا `echo` و`true # …` ⇒ الجديد exit 1 بالسببِ نفسِه وحدَه · السابق **exit 0**.
+**في حزمةِ الحوكمة** (`test-governance.sh`): (25) `_pos_step_has_token` — الطفرةُ تُبقي الرمزَ في الخطوةِ الموجبة · (26) `_wf_why` — الاستدعاءُ المعلَّقُ يُرفَضُ لغيابِ الاستدعاءِ التنفيذيِّ **وحدَه** · (27) صيغةُ `echo` · (28) التعليقُ اللاحق. (23)–(24) باقيتان. النتيجة [`governance-tests-after-executable-call-fix.txt`](governance-tests-after-executable-call-fix.txt): **703 ناجح · 0 فاشل**؛ وتسعُ طفراتٍ للبابِ 7 (تعليق · حذف · echo · تعليقٌ لاحق · رمزُ الخطوةِ الموجبة · الملفُّ الأوّلُ وحدَه · سيرُ توقيعٍ آخر · `|| true` · كلُّ الرموز) كلٌّ منها يُرفَضُ بسببٍ واحدٍ صحيح. الحارسُ على الشجرة [`guard-supply-chain-tree.txt`](guard-supply-chain-tree.txt) ✓.
+
 ## 3. الاختبارات
 
 ### 3.1 وحدة (CI: خطوةُ «اختباراتُ وحدةٍ لبوّابةِ تحقُّقِ الإثبات»)

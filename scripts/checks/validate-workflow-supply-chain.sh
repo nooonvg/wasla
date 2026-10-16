@@ -37,6 +37,7 @@ set -uo pipefail
 
 ROOT="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 WF_DIR="$ROOT/.github/workflows"
+GUARD_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib"
 
 # ── الجردُ المُعلَنُ ───────────────────────────────────────────────────────
 # الصيغةُ: <الملفُّ>|<secrets=yes|no>|<write=yes|no>|<الغرضُ والمسؤوليّةُ>
@@ -177,35 +178,31 @@ for f in "${ON_DISK[@]}"; do
     # كليهما مقيّدةً بـ ci.yml، والرمزُ ممرَّرٌ، ولا قناعَ (|| echo · || true · || :)
     # ولا continue-on-error يحوّلُ فشلَها أخضرَ. (العيبُ الذي اكتُشفَ بعدَ دمجِ CLM-0575.)
     JOINED="$(sed -e ':a' -e '/\\$/N; s/\\\n/ /; ta' <<< "$LIVE")"
-    VLINE="$(grep -E 'scripts/ci/verify-sbom-attestations\.sh' <<< "$JOINED" || true)"
-    [[ -n "$VLINE" ]] \
-      || fail "$f: خطوةُ تحقُّقِ الإثباتِ (scripts/ci/verify-sbom-attestations.sh) مفقودةٌ — الإثباتُ بلا تحقُّقٍ بيانٌ لا ضمانٌ."
-    if [[ -n "$VLINE" ]]; then
-      for need in 'artifacts/sbom/pass1\.cdx\.json' 'artifacts/sbom/pass2\.cdx\.json' '\.github/workflows/ci\.yml'; do
-        grep -Eq "$need" <<< "$VLINE" \
-          || fail "$f: تحقُّقُ الإثباتِ لا يشملُ '${need//\\/}' — يُتحقَّقُ من الملفَّينِ كليهما مقيّدَينِ بسيرِ التوقيعِ ci.yml."
-      done
-    fi
     grep -Eq '(verify-sbom-attestations\.sh|gh attestation verify)[^#]*\|\|' <<< "$JOINED" \
       && fail "$f: تحقُّقُ الإثباتِ مقنَّعٌ بـ '||' — فشلُه يصيرُ أخضرَ. يُحذَفُ القناعُ (CLM-0576)."
     grep -Eq 'WARN: attestation verify' <<< "$LIVE" \
       && fail "$f: تحذيرُ الإصدارِ يُمرِّرُ فشلَ التحقّق — ممنوعٌ (CLM-0576)."
     ISC="$(awk '/^  image-supply-chain:/{on=1; next} on && /^  [A-Za-z0-9_-]+:[[:space:]]*$/{on=0} on' <<< "$LIVE")"
-    # الرمزُ يُقاسُ في خطوةِ التحقّقِ الموجبةِ نفسِها — الخطوةِ التي تستدعي
-    # scripts/ci/verify-sbom-attestations.sh مباشرةً — لا في أيِّ مكانٍ من الملفّ.
-    # وجودُه في خطوةِ الاختباراتِ الحيّةِ وحدَها لا يُغني: الخطوةُ الموجبةُ تفشلُ
-    # حينئذٍ بلا مصادقة، أو تُقنَّعُ لاحقًا. (CLM-0576 · مراجعةُ المالك)
-    POS_TOKEN="$(awk '
-      function flush() { if (has_call) { n++; if (has_tok) ok++ } has_call=0; has_tok=0 }
-      /^      - / { flush() }
-      /scripts\/ci\/verify-sbom-attestations\.sh/ { has_call=1 }
-      /^[[:space:]]+GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}[[:space:]]*$/ { has_tok=1 }
-      END { flush(); printf "%d %d", n, ok }' <<< "$ISC")"
-    read -r POS_N POS_OK <<< "$POS_TOKEN"
-    (( POS_N >= 1 )) \
-      || fail "$f: لا خطوةَ في image-supply-chain تستدعي scripts/ci/verify-sbom-attestations.sh (CLM-0576)."
-    (( POS_N >= 1 && POS_OK == POS_N )) \
-      || fail "$f: GH_TOKEN: \${{ github.token }} غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها (verify-sbom-attestations.sh) — وجودُه في خطوةٍ أخرى لا يُغني؛ gh يفشلُ بلا مصادقة (CLM-0576)."
+    # الاستدعاءُ التنفيذيُّ يُقاسُ لا يُبحَثُ عنه نصًّا (CLM-0576 · مراجعةُ المالك):
+    # lib/attest_verify_step.py يقرأُ كتلةَ run: لكلِّ خطوةٍ في image-supply-chain،
+    # ويحذفُ تعليقاتِ YAML وshell، ويضمُّ الأسطرَ المستمرّة، ويعُدُّ خطوةً «موجبةً» فقط إن
+    # كان فيها **أمرٌ** يبدأُ بـ [bash ]scripts/ci/verify-sbom-attestations.sh. اسمُ السكربتِ
+    # في تعليقٍ أو اسمِ خطوةٍ أو نصِّ echo ليس استدعاءً. ثمّ يُقاسُ في تلك الخطوةِ نفسِها:
+    # GH_TOKEN: ${{ github.token }} في env، والملفّانِ وسيرُ التوقيعِ ci.yml في الأمر.
+    # وجودُ الرمزِ في خطوةِ الاختباراتِ الحيّةِ وحدَها لا يُغني.
+    POS="$(python3 "$GUARD_LIB/attest_verify_step.py" "$P" 2>&1)" \
+      || fail "$f: تعذّرَ قياسُ خطوةِ التحقّقِ الموجبة: $POS"
+    POS_N="$(sed -nE 's/^CALLS ([0-9]+)$/\1/p' <<< "$POS")"
+    if [[ "${POS_N:-0}" -eq 0 ]]; then
+      fail "$f: لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run: في خطوةٍ من image-supply-chain — ظهورُ اسمِه في تعليقِ YAML أو shell أو نصٍّ ليس تحقّقًا (CLM-0576)."
+    else
+      grep -Eq '^STEP [0-9]+ token=0 ' <<< "$POS" \
+        && fail "$f: GH_TOKEN: \${{ github.token }} غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها (verify-sbom-attestations.sh) — وجودُه في خطوةٍ أخرى لا يُغني؛ gh يفشلُ بلا مصادقة (CLM-0576)."
+      while read -r miss; do
+        [[ -n "$miss" ]] || continue
+        fail "$f: تحقُّقُ الإثباتِ لا يشملُ '$miss' — يُتحقَّقُ من الملفَّينِ كليهما مقيّدَينِ بسيرِ التوقيعِ ci.yml."
+      done < <(sed -nE 's/^STEP [0-9]+ token=[01] args=([^ ]+) .*/\1/p' <<< "$POS" | grep -v '^-$' | tr ',' '\n' | sort -u)
+    fi
     grep -Eq '^[[:space:]]*continue-on-error:[[:space:]]*true' <<< "$ISC" \
       && fail "$f: continue-on-error في وظيفةِ image-supply-chain — فشلُ التحقّقِ لا يُفشِلُ الوظيفة (CLM-0576)."
   fi

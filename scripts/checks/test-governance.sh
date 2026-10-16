@@ -1571,6 +1571,13 @@ _live_step_has_token() {
   awk '/^      - /{inlive=0} /^      - name: "تحقُّقُ الإثباتِ — حالاتٌ موجبةٌ وسالبةٌ حيّة/{inlive=1} inlive && /^[[:space:]]+GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}/{n++} END{exit !(n==1)}' "$R/.github/workflows/ci.yml"
 }
 
+# _pos_step_has_token <sed> — بعدَ الطفرة: خطوةُ «تحقُّقٌ من الإثباتِ» الموجبةُ ما تزالُ
+# تحملُ GH_TOKEN: ${{ github.token }} (سطرٌ واحد) — فالرفضُ لا يأتي من غيابِ الرمز.
+_pos_step_has_token() {
+  local R; R="$(_wf_root)"; sed -i "$1" "$R/.github/workflows/ci.yml"
+  awk '/^      - /{inpos=0} /^      - name: "تحقُّقٌ من الإثباتِ"[[:space:]]*$/{inpos=1} inpos && /^[[:space:]]+GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}[[:space:]]*$/{n++} END{exit !(n==1)}' "$R/.github/workflows/ci.yml"
+}
+
 # (1) الحالةُ الموجبةُ: الشجرةُ كما هي تمرُّ — فلو أخفقت لكانَ كلُّ رفضٍ بعدَها بلا معنى.
 t "الحارسُ يمرُّ على شجرةِ المستودعِ" pass bash "$WFG" "$T"
 
@@ -1655,6 +1662,22 @@ POS_TOKEN_MUT='/^          GH_TOKEN: ${{ github.token }}$/{N;/ATTEST_EVIDENCE_DI
 t "طفرةُ الرمزِ تُبقيه في الخطوةِ الحيّة" pass _live_step_has_token "$POS_TOKEN_MUT"
 t "غيابُ GH_TOKEN عن الخطوةِ الموجبةِ وحدَها يُرفَضُ لهذا السبب" pass \
   _wf_why "$POS_TOKEN_MUT" ci.yml "غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها"
+
+# (25)–(28) CLM-0576 (مراجعةُ المالك): الاستدعاءُ التنفيذيُّ يُقاس، لا ظهورُ الاسم.
+# الطفرةُ تحوّلُ سطرَ استدعاءِ السكربتِ إلى تعليقِ shell داخلَ run:، وتُبقي
+# GH_TOKEN: ${{ github.token }} في الخطوةِ نفسِها ⇒ يجبُ أن يُرفَضَ لغيابِ الاستدعاءِ
+# التنفيذيِّ وحدَه (لا للرمزِ ولا لغيرِه). والحارسُ السابقُ كان يقبلُ صيغتَي echo
+# والتعليقِ اللاحقِ (exit 0)، ويرفضُ التعليقَ الكاملَ بثلاثةِ أسبابٍ متشابكة.
+CALL_COMMENT_MUT='s|^          bash scripts/ci/verify-sbom-attestations.sh|          # bash scripts/ci/verify-sbom-attestations.sh|'
+t "طفرةُ التعليقِ تُبقي GH_TOKEN في الخطوةِ الموجبة" pass _pos_step_has_token "$CALL_COMMENT_MUT"
+t "استدعاءُ التحقّقِ المعلَّقُ يُرفَضُ لغيابِ الاستدعاءِ التنفيذيّ" pass \
+  _wf_why "$CALL_COMMENT_MUT" ci.yml "لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run:"
+t "اسمُ السكربتِ في نصِّ echo يُرفَضُ لغيابِ الاستدعاءِ التنفيذيّ" pass \
+  _wf_why 's|^          bash scripts/ci/verify-sbom-attestations.sh|          echo scripts/ci/verify-sbom-attestations.sh|' ci.yml \
+  "لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run:"
+t "الاستدعاءُ في تعليقٍ لاحقٍ (true # …) يُرفَضُ لغيابِ الاستدعاءِ التنفيذيّ" pass \
+  _wf_why 's|^          bash scripts/ci/verify-sbom-attestations.sh|          true  # bash scripts/ci/verify-sbom-attestations.sh|' ci.yml \
+  "لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run:"
 
 printf '\n\033[1m[ي] تدقيقُ الاعتمادياتِ والثغرات (M0-06)\033[0m\n'
 # الحارسُ يسأل مُسجَّلَ npm عبرَ الشبكةِ، ويقرأ `package.json` و`SECURITY_RULES.md`.
