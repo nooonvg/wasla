@@ -178,30 +178,28 @@ for f in "${ON_DISK[@]}"; do
     # كليهما مقيّدةً بـ ci.yml، والرمزُ ممرَّرٌ، ولا قناعَ (|| echo · || true · || :)
     # ولا continue-on-error يحوّلُ فشلَها أخضرَ. (العيبُ الذي اكتُشفَ بعدَ دمجِ CLM-0575.)
     JOINED="$(sed -e ':a' -e '/\\$/N; s/\\\n/ /; ta' <<< "$LIVE")"
-    grep -Eq '(verify-sbom-attestations\.sh|gh attestation verify)[^#]*\|\|' <<< "$JOINED" \
+    # قناعُ `gh attestation verify` الخامِ (العيبُ الأصليّ). استدعاءُ البوّابةِ نفسِها يُقاسُ أدناه بالصيغةِ المعلَنة.
+    grep -Eq 'gh attestation verify[^#]*\|\|' <<< "$JOINED" \
       && fail "$f: تحقُّقُ الإثباتِ مقنَّعٌ بـ '||' — فشلُه يصيرُ أخضرَ. يُحذَفُ القناعُ (CLM-0576)."
     grep -Eq 'WARN: attestation verify' <<< "$LIVE" \
       && fail "$f: تحذيرُ الإصدارِ يُمرِّرُ فشلَ التحقّق — ممنوعٌ (CLM-0576)."
     ISC="$(awk '/^  image-supply-chain:/{on=1; next} on && /^  [A-Za-z0-9_-]+:[[:space:]]*$/{on=0} on' <<< "$LIVE")"
-    # الاستدعاءُ التنفيذيُّ يُقاسُ لا يُبحَثُ عنه نصًّا (CLM-0576 · مراجعةُ المالك):
-    # lib/attest_verify_step.py يقرأُ كتلةَ run: لكلِّ خطوةٍ في image-supply-chain،
-    # ويحذفُ تعليقاتِ YAML وshell، ويضمُّ الأسطرَ المستمرّة، ويعُدُّ خطوةً «موجبةً» فقط إن
-    # كان فيها **أمرٌ** يبدأُ بـ [bash ]scripts/ci/verify-sbom-attestations.sh. اسمُ السكربتِ
-    # في تعليقٍ أو اسمِ خطوةٍ أو نصِّ echo ليس استدعاءً. ثمّ يُقاسُ في تلك الخطوةِ نفسِها:
-    # GH_TOKEN: ${{ github.token }} في env، والملفّانِ وسيرُ التوقيعِ ci.yml في الأمر.
-    # وجودُ الرمزِ في خطوةِ الاختباراتِ الحيّةِ وحدَها لا يُغني.
-    POS="$(python3 "$GUARD_LIB/attest_verify_step.py" "$P" 2>&1)" \
-      || fail "$f: تعذّرَ قياسُ خطوةِ التحقّقِ الموجبة: $POS"
-    POS_N="$(sed -nE 's/^CALLS ([0-9]+)$/\1/p' <<< "$POS")"
-    if [[ "${POS_N:-0}" -eq 0 ]]; then
-      fail "$f: لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run: في خطوةٍ من image-supply-chain — ظهورُ اسمِه في تعليقِ YAML أو shell أو نصٍّ ليس تحقّقًا (CLM-0576)."
-    else
-      grep -Eq '^STEP [0-9]+ token=0 ' <<< "$POS" \
-        && fail "$f: GH_TOKEN: \${{ github.token }} غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها (verify-sbom-attestations.sh) — وجودُه في خطوةٍ أخرى لا يُغني؛ gh يفشلُ بلا مصادقة (CLM-0576)."
-      while read -r miss; do
-        [[ -n "$miss" ]] || continue
-        fail "$f: تحقُّقُ الإثباتِ لا يشملُ '$miss' — يُتحقَّقُ من الملفَّينِ كليهما مقيّدَينِ بسيرِ التوقيعِ ci.yml."
-      done < <(sed -nE 's/^STEP [0-9]+ token=[01] args=([^ ]+) .*/\1/p' <<< "$POS" | grep -v '^-$' | tr ',' '\n' | sort -u)
+    # خطوةُ التحقّقِ الموجبةُ بصيغةٍ ضيّقةٍ معلَنة، والقرارُ fail-closed (CLM-0576 · مراجعةُ المالك):
+    # lib/attest_verify_step.py يقبلُ خطوةً واحدةً بشكلٍ واحد — shell: bash · env فيه
+    # GH_TOKEN: ${{ github.token }} (وATTEST_EVIDENCE_DIR اختياريًّا) · run: يبدأُ بـ
+    # set -euo pipefail ثمّ سطرُ الاستدعاءِ المعلَنُ حرفيًّا (مع `| tee` اختياريًّا) — ويرفضُ
+    # كلَّ ما سواه: مشغّلاتٍ شرطيّة (&& · || · ; · if)، وسطورًا زائدة، ومفاتيحَ (if ·
+    # continue-on-error)، ومتغيّراتِ بيئةٍ أخرى، واستدعاءً معلَّقًا أو داخلَ نصّ. لا يُعَدُّ
+    # قبولًا إلا سطرُ «OK» بلا أيِّ «REASON»؛ وخطأُ المحلّلِ أو مخرَجٌ غيرُ متوقَّعٍ رفض.
+    POS_RC=0; POS="$(python3 "$GUARD_LIB/attest_verify_step.py" "$P" 2>&1)" || POS_RC=$?
+    if (( POS_RC != 0 )); then
+      fail "$f: تعذّرَ قياسُ خطوةِ التحقّقِ الموجبة (exit $POS_RC) — يُرفَضُ احتياطًا: $POS"
+    elif grep -q '^REASON ' <<< "$POS"; then
+      while IFS= read -r r; do
+        fail "$f: ${r#REASON * }"
+      done < <(grep '^REASON ' <<< "$POS")
+    elif ! grep -Eq '^OK step=[0-9]+$' <<< "$POS"; then
+      fail "$f: مخرَجُ قياسِ خطوةِ التحقّقِ الموجبةِ غيرُ متوقَّع — يُرفَضُ احتياطًا: $POS"
     fi
     grep -Eq '^[[:space:]]*continue-on-error:[[:space:]]*true' <<< "$ISC" \
       && fail "$f: continue-on-error في وظيفةِ image-supply-chain — فشلُ التحقّقِ لا يُفشِلُ الوظيفة (CLM-0576)."

@@ -1672,12 +1672,49 @@ CALL_COMMENT_MUT='s|^          bash scripts/ci/verify-sbom-attestations.sh|     
 t "طفرةُ التعليقِ تُبقي GH_TOKEN في الخطوةِ الموجبة" pass _pos_step_has_token "$CALL_COMMENT_MUT"
 t "استدعاءُ التحقّقِ المعلَّقُ يُرفَضُ لغيابِ الاستدعاءِ التنفيذيّ" pass \
   _wf_why "$CALL_COMMENT_MUT" ci.yml "لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run:"
-t "اسمُ السكربتِ في نصِّ echo يُرفَضُ لغيابِ الاستدعاءِ التنفيذيّ" pass \
+# (27) عُدِّلَ توقُّعُه في التصحيحِ الثالث: ذكرُ المسارِ في سطرٍ تنفيذيٍّ بغيرِ الصيغةِ المعلَنة
+# صارَ «صيغةً غيرَ مدعومة» (fail-closed) — رفضٌ أدقُّ من «لا استدعاء».
+t "اسمُ السكربتِ في نصِّ echo يُرفَضُ صيغةً غيرَ مدعومة" pass \
   _wf_why 's|^          bash scripts/ci/verify-sbom-attestations.sh|          echo scripts/ci/verify-sbom-attestations.sh|' ci.yml \
-  "لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run:"
+  "بصيغةٍ غيرِ مدعومةٍ في الخطوة"
 t "الاستدعاءُ في تعليقٍ لاحقٍ (true # …) يُرفَضُ لغيابِ الاستدعاءِ التنفيذيّ" pass \
   _wf_why 's|^          bash scripts/ci/verify-sbom-attestations.sh|          true  # bash scripts/ci/verify-sbom-attestations.sh|' ci.yml \
   "لا استدعاءَ تنفيذيَّ لـ scripts/ci/verify-sbom-attestations.sh داخلَ run:"
+
+# (29)–(40) CLM-0576 (مراجعةُ المالك، التصحيحُ الثالث): خطوةُ التحقّقِ الموجبةُ بصيغةٍ ضيّقةٍ
+# معلَنة، والقرارُ fail-closed. المشغّلاتُ الشرطيّةُ التي قد تبتلعُ فشلَ التحقّق
+# (&& · ; · || · if)، والسطورُ والمفاتيحُ ومتغيّراتُ البيئةِ الزائدة، ونقصُ pipefail —
+# كلُّها تُرفَضُ بسببِها. والحارسُ السابقُ (4bb60023) كان يقبلُ 11 منها (exit 0).
+_ATT_TEE='            2>\&1 | tee artifacts/attestation-verify/positive-both.txt'
+_ATT_TEE_RE='^            2>&1 | tee artifacts/attestation-verify/positive-both.txt$'
+_ATT_CALL='^          bash scripts/ci/verify-sbom-attestations.sh'
+_ATT_UNSUP="قد يحوّلُ فشلَ التحقّقِ نجاحًا نهائيًّا"
+t "النسخةُ السليمةُ تُقبَل: المحلّلُ يُخرجُ OK لخطوةِ التحقّقِ الموجبة" pass \
+  bash -c 'o="$(python3 "$1/scripts/checks/lib/attest_verify_step.py" "$1/.github/workflows/ci.yml")" && [[ "$o" =~ ^OK\ step=[0-9]+$ ]]' _ "$T"
+t "true && bash …; true يُرفَضُ لاحتمالِ تحوّلِ الفشلِ نجاحًا" pass \
+  _wf_why "s#${_ATT_CALL}#          true \\&\\& bash scripts/ci/verify-sbom-attestations.sh#;s#${_ATT_TEE_RE}#${_ATT_TEE}; true#" ci.yml "$_ATT_UNSUP"
+t "bash … && true; true يُرفَضُ لاحتمالِ تحوّلِ الفشلِ نجاحًا" pass \
+  _wf_why "s#${_ATT_TEE_RE}#${_ATT_TEE} \\&\\& true; true#" ci.yml "$_ATT_UNSUP"
+t "bash … || true يُرفَضُ صيغةً غيرَ مدعومة" pass \
+  _wf_why "s#${_ATT_TEE_RE}#${_ATT_TEE} || true#" ci.yml "$_ATT_UNSUP"
+t "bash …; true يُرفَضُ صيغةً غيرَ مدعومة" pass \
+  _wf_why "s#${_ATT_TEE_RE}#${_ATT_TEE}; true#" ci.yml "$_ATT_UNSUP"
+t "if bash …; then :; fi يُرفَضُ صيغةً غيرَ مدعومة" pass \
+  _wf_why "s#${_ATT_CALL}#          if bash scripts/ci/verify-sbom-attestations.sh#;s#${_ATT_TEE_RE}#${_ATT_TEE}; then :; fi#" ci.yml "$_ATT_UNSUP"
+t "سطرُ exit 0 بعدَ الاستدعاءِ يُرفَض" pass \
+  _wf_why "s#${_ATT_TEE_RE}#${_ATT_TEE}\\n          exit 0#" ci.yml "سطرٌ غيرُ مدعومٍ بعدَ الاستدعاءِ"
+t "غيابُ pipefail (set -eu) يُرفَض" pass \
+  _wf_why 's#^          set -euo pipefail$#          set -eu#' ci.yml "ليس «set -euo pipefail»"
+t "set +e قبلَ الاستدعاءِ يُرفَض" pass \
+  _wf_why 's#^          mkdir -p artifacts/attestation-verify$#          set +e#' ci.yml "سطرٌ غيرُ مدعومٍ قبلَ الاستدعاءِ"
+t "if: على خطوةِ التحقّقِ الموجبةِ يُرفَض" pass \
+  _wf_why 's#^      - name: "تحقُّقٌ من الإثباتِ"$#      - name: "تحقُّقٌ من الإثباتِ"\n        if: false#' ci.yml "مفاتيحَ غيرَ مدعومة: if"
+t "BASH_ENV في خطوةِ التحقّقِ الموجبةِ يُرفَض" pass \
+  _wf_why 's#^          ATTEST_EVIDENCE_DIR: artifacts/attestation-verify/positive$#          ATTEST_EVIDENCE_DIR: artifacts/attestation-verify/positive\n          BASH_ENV: /tmp/x#' ci.yml "متغيّراتُ بيئةٍ غيرُ مدعومةٍ"
+t "shell: sh في خطوةِ التحقّقِ الموجبةِ يُرفَض" pass \
+  _wf_why '/^      - name: "تحقُّقٌ من الإثباتِ"$/{n;s#^        shell: bash$#        shell: sh#}' ci.yml "بلا «shell: bash» حرفيًّا"
+t "if: على مستوى وظيفةِ image-supply-chain يُرفَض" pass \
+  _wf_why 's#^    name: image-supply-chain$#    name: image-supply-chain\n    if: false#' ci.yml "مشروطةٌ بـ if: على مستوى الوظيفة"
 
 printf '\n\033[1m[ي] تدقيقُ الاعتمادياتِ والثغرات (M0-06)\033[0m\n'
 # الحارسُ يسأل مُسجَّلَ npm عبرَ الشبكةِ، ويقرأ `package.json` و`SECURITY_RULES.md`.

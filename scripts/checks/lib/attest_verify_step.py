@@ -1,24 +1,48 @@
 #!/usr/bin/env python3
 """CLM-0576 — يقيسُ خطوةَ التحقّقِ الموجبةَ في وظيفةِ image-supply-chain من ci.yml.
 
-لا يكفي ظهورُ اسمِ السكربتِ في الملفّ: تعليقُ YAML، أو تعليقُ shell داخلَ run:،
-أو اسمُ خطوة، أو نصٌّ داخلَ echo — كلُّها ليست استدعاءً. يُعَدُّ الاستدعاءُ تنفيذيًّا
-فقط إن كان **أمرًا** في كتلةِ run: لخطوةٍ من الوظيفة: سطرٌ منطقيٌّ (بعدَ حذفِ تعليقاتِ
-shell وضمِّ الأسطرِ المستمرّةِ بـ\\) يبدأُ بـ `[bash ]scripts/ci/verify-sbom-attestations.sh`
-— في أوّلِ السطرِ أو بعدَ `;` أو `&&`.
+**صيغةٌ ضيّقةٌ معلَنة، وقرارٌ fail-closed.** لا يحاولُ المحلّلُ تفسيرَ تراكيبِ Bash؛ بل
+يقبلُ خطوةً واحدةً بشكلٍ واحدٍ معلَن، ويرفضُ كلَّ ما سواه:
+
+  - name: "<أيُّ اسم>"
+    shell: bash                                   # حرفيًّا
+    env:                                          # مفتاحانِ فقط
+      GH_TOKEN: ${{ github.token }}               # إلزاميّ
+      ATTEST_EVIDENCE_DIR: <مسار>                 # اختياريّ
+    run: |
+      set -euo pipefail                           # أوّلُ أمرٍ، إلزاميّ
+      mkdir -p artifacts/attestation-verify       # اختياريّ
+      bash scripts/ci/verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/ci.yml \\
+        artifacts/sbom/pass1.cdx.json artifacts/sbom/pass2.cdx.json \\
+        [2>&1 | tee artifacts/attestation-verify/<ملف>.txt]
+
+لا `if:` ولا `continue-on-error` ولا `working-directory` ولا مفاتيحَ أخرى في الخطوة. أيُّ
+ذكرٍ تنفيذيٍّ (خارجَ التعليقات) لـ scripts/ci/verify-sbom-attestations.sh في أيِّ خطوةٍ من
+الوظيفةِ لا يطابقُ سطرَ الاستدعاءِ المعلَنَ حرفيًّا — `true && bash …`، `bash … && true; true`،
+`bash … || true`، `if bash …`، `echo …`، وسيطٌ ناقص — **صيغةٌ غيرُ مدعومة ⇒ رفض**، لأنّ
+المشغّلاتِ الشرطيّةَ قد تحوّلُ فشلَ التحقّقِ نجاحًا نهائيًّا. `| tee` مقبولٌ لأنّ
+`set -o pipefail` إلزاميٌّ قبلَه.
 
 الاستعمال: attest_verify_step.py <ci.yml>
-المخرَج (سطرٌ لكلِّ خطوةٍ فيها استدعاءٌ تنفيذيّ، ثمّ ملخّص):
-  STEP <idx> token=<0|1> args=<قائمةُ الناقصِ أو -> mask=<0|1>
-  CALLS <n>
+المخرَج: سطرُ `OK step=<n>` عندَ القبول، أو سطرٌ أو أكثرُ `REASON <code> <نص>` عندَ الرفض.
+لا يُعَدُّ غيرُ ذلك قبولًا (الحارسُ fail-closed): خطأٌ في المحلّلِ أو مخرَجٌ بلا OK ⇒ رفض.
 """
 import re
 import sys
 
 SCRIPT = "scripts/ci/verify-sbom-attestations.sh"
-CALL_RE = re.compile(r"(?:^|;|&&)\s*(?:bash\s+)?(?:\./)?" + re.escape(SCRIPT) + r"(?=\s|$)")
-TOKEN_RE = re.compile(r"^GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}\s*$")
-NEEDS = ("artifacts/sbom/pass1.cdx.json", "artifacts/sbom/pass2.cdx.json", ".github/workflows/ci.yml")
+# ذكرُ المسارِ كاملًا بحدٍّ يسارٍ (فلا يطابقُ scripts/ci/test-verify-sbom-attestations*.sh)
+MENTION_RE = re.compile(r"(?<![A-Za-z0-9_./-])" + re.escape(SCRIPT) + r"(?![A-Za-z0-9_.-])")
+CALL_RE = re.compile(
+    r"^bash " + re.escape(SCRIPT)
+    + r' "\$\{\{ github\.repository \}\}" \.github/workflows/ci\.yml'
+    + r" artifacts/sbom/pass1\.cdx\.json artifacts/sbom/pass2\.cdx\.json"
+    + r"(?: 2>&1 \| tee artifacts/attestation-verify/[A-Za-z0-9._-]+\.txt)?$"
+)
+ALLOWED_PRE = ("set -euo pipefail", "mkdir -p artifacts/attestation-verify")
+TOKEN_RE = re.compile(r"^\$\{\{\s*github\.token\s*\}\}$")
+ALLOWED_ENV = {"GH_TOKEN", "ATTEST_EVIDENCE_DIR"}
+ALLOWED_STEP_KEYS = {"name", "shell", "env", "run"}
 
 
 def indent(line: str) -> int:
@@ -26,7 +50,7 @@ def indent(line: str) -> int:
 
 
 def strip_shell_comment(line: str) -> str:
-    """يحذفُ تعليقَ shell: سطرٌ يبدأُ بـ# أو ` #` خارجَ علاماتِ الاقتباس."""
+    """يحذفُ تعليقَ shell: `#` في أوّلِ كلمةٍ خارجَ علاماتِ الاقتباس."""
     out, q = [], None
     for i, ch in enumerate(line):
         if q:
@@ -41,61 +65,63 @@ def strip_shell_comment(line: str) -> str:
 
 
 def logical_lines(run_lines):
+    """أسطرٌ منطقيّة: بلا تعليقات، مع ضمِّ `\\`، ومسافاتٌ موحَّدة."""
     buf = ""
     for raw in run_lines:
         s = raw.strip()
         if not s or s.startswith("#"):
-            # سطرُ تعليقٍ لا يُكمِلُ ولا يُستكمَل
             if buf:
-                yield buf
+                yield " ".join(buf.split())
                 buf = ""
             continue
         s = strip_shell_comment(s)
         if s.endswith("\\"):
             buf += s[:-1] + " "
             continue
-        yield buf + s
+        yield " ".join((buf + s).split())
         buf = ""
     if buf:
-        yield buf
+        yield " ".join(buf.split())
 
 
-def job_lines(text: str, job: str):
-    lines = text.splitlines()
-    on, out = False, []
-    for ln in lines:
+def job_block(text: str, job: str):
+    out, on = [], False
+    for ln in text.splitlines():
         if re.match(r"^  " + re.escape(job) + r":\s*$", ln):
             on = True
             continue
-        if on and re.match(r"^  [A-Za-z0-9_-]+:\s*$", ln):
-            break
-        if on and re.match(r"^\S", ln):
+        if on and (re.match(r"^  [A-Za-z0-9_-]+:\s*$", ln) or re.match(r"^\S", ln)):
             break
         if on:
             out.append(ln)
     return out
 
 
-def steps(lines):
-    cur = None
-    for ln in lines:
+def split_steps(job_lines):
+    head, steps, cur, in_steps = [], [], None, False
+    for ln in job_lines:
+        if re.match(r"^    steps:\s*$", ln):
+            in_steps = True
+            continue
+        if not in_steps:
+            head.append(ln)
+            continue
         if re.match(r"^      - ", ln):
             if cur is not None:
-                yield cur
+                steps.append(cur)
             cur = [ln]
         elif cur is not None:
             cur.append(ln)
     if cur is not None:
-        yield cur
+        steps.append(cur)
+    return head, steps
 
 
-def analyse(step):
-    """يعيدُ (أسطرُ run، أسطرُ env) للخطوة — بلا تعليقاتِ YAML خارجَ كتلةِ run."""
-    # أوّلُ سطرٍ "      - key: v" ⇒ مفاتيحُ الخطوةِ على عمقِ 8
-    first = step[0]
-    norm = ["        " + first[8:]] + step[1:]
-    run, env = [], []
-    mode, block_indent = None, None
+def parse_step(step):
+    """يعيدُ (مفاتيح, run, env) — المفاتيحُ على عمقِ 8، بلا تعليقاتِ YAML."""
+    norm = ["        " + step[0][8:]] + step[1:]
+    keys, run, env = {}, [], {}
+    mode = None
     for ln in norm:
         if mode == "run":
             if ln.strip() == "" or indent(ln) > 8:
@@ -106,40 +132,104 @@ def analyse(step):
             if ln.strip() == "" or ln.lstrip().startswith("#"):
                 continue
             if indent(ln) > 8:
-                env.append(ln.strip())
+                m = re.match(r"^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.*?)\s*$", ln)
+                if m:
+                    env[m.group(1)] = strip_shell_comment(m.group(2)) if " #" in m.group(2) else m.group(2)
+                else:
+                    env["<unparsed>"] = ln.strip()
                 continue
             mode = None
-        if ln.lstrip().startswith("#"):
-            continue  # تعليقُ YAML على مستوى الخطوة
-        m = re.match(r"^        run:\s*(.*)$", ln)
-        if m:
-            v = m.group(1).strip()
+        if ln.strip() == "" or ln.lstrip().startswith("#"):
+            continue
+        m = re.match(r"^        ([A-Za-z0-9_-]+):\s*(.*?)\s*$", ln)
+        if not m:
+            keys.setdefault("<unparsed>", ln.strip())
+            continue
+        k, v = m.group(1), m.group(2)
+        keys[k] = v
+        if k == "run":
             if re.match(r"^[|>][-+]?\s*(#.*)?$", v):
                 mode = "run"
-            elif v and not v.startswith("#"):
-                run.append(v.strip("'\"") if (v[:1] in "'\"" and v[-1:] == v[:1]) else v)
-            continue
-        if re.match(r"^        env:\s*(#.*)?$", ln):
+            elif v:
+                run.append(v)
+        elif k == "env" and (v == "" or v.startswith("#")):
             mode = "env"
-            continue
-    return run, env
+    return keys, run, env
 
 
 def main() -> int:
     text = open(sys.argv[1], encoding="utf-8").read()
-    calls = 0
-    for idx, step in enumerate(steps(job_lines(text, "image-supply-chain"))):
-        run, env = analyse(step)
-        hits = [l for l in logical_lines(run) if CALL_RE.search(l)]
-        if not hits:
+    head, steps = split_steps(job_block(text, "image-supply-chain"))
+    reasons = []
+
+    def reason(code, msg):
+        reasons.append(f"REASON {code} {msg}")
+
+    # الوظيفةُ نفسُها: `if:` على مستوى الوظيفةِ قد يتخطّاها فتُعَدُّ «ناجحة».
+    for ln in head:
+        if re.match(r"^    if:", ln):
+            reason("job-if", "image-supply-chain مشروطةٌ بـ if: على مستوى الوظيفة — قد تُتخطّى فيُعَدُّ تخطّيها نجاحًا.")
+
+    positive, bad_calls = [], []
+    for idx, st in enumerate(steps):
+        keys, run, env = parse_step(st)
+        lines = list(logical_lines(run))
+        mentions = [l for l in lines if MENTION_RE.search(l)]
+        if not mentions:
             continue
-        calls += 1
-        token = int(any(TOKEN_RE.match(e) for e in env))
-        joined = " ".join(hits)
-        missing = [n for n in NEEDS if n not in joined]
-        mask = int(any(re.search(re.escape(SCRIPT) + r".*\|\|", h) for h in hits))
-        print(f"STEP {idx} token={token} args={','.join(missing) or '-'} mask={mask}")
-    print(f"CALLS {calls}")
+        exact = [l for l in mentions if CALL_RE.match(l)]
+        if len(exact) == 1 and len(mentions) == 1:
+            positive.append((idx, keys, lines, env, exact[0]))
+        else:
+            bad_calls.append((idx, [l for l in mentions if not CALL_RE.match(l)] or mentions))
+
+    for idx, ls in bad_calls:
+        for l in ls:
+            reason("unsupported-call",
+                   f"استدعاءُ {SCRIPT} بصيغةٍ غيرِ مدعومةٍ في الخطوة {idx}: «{l}» — "
+                   "مشغّلٌ شرطيٌّ أو تركيبٌ (&& · || · ; · if · echo · وسيطٌ مختلف) قد يحوّلُ فشلَ التحقّقِ "
+                   "نجاحًا نهائيًّا. المقبولُ سطرُ الاستدعاءِ المعلَنُ وحدَه.")
+
+    if not positive and not bad_calls:
+        reason("no-call",
+               f"لا استدعاءَ تنفيذيَّ لـ {SCRIPT} داخلَ run: في خطوةٍ من image-supply-chain — "
+               "ظهورُ اسمِه في تعليقِ YAML أو shell أو نصٍّ ليس تحقّقًا (CLM-0576).")
+    if len(positive) > 1:
+        reason("multi-step", f"أكثرُ من خطوةٍ تستدعي {SCRIPT} ({len(positive)}) — الصيغةُ المعلَنةُ خطوةٌ واحدة.")
+
+    if len(positive) == 1 and not bad_calls:
+        idx, keys, lines, env, call = positive[0]
+        extra_keys = sorted(set(keys) - ALLOWED_STEP_KEYS)
+        if extra_keys:
+            reason("step-keys",
+                   f"خطوةُ التحقّقِ الموجبةُ تحملُ مفاتيحَ غيرَ مدعومة: {', '.join(extra_keys)} — "
+                   "(if · continue-on-error · working-directory …) قد تتخطّاها أو تُقنِّعُ فشلَها.")
+        if keys.get("shell") != "bash":
+            reason("shell", f"خطوةُ التحقّقِ الموجبةُ بلا «shell: bash» حرفيًّا (القيمة: {keys.get('shell', '<غائب>')!r}).")
+        tok = env.get("GH_TOKEN")
+        if tok is None or not TOKEN_RE.match(tok):
+            reason("token",
+                   "GH_TOKEN: ${{ github.token }} غائبٌ عن خطوةِ التحقّقِ الموجبةِ نفسِها (verify-sbom-attestations.sh) — "
+                   "وجودُه في خطوةٍ أخرى لا يُغني؛ gh يفشلُ بلا مصادقة (CLM-0576).")
+        extra_env = sorted(set(env) - ALLOWED_ENV)
+        if extra_env:
+            reason("env-keys",
+                   f"متغيّراتُ بيئةٍ غيرُ مدعومةٍ في خطوةِ التحقّقِ الموجبة: {', '.join(extra_env)} — "
+                   "(مثلُ BASH_ENV) قد تغيّرُ سلوكَ الصدفة.")
+        pre = lines[: lines.index(call)]
+        post = lines[lines.index(call) + 1:]
+        if not pre or pre[0] != "set -euo pipefail":
+            reason("strict-mode", "أوّلُ أمرٍ في خطوةِ التحقّقِ الموجبةِ ليس «set -euo pipefail» — بلا pipefail يبتلعُ tee الفشل.")
+        for l in pre[1:]:
+            if l not in ALLOWED_PRE[1:]:
+                reason("extra-line", f"سطرٌ غيرُ مدعومٍ قبلَ الاستدعاءِ في خطوةِ التحقّقِ الموجبة: «{l}».")
+        for l in post:
+            reason("extra-line", f"سطرٌ غيرُ مدعومٍ بعدَ الاستدعاءِ في خطوةِ التحقّقِ الموجبة: «{l}» — قد يحوّلُ النتيجةَ النهائيّة.")
+
+    if reasons:
+        print("\n".join(reasons))
+    else:
+        print(f"OK step={positive[0][0]}")
     return 0
 
 
