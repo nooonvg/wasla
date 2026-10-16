@@ -1716,6 +1716,31 @@ t "shell: sh في خطوةِ التحقّقِ الموجبةِ يُرفَض" pas
 t "if: على مستوى وظيفةِ image-supply-chain يُرفَض" pass \
   _wf_why 's#^    name: image-supply-chain$#    name: image-supply-chain\n    if: false#' ci.yml "مشروطةٌ بـ if: على مستوى الوظيفة"
 
+# (42)–(47) CLM-0576 (مراجعةُ المالك، التصحيحُ الرابع): مفاتيحُ YAML المكرَّرةُ في خطوةِ التحقّق.
+# YAML يأخذُ آخرَ قيمةٍ للمفتاحِ المكرَّر، فيُنفَّذُ غيرُ ما قِيس؛ المحلّلُ يتعقّبُ كلَّ مفتاحٍ
+# قبلَ إدخالِه ويرفضُ التكرارَ (run · env · shell · متغيّرٌ داخلَ env) — لا يستبدلُ ولا يجمع.
+# كلُّ طفرةٍ تُبقي الرمزَ والوسائطَ؛ فالرفضُ بسببِ التكرارِ وحدَه (والحارسُ السابقُ 52b1a712 قبِلَها).
+_ATT_DUP="مفتاحُ YAML مكرَّرٌ في خطوةِ التحقّق"
+_ATT_ENV_RE='^          ATTEST_EVIDENCE_DIR: artifacts\/attestation-verify\/positive$'
+_dup_keeps_token_and_call() {  # $1=sed — الطفرةُ تُبقي GH_TOKEN وسطرَ الاستدعاءِ ووسائطَه
+  local R; R="$(_wf_root)"; sed -i "$1" "$R/.github/workflows/ci.yml"
+  local blk; blk="$(sed -n '/^      - name: "تحقُّقٌ من الإثباتِ"$/,/positive-both.txt$/p' "$R/.github/workflows/ci.yml")"
+  [[ "$blk" == *'GH_TOKEN: ${{ github.token }}'* && "$blk" == *'bash scripts/ci/verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/ci.yml'* \
+     && "$blk" == *'artifacts/sbom/pass1.cdx.json artifacts/sbom/pass2.cdx.json'* ]]
+}
+_ATT_DUP_RUN="/${_ATT_ENV_RE}/{n;s#^        run: |\$#        run: |\\n          set -euo pipefail\\n        run: |#}"
+t "طفرةُ run: المكرَّرِ تُبقي GH_TOKEN والاستدعاءَ ووسائطَه" pass _dup_keeps_token_and_call "$_ATT_DUP_RUN"
+t "run: مكرَّرٌ (set -euo pipefail ثمّ الاستدعاء) يُرفَضُ لتكرارِ مفتاحِ YAML" pass \
+  _wf_why "$_ATT_DUP_RUN" ci.yml "$_ATT_DUP"
+t "env: مكرَّرٌ (يحملُ GH_TOKEN نفسَه) يُرفَضُ لتكرارِ مفتاحِ YAML" pass \
+  _wf_why "/${_ATT_ENV_RE}/{s#\$#\\n        env:\\n          GH_TOKEN: \${{ github.token }}#}" ci.yml "$_ATT_DUP"
+t "shell: مكرَّرٌ يُرفَضُ لتكرارِ مفتاحِ YAML" pass \
+  _wf_why '/^      - name: "تحقُّقٌ من الإثباتِ"$/{n;s#^        shell: bash$#        shell: bash\n        shell: bash#}' ci.yml "$_ATT_DUP"
+t "GH_TOKEN مكرَّرٌ داخلَ env (الأخيرُ فارغ) يُرفَضُ لتكرارِ مفتاحِ YAML" pass \
+  _wf_why '/^          GH_TOKEN: ${{ github.token }}$/{N;/ATTEST_EVIDENCE_DIR/s#$#\n          GH_TOKEN: ""#}' ci.yml "$_ATT_DUP"
+t "run: true بعدَ كتلةِ الاستدعاءِ يُرفَضُ لتكرارِ مفتاحِ YAML" pass \
+  _wf_why '/^            2>&1 | tee artifacts\/attestation-verify\/positive-both.txt$/{s#$#\n        run: true#}' ci.yml "$_ATT_DUP"
+
 printf '\n\033[1m[ي] تدقيقُ الاعتمادياتِ والثغرات (M0-06)\033[0m\n'
 # الحارسُ يسأل مُسجَّلَ npm عبرَ الشبكةِ، ويقرأ `package.json` و`SECURITY_RULES.md`.
 # فتُبنى له **جذورٌ صناعيّةٌ** في /tmp، ويُغذَّى **مخارجَ تدقيقٍ مُصطنَعةً** عبرَ

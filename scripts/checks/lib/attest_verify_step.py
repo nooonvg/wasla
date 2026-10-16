@@ -16,6 +16,8 @@
         artifacts/sbom/pass1.cdx.json artifacts/sbom/pass2.cdx.json \\
         [2>&1 | tee artifacts/attestation-verify/<ملف>.txt]
 
+كلُّ مفتاحٍ مرّةً واحدة: تكرارُ run أو env أو shell أو غيرِها (أو متغيّرٍ داخلَ env) رفض —
+لأنّ YAML يأخذُ الأخيرَ فيُنفَّذُ غيرُ ما قِيس.
 لا `if:` ولا `continue-on-error` ولا `working-directory` ولا مفاتيحَ أخرى في الخطوة. أيُّ
 ذكرٍ تنفيذيٍّ (خارجَ التعليقات) لـ scripts/ci/verify-sbom-attestations.sh في أيِّ خطوةٍ من
 الوظيفةِ لا يطابقُ سطرَ الاستدعاءِ المعلَنَ حرفيًّا — `true && bash …`، `bash … && true; true`،
@@ -118,9 +120,14 @@ def split_steps(job_lines):
 
 
 def parse_step(step):
-    """يعيدُ (مفاتيح, run, env) — المفاتيحُ على عمقِ 8، بلا تعليقاتِ YAML."""
+    """يعيدُ (مفاتيح, run, env, مكرَّرات) — المفاتيحُ على عمقِ 8، بلا تعليقاتِ YAML.
+
+    كلُّ مفتاحٍ يُتعقَّبُ **قبلَ** إدخالِه في القاموس: مفتاحُ خطوةٍ مكرَّرٌ (run · env ·
+    shell · name · if …) أو متغيّرُ بيئةٍ مكرَّرٌ داخلَ env يُسجَّلُ في «مكرَّرات» ولا
+    يُستبدَلُ به السابقُ بصمت — لأنّ YAML يأخذُ الأخيرَ فتُنفَّذُ كتلةٌ غيرُ التي قِيست.
+    """
     norm = ["        " + step[0][8:]] + step[1:]
-    keys, run, env = {}, [], {}
+    keys, run, env, dups = {}, [], {}, []
     mode = None
     for ln in norm:
         if mode == "run":
@@ -134,6 +141,8 @@ def parse_step(step):
             if indent(ln) > 8:
                 m = re.match(r"^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.*?)\s*$", ln)
                 if m:
+                    if m.group(1) in env:
+                        dups.append("env." + m.group(1))
                     env[m.group(1)] = strip_shell_comment(m.group(2)) if " #" in m.group(2) else m.group(2)
                 else:
                     env["<unparsed>"] = ln.strip()
@@ -146,6 +155,8 @@ def parse_step(step):
             keys.setdefault("<unparsed>", ln.strip())
             continue
         k, v = m.group(1), m.group(2)
+        if k in keys:
+            dups.append(k)
         keys[k] = v
         if k == "run":
             if re.match(r"^[|>][-+]?\s*(#.*)?$", v):
@@ -154,7 +165,7 @@ def parse_step(step):
                 run.append(v)
         elif k == "env" and (v == "" or v.startswith("#")):
             mode = "env"
-    return keys, run, env
+    return keys, run, env, dups
 
 
 def main() -> int:
@@ -170,18 +181,27 @@ def main() -> int:
         if re.match(r"^    if:", ln):
             reason("job-if", "image-supply-chain مشروطةٌ بـ if: على مستوى الوظيفة — قد تُتخطّى فيُعَدُّ تخطّيها نجاحًا.")
 
-    positive, bad_calls = [], []
+    positive, bad_calls, dup_steps = [], [], []
     for idx, st in enumerate(steps):
-        keys, run, env = parse_step(st)
+        keys, run, env, dups = parse_step(st)
         lines = list(logical_lines(run))
         mentions = [l for l in lines if MENTION_RE.search(l)]
         if not mentions:
+            continue
+        if dups:
+            # fail-closed: مفاتيحُ مكرَّرةٌ تجعلُ ما يُنفَّذُ غيرَ ما يُقاس — لا تُقاسُ الخطوةُ بعدَها.
+            dup_steps.append((idx, sorted(set(dups))))
             continue
         exact = [l for l in mentions if CALL_RE.match(l)]
         if len(exact) == 1 and len(mentions) == 1:
             positive.append((idx, keys, lines, env, exact[0]))
         else:
             bad_calls.append((idx, [l for l in mentions if not CALL_RE.match(l)] or mentions))
+
+    for idx, ks in dup_steps:
+        reason("dup-key",
+               f"مفتاحُ YAML مكرَّرٌ في خطوةِ التحقّق {idx}: {', '.join(ks)} — YAML يأخذُ الأخيرَ ويُسقطُ السابقَ، "
+               "فيُنفَّذُ غيرُ ما يُقاس. يُكتَبُ كلُّ مفتاحٍ مرّةً واحدة.")
 
     for idx, ls in bad_calls:
         for l in ls:
@@ -190,14 +210,14 @@ def main() -> int:
                    "مشغّلٌ شرطيٌّ أو تركيبٌ (&& · || · ; · if · echo · وسيطٌ مختلف) قد يحوّلُ فشلَ التحقّقِ "
                    "نجاحًا نهائيًّا. المقبولُ سطرُ الاستدعاءِ المعلَنُ وحدَه.")
 
-    if not positive and not bad_calls:
+    if not positive and not bad_calls and not dup_steps:
         reason("no-call",
                f"لا استدعاءَ تنفيذيَّ لـ {SCRIPT} داخلَ run: في خطوةٍ من image-supply-chain — "
                "ظهورُ اسمِه في تعليقِ YAML أو shell أو نصٍّ ليس تحقّقًا (CLM-0576).")
     if len(positive) > 1:
         reason("multi-step", f"أكثرُ من خطوةٍ تستدعي {SCRIPT} ({len(positive)}) — الصيغةُ المعلَنةُ خطوةٌ واحدة.")
 
-    if len(positive) == 1 and not bad_calls:
+    if len(positive) == 1 and not bad_calls and not dup_steps:
         idx, keys, lines, env, call = positive[0]
         extra_keys = sorted(set(keys) - ALLOWED_STEP_KEYS)
         if extra_keys:
