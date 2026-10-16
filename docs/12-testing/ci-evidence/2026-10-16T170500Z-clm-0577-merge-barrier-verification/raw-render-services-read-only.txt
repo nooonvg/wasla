@@ -1,0 +1,30 @@
+# Render API read-only check — 2026-10-16T17:0xZ (UTC) — executor session
+# GET /v1/services?limit=100 with the key re-pasted by the owner in the executor conversation (new exposure, INC-0007)
+# NO VALUES RECORDED. No mutating call made.
+HTTP_STATUS=200
+TOTAL_SERVICES: 24
+WEB_SERVICES: 21 STATIC_SITES: 3
+wasla-alertmanager | web_service | numInstances: 1
+wasla-prometheus | web_service | numInstances: 1
+wasla-partner-bot | web_service | numInstances: 1
+wasla-driver-bot | web_service | numInstances: 1
+wasla-customer-bot | web_service | numInstances: 1
+wasla-admin-app | static_site | numInstances: None
+wasla-driver-app | static_site | numInstances: None
+wasla-customer-app | static_site | numInstances: None
+wasla-dispatch | web_service | numInstances: 1
+wasla-customers | web_service | numInstances: 1
+wasla-delivery | web_service | numInstances: 1
+wasla-matching | web_service | numInstances: 1
+wasla-geography | web_service | numInstances: 1
+wasla-marketplace | web_service | numInstances: 1
+wasla-audit | web_service | numInstances: 1
+wasla-subscriptions | web_service | numInstances: 1
+wasla-negotiations | web_service | numInstances: 1
+wasla-reputation | web_service | numInstances: 1
+wasla-drivers | web_service | numInstances: 1
+wasla-search | web_service | numInstances: 1
+wasla-orders | web_service | numInstances: 1
+wasla-identity | web_service | numInstances: 1
+wasla-otel-collector | web_service | numInstances: 1
+wasla-observability | web_service | numInstances: 1
