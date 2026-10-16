@@ -1,0 +1,38 @@
+# image-supply-chain · run 38845059289 · attempt 1 · job 116793593794 · excerpt (step 12 'إثباتُ أصلِ قوائمِ الموادِ (M6-19C)') — gh run view --attempt 1 --log --job 116793593794, captured 2026-10-16T03:59:19Z
+﻿2026-10-16T03:22:15.9618715Z ##[group]Run actions/attest-build-provenance@v2
+2026-10-16T03:22:15.9619066Z with:
+2026-10-16T03:22:15.9619414Z   subject-path: artifacts/sbom/pass1.cdx.json
+artifacts/sbom/pass2.cdx.json
+
+2026-10-16T03:22:15.9619844Z   push-to-registry: false
+2026-10-16T03:22:15.9620087Z   show-summary: true
+2026-10-16T03:22:15.9622830Z   github-token: ***
+2026-10-16T03:22:15.9623051Z env:
+2026-10-16T03:22:15.9623242Z   NODE_VERSION: 20.20.1
+2026-10-16T03:22:15.9623480Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:22:15.9623694Z ##[endgroup]
+2026-10-16T03:22:15.9680817Z ##[start-action display=Run actions/attest-build-provenance/predicate@1176ef556905f349f669722abf30bce1a6e16e01;id=__actions_attest-build-provenance.generate-build-provenance-predicate]
+2026-10-16T03:22:15.9714854Z ##[group]Run actions/attest-build-provenance/predicate@1176ef556905f349f669722abf30bce1a6e16e01
+2026-10-16T03:22:15.9715327Z env:
+2026-10-16T03:22:15.9715526Z   NODE_VERSION: 20.20.1
+2026-10-16T03:22:15.9715749Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:22:15.9716005Z ##[endgroup]
+2026-10-16T03:22:16.2763828Z ##[end-action id=__actions_attest-build-provenance.generate-build-provenance-predicate;outcome=success;conclusion=success;duration_ms=308]
+2026-10-16T03:22:16.2770028Z ##[start-action display=Run actions/attest@ce27ba3b4a9a139d9a20a4a07d69fabb52f1e5bc;id=__actions_attest-build-provenance.attest]
+2026-10-16T03:22:16.2829338Z ##[group]Run actions/attest@ce27ba3b4a9a139d9a20a4a07d69fabb52f1e5bc
+2026-10-16T03:22:16.2829711Z with:
+2026-10-16T03:22:16.2830042Z   subject-path: artifacts/sbom/pass1.cdx.json
+artifacts/sbom/pass2.cdx.json
+
+2026-10-16T03:22:16.2830527Z   predicate-type: https://slsa.dev/provenance/v1
+2026-10-16T03:22:16.2833383Z   predicate: {"buildDefinition":{"buildType":"https://actions.github.io/buildtypes/workflow/v1","externalParameters":{"workflow":{"ref":"refs/pull/728/merge","repository":"https://github.com/skyosv10-art/wasla","path":".github/workflows/ci.yml"}},"internalParameters":{"github":{"event_name":"pull_request","repository_id":"1352934013","repository_owner_id":"291345653","runner_environment":"github-hosted"}},"resolvedDependencies":[{"uri":"git+https://github.com/skyosv10-art/wasla@refs/pull/728/merge","digest":{"gitCommit":"8791c428a9a1de831071ffe22a3731c0b1a060dc"}}]},"runDetails":{"builder":{"id":"https://github.com/skyosv10-art/wasla/.github/workflows/ci.yml@refs/pull/728/merge"},"metadata":{"invocationId":"https://github.com/skyosv10-art/wasla/actions/runs/38845059289/attempts/1"}}}
+2026-10-16T03:22:16.2836238Z   push-to-registry: false
+2026-10-16T03:22:16.2836487Z   show-summary: true
+2026-10-16T03:22:16.2839622Z   github-token: ***
+2026-10-16T03:22:16.2839860Z env:
+2026-10-16T03:22:16.2840062Z   NODE_VERSION: 20.20.1
+2026-10-16T03:22:16.2840295Z   PNPM_VERSION: 9.15.9
+2026-10-16T03:22:16.2840756Z ##[endgroup]
+2026-10-16T03:23:17.8081037Z ##[error]InternalError: error fetching tlog entry
+2026-10-16T03:23:17.8083285Z ^[[38;5;244mFetchError: network timeout at: https://rekor.sigstore.dev/api/v1/log/entries/108e9186e8c5677a0deb92ac15d65ec38bca2ac315644e953d0d6637d0a24380777a4dfcfba7aba6^[[39m
+2026-10-16T03:23:17.8153001Z ##[end-action id=__actions_attest-build-provenance.attest;outcome=failure;conclusion=failure;duration_ms=61538]
