@@ -1613,7 +1613,22 @@ t "ذكرُ النمطِ في تعليقٍ يمرُّ" pass _wf_append roadmap.y
 t "حذفُ خطوةِ إثباتِ أصلِ البناءِ يُرفَض" fail \
   _wf_sed '/actions\/attest-build-provenance/d' ci.yml
 t "حذفُ خطوةِ تحقُّقِ الإثباتِ يُرفَض" fail \
-  _wf_sed '/gh attestation verify/d' ci.yml
+  _wf_sed '/bash scripts\/ci\/verify-sbom-attestations.sh/d' ci.yml
+
+# (17)–(22) CLM-0576: التحقّقُ يتحقّقُ فعلًا — لا قناعَ، لا ملفَّ ناقصًا، لا رمزَ غائبًا،
+# لا continue-on-error. (العيبُ الذي اكتُشفَ بعدَ دمجِ CLM-0575: `|| echo WARN` بلا GH_TOKEN.)
+t "قناعُ '|| echo WARN' على تحقُّقِ الإثباتِ يُرفَض" fail \
+  _wf_sed 's|            artifacts/sbom/pass1.cdx.json artifacts/sbom/pass2.cdx.json \\$|            artifacts/sbom/pass1.cdx.json artifacts/sbom/pass2.cdx.json \|\| echo "WARN: attestation verify requires gh CLI 2.50+" \\|' ci.yml
+t "قناعُ '|| true' على تحقُّقِ الإثباتِ يُرفَض" fail \
+  _wf_sed 's|bash scripts/ci/verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/ci.yml \\$|bash scripts/ci/verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/ci.yml \|\| true \\|' ci.yml
+t "تحقُّقٌ من الملفِّ الأوّلِ وحدَه يُرفَض" fail \
+  _wf_sed 's|            artifacts/sbom/pass1.cdx.json artifacts/sbom/pass2.cdx.json \\$|            artifacts/sbom/pass1.cdx.json \\|' ci.yml
+t "غيابُ GH_TOKEN عن خطوةِ التحقّقِ يُرفَض" fail \
+  _wf_sed '/GH_TOKEN: ${{ github.token }}/d' ci.yml
+t "continue-on-error في image-supply-chain يُرفَض" fail \
+  _wf_sed 's|^    name: image-supply-chain$|    name: image-supply-chain\n    continue-on-error: true|' ci.yml
+t "سيرُ توقيعٍ غيرُ ci.yml في التحقّقِ يُرفَض" fail \
+  _wf_sed 's|verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/ci.yml|verify-sbom-attestations.sh "${{ github.repository }}" .github/workflows/other.yml|' ci.yml
 
 printf '\n\033[1m[ي] تدقيقُ الاعتمادياتِ والثغرات (M0-06)\033[0m\n'
 # الحارسُ يسأل مُسجَّلَ npm عبرَ الشبكةِ، ويقرأ `package.json` و`SECURITY_RULES.md`.

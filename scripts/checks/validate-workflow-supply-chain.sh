@@ -173,8 +173,28 @@ for f in "${ON_DISK[@]}"; do
   if [[ "$f" == "ci.yml" ]]; then
     grep -Eq 'actions/attest-build-provenance' <<< "$LIVE" \
       || fail "$f: خطوةُ إثباتِ أصلِ البناءِ (actions/attest-build-provenance) مفقودةٌ — M6-19C يتطلّبُ توقيعَ قوائمِ الموادِ."
-    grep -Eq 'gh attestation verify' <<< "$LIVE" \
-      || fail "$f: خطوةُ تحقُّقِ الإثباتِ (gh attestation verify) مفقودةٌ — الإثباتُ بلا تحقُّقٍ بيانٌ لا ضمانٌ."
+    # CLM-0576 — التحقّقُ يجبُ أن يتحقّقَ فعلًا: البوّابةُ الصارمةُ مستدعاةٌ للملفَّينِ
+    # كليهما مقيّدةً بـ ci.yml، والرمزُ ممرَّرٌ، ولا قناعَ (|| echo · || true · || :)
+    # ولا continue-on-error يحوّلُ فشلَها أخضرَ. (العيبُ الذي اكتُشفَ بعدَ دمجِ CLM-0575.)
+    JOINED="$(sed -e ':a' -e '/\\$/N; s/\\\n/ /; ta' <<< "$LIVE")"
+    VLINE="$(grep -E 'scripts/ci/verify-sbom-attestations\.sh' <<< "$JOINED" || true)"
+    [[ -n "$VLINE" ]] \
+      || fail "$f: خطوةُ تحقُّقِ الإثباتِ (scripts/ci/verify-sbom-attestations.sh) مفقودةٌ — الإثباتُ بلا تحقُّقٍ بيانٌ لا ضمانٌ."
+    if [[ -n "$VLINE" ]]; then
+      for need in 'artifacts/sbom/pass1\.cdx\.json' 'artifacts/sbom/pass2\.cdx\.json' '\.github/workflows/ci\.yml'; do
+        grep -Eq "$need" <<< "$VLINE" \
+          || fail "$f: تحقُّقُ الإثباتِ لا يشملُ '${need//\\/}' — يُتحقَّقُ من الملفَّينِ كليهما مقيّدَينِ بسيرِ التوقيعِ ci.yml."
+      done
+    fi
+    grep -Eq '(verify-sbom-attestations\.sh|gh attestation verify)[^#]*\|\|' <<< "$JOINED" \
+      && fail "$f: تحقُّقُ الإثباتِ مقنَّعٌ بـ '||' — فشلُه يصيرُ أخضرَ. يُحذَفُ القناعُ (CLM-0576)."
+    grep -Eq 'WARN: attestation verify' <<< "$LIVE" \
+      && fail "$f: تحذيرُ الإصدارِ يُمرِّرُ فشلَ التحقّق — ممنوعٌ (CLM-0576)."
+    grep -Eq 'GH_TOKEN:[[:space:]]*\$\{\{[[:space:]]*github\.token[[:space:]]*\}\}' <<< "$LIVE" \
+      || fail "$f: GH_TOKEN غيرُ ممرَّرٍ إلى خطوةِ تحقُّقِ الإثبات — gh يفشلُ بلا مصادقة (CLM-0576)."
+    ISC="$(awk '/^  image-supply-chain:/{on=1; next} on && /^  [A-Za-z0-9_-]+:[[:space:]]*$/{on=0} on' <<< "$LIVE")"
+    grep -Eq '^[[:space:]]*continue-on-error:[[:space:]]*true' <<< "$ISC" \
+      && fail "$f: continue-on-error في وظيفةِ image-supply-chain — فشلُ التحقّقِ لا يُفشِلُ الوظيفة (CLM-0576)."
   fi
 done
 
