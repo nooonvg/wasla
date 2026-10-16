@@ -15,8 +15,12 @@ name: RISK-0067 DR calibration — Supavisor session pool (DR only)
 #   negative control: sessions opened one by one up to k_neg — expect exactly one
 #                     EMAXCONNSESSION at session k_neg with server pool_size == S
 #   cleanup:          zero sessions tagged risk0067-calibration-<run_id> remain
+#   E (CLM-0573):     only client backends of the probe's user + database + pooler node; any such
+#                     backend ⇒ HOLD (session vs transaction mode not observable) — never approximated
+#   time (CLM-0573):  10 min total incl. a declared 90 s cleanup window (7 s after SIGINT/SIGTERM);
+#                     every connect / query / wait bounded by the time left in its phase
 # Exit: 0 CLIENT_OK · 1 FAIL · 3 HOLD · 2 guard refusal. CLIENT_OK is not PASS: PASS also
-# needs the event in DR supavisor_logs inside the window and full log coverage (plan §12).
+# needs the event in the target Supavisor log stream inside the window and full log coverage (plan §12).
 #
 # Triggers:
 #   pull_request → `selftest` only: pure tests + a throwaway postgres:17 (no secret).
@@ -142,12 +146,104 @@ jobs:
             a(r.reasons.some((x) => x.includes("not EMAXCONNSESSION")), "verdict must name the wrong kind");
             a(r.cleanup.remaining === 0, "cleanup must reach 0");
             console.log("case C ok:", r.verdict, r.reasons.join(" | "));'
+      - name: "Self-test fixtures for E: a second database, a second role, a session holder"
+        run: |
+          docker exec cal-pg psql -U postgres -c "CREATE DATABASE otherdb;" -c "CREATE ROLE other LOGIN;" >/dev/null
+          cat > /tmp/hold.cjs <<'JS'
+          // Holds one session (user, db from argv) until killed. No secret: trust auth on a throwaway container.
+          const { createRequire } = require("node:module");
+          const pg = createRequire(require("node:path").resolve("services/search/package.json"))("pg");
+          const [user, db, app] = process.argv.slice(2);
+          const c = new pg.Client({ host: "127.0.0.1", port: Number(process.env.PG_PORT), user, database: db, application_name: app });
+          c.connect().then(() => { console.log(`holding ${user}@${db}`); setInterval(() => {}, 1e6); }, (e) => { console.error(e.message); process.exit(1); });
+          JS
+      - name: "Case D: other database / other role / other node are excluded → preflight E = 0 proven (exit 0)"
+        env:
+          RISK0067_SELFTEST: "1"
+          DR_REPLACEMENT_DB_URL: "postgres://calib@127.0.0.1:${{ env.PG_PORT }}/postgres"
+          CAL_S: "7"
+          CAL_S_EVIDENCE: "selftest"
+          CAL_RUN_ID: "st-d-${{ github.run_id }}"
+          CAL_OUT: "out-d.json"
+        run: |
+          export CAL_S_MEASURED_ON="$(date -u +%F)"
+          node /tmp/hold.cjs calib otherdb fixture-other-db & h1=$!
+          node /tmp/hold.cjs other postgres fixture-other-user & h2=$!
+          # same role and database, but from inside the container (client_addr 127.0.0.1 ≠ the probe's node)
+          docker exec -d cal-pg psql -U calib -h 127.0.0.1 -d postgres -c "select pg_sleep(120)"
+          sleep 3
+          set +e; node scripts/ops/risk-0067-dr-calibration/calibrate.mjs --preflight-only; rc=$?; set -e
+          kill $h1 $h2 || true
+          docker exec cal-pg psql -U postgres -tc "select pg_terminate_backend(pid) from pg_stat_activity where usename='calib' and client_addr='127.0.0.1'" >/dev/null
+          test "$rc" = 0 || { echo "::error::case D expected preflight OK (0), got $rc"; exit 1; }
+          node -e '
+            const r = require("./out-d.json"); const a = (c, m) => { if (!c) throw new Error(m + " " + JSON.stringify(r.e_detail)) };
+            a(r.verdict === "PREFLIGHT_OK" && r.e === 0, "E should be proven 0");
+            a(r.e_detail.matching_user_db_node === 0, "no matching backend");
+            a(r.e_detail.excluded.other_database >= 1, "the otherdb session must be excluded as other_database");
+            a(r.e_detail.excluded.other_user >= 1, "the other-role session must be excluded as other_user");
+            a(r.e_detail.excluded.other_node >= 1, "the in-container session must be excluded as other_node");
+            a(!r.window_start && !r.normal, "preflight-only opens no control session");
+            console.log("case D ok:", JSON.stringify(r.e_detail));'
+      - name: "Case E: a same role + database + node session exists → E not attributable → HOLD (3), no window"
+        env:
+          RISK0067_SELFTEST: "1"
+          DR_REPLACEMENT_DB_URL: "postgres://calib@127.0.0.1:${{ env.PG_PORT }}/postgres"
+          CAL_S: "7"
+          CAL_S_EVIDENCE: "selftest"
+          CAL_RUN_ID: "st-e-${{ github.run_id }}"
+          CAL_OUT: "out-e.json"
+        run: |
+          export CAL_S_MEASURED_ON="$(date -u +%F)"
+          node /tmp/hold.cjs calib postgres fixture-same-pool & h1=$!
+          sleep 2
+          set +e; node scripts/ops/risk-0067-dr-calibration/calibrate.mjs; rc=$?; set -e
+          kill $h1 || true
+          test "$rc" = 3 || { echo "::error::case E expected HOLD (3), got $rc"; exit 1; }
+          node -e '
+            const r = require("./out-e.json"); const a = (c, m) => { if (!c) throw new Error(m) };
+            a(r.e === null && r.e_detail.matching_user_db_node === 1, "one matching backend, no E");
+            a(r.hold.some((h) => h.includes("not observable")), "HOLD must name the unattributable pool mode");
+            a(!r.window_start, "no window may open");
+            console.log("case E ok:", r.hold.join(" | "));'
+      - name: "Case F: SIGTERM during the normal control → stops, bounded cleanup, 0 tagged sessions (exit 1)"
+        env:
+          RISK0067_SELFTEST: "1"
+          DR_REPLACEMENT_DB_URL: "postgres://calib@127.0.0.1:${{ env.PG_PORT }}/postgres"
+          CAL_S: "7"
+          CAL_S_EVIDENCE: "selftest"
+          CAL_HOLD_NORMAL_S: "120"
+          CAL_RUN_ID: "st-f-${{ github.run_id }}"
+          CAL_OUT: "out-f.json"
+        run: |
+          export CAL_S_MEASURED_ON="$(date -u +%F)"
+          node scripts/ops/risk-0067-dr-calibration/calibrate.mjs > out-f.log 2>&1 & p=$!
+          for _ in $(seq 1 60); do grep -q "window start" out-f.log && break; sleep 0.5; done
+          sleep 3
+          held=$(docker exec cal-pg psql -U postgres -tAc "select count(*) from pg_stat_activity where application_name='risk0067-calibration-st-f-${{ github.run_id }}'")
+          t0=$(date +%s%N); kill -TERM $p; set +e; wait $p; rc=$?; set -e; t1=$(date +%s%N)
+          cat out-f.log
+          ms=$(( (t1 - t0) / 1000000 ))
+          left=$(docker exec cal-pg psql -U postgres -tAc "select count(*) from pg_stat_activity where application_name='risk0067-calibration-st-f-${{ github.run_id }}'")
+          echo "held before SIGTERM: $held · exit $rc after ${ms} ms · tagged left: $left"
+          test "$held" = 5 || { echo "::error::case F expected 5 held sessions before SIGTERM, got $held"; exit 1; }
+          test "$rc" = 1 || { echo "::error::case F expected FAIL (1), got $rc"; exit 1; }
+          test "$ms" -le 7500 || { echo "::error::case F cleanup took ${ms} ms, over the 7 s interrupt window"; exit 1; }
+          test "$left" = 0 || { echo "::error::case F left $left tagged session(s)"; exit 1; }
+          node -e '
+            const r = require("./out-f.json"); const a = (c, m) => { if (!c) throw new Error(m) };
+            a(/interrupted/.test(r.aborted || ""), "aborted must say interrupted");
+            a(r.cleanup.interrupted === true && r.cleanup.window_ms === 7000 && r.cleanup.remaining === 0, "bounded cleanup to 0");
+            a(r.verdict === "FAIL", "an interrupted run is FAIL");
+            console.log("case F ok:", r.aborted, "· cleanup", JSON.stringify(r.cleanup.polls));'
       - name: Upload self-test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: risk-0067-dr-calibration-selftest-${{ github.run_id }}
-          path: out-*.json
+          path: |
+            out-*.json
+            out-*.log
           if-no-files-found: warn
           retention-days: 30
 
@@ -183,6 +279,9 @@ jobs:
           corepack prepare "pnpm@${PNPM_VERSION}" --activate
           pnpm install --frozen-lockfile
       - name: Calibrate (read-only; exit 0 CLIENT_OK · 1 FAIL · 3 HOLD)
+        # The script bounds itself to 10 min including a 90 s cleanup window (LIMITS in calibrate.mjs)
+        # and exits by watchdog at 10 min + 5 s; this step limit is the runner-side backstop.
+        timeout-minutes: 11
         run: node scripts/ops/risk-0067-dr-calibration/calibrate.mjs
       - name: Upload calibration report (counts, timings, error codes — no secrets)
         if: always()
