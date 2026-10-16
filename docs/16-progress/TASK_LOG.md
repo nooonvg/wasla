@@ -1,3 +1,16 @@
+# 2026-10-16 — CLM-0574 — M6-18B: التحقّقُ بعدَ الدمجِ لِـCLM-0573 (#727) — main أخضر · 24 موردًا `wasla-*` على `becf3c7c` (قراءةٌ فقط)
+
+- **Work Item(s):** M6-18B (CLM-0574) · يُغلِقُ CLM-0573 (#727)
+- **Status:** Released — التحقّقُ بعدَ الدمجِ (قراءةٌ فقط)
+- **Risk(s):** RISK-0067 → `mitigating` (لا تغيير) · RISK-0066 → `open` (لا تغيير)
+- **(أ) #727:** head `257b2b16` · approval `257b2b16` 02:47:04Z (`xuuux-voox`) · 43 success + 1 skipped (`calibrate` إرسالٌ يدويٌّ فقط) · merged via `merge-on-approved-head.sh 727 --squash` → `becf3c7ce8bf6b5f90b2a16c68ed316989eedaa2` 02:58:06Z · main WASLA CI 38843128108 success **41/41** · Roadmap freshness 38843128048 success · branch deleted. **CLM-0573 closed.**
+- **(ب) سيرُ النشر 38843128137 (`verdict: PASS`):** سردَ موارد `wasla-*` ونشرَ `becf3c7c` ثم **أعادَ قراءةَ أحدثِ نشرٍ `live` عبرَ Render API وطابقَ SHA لكلِّ مورد** — **24 موردًا** مطابقًا؛ النوعُ مثبتٌ في التقرير: **21 `web_service` + 3 `static_site`** (فهي ليست 24 خدمةَ ويب)؛ `wasla-alertmanager` ضمنَ المطابقة. `/health` 14/14 (03:18:01Z). القراءةُ قامَ بها السيرُ بسرِّ المستودع؛ لا قراءةَ Render مستقلّة (INC-0007).
+- **(ج) معايرةُ DR:** HOLD — DR `INACTIVE`؛ غائب: \(S\) لـ5432 للإنتاجِ وDR، ودليلُ تدفّقِ `supavisor_logs` المستهدف، ونافذةٌ مأذونة، و`PREFLIGHT_OK` في النافذة.
+- **(د) INC-0007:** `Open` — أسرارُ GitHub آخرُ تحديثٍ لها قبلَ التعرّض ⇒ لا تدوير؛ تسلسلُ الإغلاقِ مسجّل. **RISK-0066:** HOLD 0/20 — بانتظارِ تغييرِ المالكِ من لوحةِ Render.
+- **Deployment:** none — توثيقٌ فقط (`docs/**`, `*.md` مستثناةٌ من `render-deploy.yml`). لا حِمل، لا `workflow_dispatch`، لا RISK-0058.
+- **Statuses unchanged:** M6-18B `Blocked` · NO-GO · R-02 · R-07 · P-03 · P-04 · P-05.
+- **Evidence:** [README](../12-testing/ci-evidence/2026-10-16T031500Z-clm-0574-clm-0573-post-merge-verification/README.md)
+
 # 2026-10-16 — CLM-0573 — M6-18B: إصلاحُ معايِرِ DR — نطاقُ \(E\) وحدٌّ زمنيٌّ فعليٌّ وتنظيفٌ محدود (بلا تشغيلٍ حيّ)
 
 - **Work Item(s):** M6-18B (CLM-0573) · يُغلِقُ CLM-0572 (#726)
