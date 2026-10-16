@@ -1,5 +1,6 @@
 # WASLA MARKET — Roadmap
 
+CLM-0576 (2026-10-16، تصحيح): حارسُ سلسلةِ التوريدِ يشترطُ `GH_TOKEN: ${{ github.token }}` في خطوةِ التحقّقِ الموجبةِ نفسِها لا في `ci.yml` كلِّه، مع اختبارِ طفرةٍ بسببٍ محدَّد (`scripts/checks/validate-workflow-supply-chain.sh` · `scripts/checks/test-governance.sh`)؛ PR #730 ما يزالُ **غيرَ مدموج** حتى تدويرِ مفتاحِ Render. راجع `docs/16-progress/TASK_LOG.md` (CLM-0576).
 CLM-0576 (2026-10-16): إصلاحُ بوّابةِ تحقُّقِ إثباتِ قوائمِ المواد (`image-supply-chain`) — صارمةٌ للملفَّين بقيدِ المستودعِ وسيرِ التوقيعِ ci.yml وSLSA v1، بلا قناعِ WARN، مع اختباراتٍ سالبةٍ حيّة؛ PR مفتوح، **الدمجُ محجوزٌ حتى تدويرِ مفتاحِ Render** (الدمجُ يُطلقُ نشرَ 24 موردًا). راجع `docs/16-progress/TASK_LOG.md` (CLM-0576).
 CLM-0575 (2026-10-16): `image-supply-chain` في #728 — المحاولة 1 فشلت بمهلةِ شبكةٍ عندَ rekor.sigstore.dev والمحاولة 2 نجحت (تعافٍ من إخفاقٍ خارجيّ)؛ خطوةُ التحقّقِ من الإثباتِ لا تتحقّقُ فعلًا (ملاحظةٌ مفتوحة)؛ بعدَ دمجِ #728: `4c2833af` · CI 41/41 · لا `health-report.json` في الجذر. راجع `docs/16-progress/TASK_LOG.md` (CLM-0575).
 CLM-0574 (2026-10-16): التحقّقُ بعدَ دمجِ CLM-0573 — `becf3c7c` · WASLA CI 41/41 · سيرُ النشرِ طابقَ SHA الحيَّ لـ24 موردًا `wasla-*` (21 `web_service` + 3 `static_site`)؛ معايرةُ DR HOLD؛ INC-0007 مفتوحة بلا تدوير. راجع `docs/16-progress/TASK_LOG.md` (CLM-0574).

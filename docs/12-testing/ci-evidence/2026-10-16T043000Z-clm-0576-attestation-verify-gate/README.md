@@ -76,6 +76,11 @@ gh attestation verify artifacts/sbom/pass1.cdx.json \
 
 لا رمزَ في الأدلّة (`ghs_`/`gho_`/`ghp_` غائبة). **حدودُ الإثبات:** فشلُ الوظيفةِ بأكملِها عندَ فشلِ ملفٍّ يقومُ على: البوّابةُ تخرجُ غيرَ صفرٍ (مُثبَتٌ حيًّا) + الخطوةُ `bash -euo pipefail` بلا قناعٍ ولا `continue-on-error` (يفرضُه البابُ 7 والحالاتُ 17–22). لم يُشغَّل تشغيلٌ أحمرُ متعمَّدٌ للوظيفةِ كاملةً على الفرع. التشغيلُ على الرأسِ النهائيِّ (بعدَ إضافةِ هذه الأدلّة) يُقرأ قبلَ الدمج.
 
+## 4b. حكمُ CI على `24396487` (تصحيحُ §2b)
+
+- WASLA CI [38860082552](https://github.com/skyosv10-art/wasla/actions/runs/38860082552) **success · 41/41** (منها `governance-guard` و`verify` success) · `image-supply-chain` 116840139046 success (06:14:27Z → 06:16:28Z) · الأرتفاكت 12028203408: تحقّقٌ **2/2** · حيّة **10 مطابقة · 0 مخالفة** · وحدة **16/0**.
+- **إخفاقٌ مسجَّل:** Roadmap freshness [38860078047](https://github.com/skyosv10-art/wasla/actions/runs/38860078047) (الوظيفة 116840124320) **failure** — «ROADMAP.md was not updated alongside implementation changes: `scripts/checks/test-governance.sh`, `scripts/checks/validate-workflow-supply-chain.sh`» (`BASE_SHA 28e802b8` → `HEAD_SHA 24396487`). **السببُ الجذريّ:** الدفعةُ عدّلت كودًا دونَ سطرٍ في `ROADMAP.md` في الدورةِ نفسِها (قاعدةٌ صلبة). **المعالجة:** سطرٌ في `ROADMAP.md` في الدفعةِ التالية — لا تعطيلَ للفحصِ ولا إعادةَ تشغيلٍ لإخفائه؛ يبقى التشغيلُ الفاشلُ سجلًّا على `24396487`. الحكمُ المعتمدُ للدمجِ هو فحوصُ الرأسِ النهائي.
+
 ## 5. ما بعدَ الدمج (بعدَ رفعِ الحاجزِ فقط)
 
 إعادةُ قراءةِ الرأسِ والموافقةِ والفحوصِ مباشرةً ثمّ `scripts/ops/merge-on-approved-head.sh <pr> --squash` وحدَه · WASLA CI (41/41) · Roadmap freshness · Render deploy: `render-sync.json` يجبُ أن يُظهرَ **24/24** موردًا `matches_target` على SHA الدمج — وإلا فالنشرُ غيرُ مكتمل ويُسجَّلُ الإخفاق.
