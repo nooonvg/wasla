@@ -1,0 +1,25 @@
+{
+  "pinned_sha": "df7a9d27d7583be09dafd571cd22d4fea6584ec0",
+  "placeholders": [
+    "apps/admin-web",
+    "apps/partner-mini-app",
+    "infra/docker",
+    "infra/kubernetes",
+    "packages/date-time",
+    "packages/events",
+    "packages/i18n",
+    "packages/telemetry",
+    "packages/test-utils",
+    "packages/ui",
+    "services/analytics",
+    "services/auth",
+    "services/chat",
+    "services/compliance",
+    "services/fraud",
+    "services/notifications",
+    "services/referrals",
+    "services/rides",
+    "services/translation"
+  ],
+  "count": 19
+}

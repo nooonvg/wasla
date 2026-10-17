@@ -61,7 +61,9 @@ Identity Bootstrap (ربط Telegram ID بـ Wasla User ID)
    ↓
 Order Preview
    ↓
-إنشاء Order → DRAFT → PUBLISHED → SEARCHING
+إنشاء Order → ~~DRAFT →~~ PUBLISHED → SEARCHING
+
+> **تصحيح مؤرَّخ (2026-10-17 · CLM-0590 · قرار المالك بتثبيت مصدر الحقيقة):** لا توجد حالة `DRAFT` في التنفيذ — الحالة الأولى والوحيدة للنشأة هي `published` (قرار [ADR-010](../15-decisions/ADR-010-order-engine-state-machine-and-assignment-boundary.md) البند 2: «المحرّك لا يُنفّذ DRAFT... الطلب يُخلَق بحالة published لأنّه لا يبلغ المحرّك إلّا وقد تحقّقت صلاحيته عند المُسلِّم»). الشطبُ على `DRAFT` أعلاه تصحيحٌ موثَّقٌ لا محوٌ — السطرُ الأصليُّ محفوظٌ مشطوبًا.
    ↓
 Matching (Candidate search + Ranking)
    ↓
@@ -115,7 +117,9 @@ ACCEPTED → ASSIGNED → DRIVER_EN_ROUTE → ARRIVED → IN_PROGRESS → COMPLE
    ↓
 التحقق الأولي (تسجيل + جمع + التحقق من الاتساق والصلاحية)
    ↓
-تفعيل Trial Subscription (أول شهر مجاني)
+تفعيل Trial Subscription ~~(أول شهر مجاني)~~ (تجربة 14 يومًا)
+
+> **تصحيح مؤرَّخ (2026-10-17 · CLM-0590):** خطة الإطلاق المجمّدة تجربةُ **14 يومًا** لا شهرًا ([ADR-015](../15-decisions/ADR-015-driver-subscription-entitlement-ledger-and-derived-referral-rewards.md): «خطّةُ الإطلاقِ تبقى 14 و7» · العقد: `SUBSCRIPTION_LAUNCH_TRIAL_DAYS = 14`).
    ↓
 تحديد Work Country / City / Preferred Districts / Preferred Zones
    ↓
@@ -136,11 +140,14 @@ Assignment → DRIVER_EN_ROUTE → ARRIVED → IN_PROGRESS → COMPLETED
 ### 3.2 Driver Subscription State
 
 ```text
-TRIAL → ACTIVE → GRACE → EXPIRED → COMMUNITY → SUSPENDED → CANCELLED
+~~TRIAL → ACTIVE → GRACE → EXPIRED → COMMUNITY → SUSPENDED → CANCELLED~~
+TRIAL → ACTIVE → EXPIRED → COMMUNITY
 ```
 
+> **تصحيح مؤرَّخ (2026-10-17 · CLM-0590):** الحالاتُ الوحيدةُ أربعٌ: `trial · active · expired · community` ([ADR-015](../15-decisions/ADR-015-driver-subscription-entitlement-ledger-and-derived-referral-rewards.md) البند 3: «أربع حالات فقط... لا cancelled ولا suspended» — لا رمزَ عقابيًّا). `GRACE` ليست حالةً بل رصيدُ سماحٍ (7 أيام) داخلَ `community`. السطرُ السباعيُّ الأصليُّ محفوظٌ مشطوبًا.
+
 - الانتقال: Trial → Active → Expired → Community (عند انتهاء الاشتراك دون تجديد).
-- يمكن للسائق الحصول على أشهر مجانية/خصم/اشتراك صفر وفق Referral/Contribution Rules.
+- يمكن للسائق الحصول على ~~أشهر~~ مددٍ مجانية/خصم/اشتراك صفر وفق Referral/Contribution Rules.
 
 ### 3.3 Community Fallback
 

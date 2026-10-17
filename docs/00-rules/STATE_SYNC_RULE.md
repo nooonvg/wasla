@@ -50,7 +50,7 @@ BEFORE WORK → WORK → UPDATE PROJECT STATE → VERIFY → PUSH/PR → MERGE �
 | **UPDATE PROJECT STATE** | حدّث كل سجل تأثر (§5): أغلق صف الحجز (`Released` مع ما أُنجز) · إدخال `TASK_LOG` · صف اللوحة · سطر `ROADMAP.md` · سجل المخاطر · `BASELINE.json` · ADR/الأدلة. **بصيغة ما بعد الدمج.** | — |
 | **VERIFY** | شغّل الحارس ثم البوابة كلها. | `bash scripts/checks/validate-state-sync.sh` ثم `bash scripts/checks/verify-governance.sh` |
 | **PUSH/PR** | ادفع وافتح PR فورًا (مسودة مقبولة). الدفع الأول يحمل الحالة كاملة. | `git push` (يشغّل `pre-push`) · `gh pr create` |
-| **MERGE** | فقط حين CI أخضر بالكامل ومراجعة CODEOWNERS موافقة. | `gh pr merge <N> --squash --delete-branch` |
+| **MERGE** | فقط حين CI أخضر بالكامل ومراجعة CODEOWNERS موافقة. *(إضافة ADR-071 · 2026-10-17: شرطُ الموافقةِ أُلغيَ بقرارِ المالكِ — يبقى CI الأخضرُ الإلزاميّ.)* | `gh pr merge <N> --squash --delete-branch` — للوكيلِ: عبرَ `scripts/ops/merge-on-approved-head.sh` حصرًا |
 | **DELETE MERGED BRANCH** | يُحذف آليًا (`delete_branch_on_merge` + `merged-branch-cleanup.yml`)، ثم تحقّق. | §7 |
 
 ## 4. الحجز في النموذج التسلسلي
