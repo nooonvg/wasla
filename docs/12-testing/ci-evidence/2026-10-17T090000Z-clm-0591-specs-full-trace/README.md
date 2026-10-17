@@ -155,9 +155,9 @@ ROADMAP.md هو **سجلُ ادعاءاتٍ زمني** (كل CLM سطر) لا و
 
 | الفحص | النتيجة |
 |---|---|
-| `validate-state-sync.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `verify-governance.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `test-governance.sh` | (يُملأ قبل الـcommit) |
-| `validate-work-claims.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `validate-merged-branches.sh` | (يُملأ قبل الـcommit) |
-| `validate-launch-board.sh` | (يُملأ قبل الـcommit) |
+| `validate-state-sync.sh origin/main HEAD` | **PASS** (ledger 4 · documentation 4) |
+| `verify-governance.sh origin/main HEAD` | **PASS** (خروجٌ 0 · الفحوصُ المنفَّذةُ نجحت · التحققُ المحليُّ جزئيٌّ — الفحصُ المتخطى معلومُ الهويةِ: «CI مانع» لقطةٌ مؤرَّخة) |
+| `test-governance.sh` | **689 ناجح · 0 فاشل** |
+| `validate-work-claims.sh origin/main HEAD` | **PASS** |
+| `validate-merged-branches.sh` | **PASS** |
+| `validate-launch-board.sh` | **OK (120 عنصرًا)** |
