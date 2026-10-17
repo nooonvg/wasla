@@ -1,0 +1,163 @@
+# CLM-0591 — التتبّع الشامل للمصادر المتبقية (الجزء الثاني من M0-53)
+
+> **رأس العمل عند البدء:** `228d34c4800dacc5be8862f782a9819fb71abbf9` (main بعد #743) · **وقت القياس:** 2026-10-17T09:00:00Z (UTC).
+> **المصادر المُتتبَّعة:** VISION · SERVICES · CUSTOMER_MINI_APP · DRIVER_MINI_APP · ADMIN_MVP · FRONTEND_UX_QUALITY · ROADMAP.md · LAUNCH_TO_100_ROADMAP (الحاكمة) · **BOT_ROLE_SPEC مُعاد استخدامه من CLM-0580** (لا يُعاد كأنه غير منفذ).
+> **منهجية الإثبات:** أربع مراجع لكل متطلب (نص المتطلب ومصدره · موضع التنفيذ أو تصنيف المفقود/الجزئي/placeholder · الاختبار المناسب ونطاق ما يثبته · دليل تشغيل محدد بالبيئة والنتيجة وSHA كامل).
+
+---
+
+## §0 مراجع الأدلة المشتركة (تُشار إليها اختصارًا)
+
+| الرمز | الدليل | البيئة والحد |
+|---|---|---|
+| **[R1]** | تشغيل Playwright محلي 2026-10-17 (السجلات الخام: [journey-runs/](../2026-10-17T073000Z-clm-0587-m0-53-slice2-reverse-trace/journey-runs/) · الرأسُ `221451a6` قبل الدفع) — عميل 35/35 · سائق 34/34 · إدارة 30/30 — **mocks معلنة في رؤوس الملفات: API محاكى في طبقة مسار Playwright (يثبت الواجهة لا التكامل الخلفي)** | محلي · node v20 · chromium headless |
+| **[R2]** | تشغيل e2e الخدمات محليًا (نفس الدليل): customer 11/11 · driver 14/14 · order 16/16 · dispatch 13/13 · negotiation 8/8 · reputation 12/12 · app-edge 2/2 | خدمات حقيقية عبر HTTP داخل العملية · كياسب معلنة (ADR-007 MockChannelAdapter · كعب محرك الطلبات لحد المرحلة) |
+| **[R3]** | CI على رأس #740 الكامل `9947039b2d2e51c671e6bc23b7fca9f701f96314` (run [39014830183](https://github.com/skyosv10-art/wasla/actions/runs/39014830183)): 12 وظيفة exit-gate-e2e بـPostgres حقيقي كلها success | CI · يثبت التشغيلَ على الرأس لا إعادةً محلية |
+| **[R4]** | سجل CLM-0580 (تتبّع BOT_ROLE_SPEC · 11 متطلبًا) | انظر §I للحدود |
+
+## §A VISION.md — المبادئ العشرون غير القابلة للتغيير (§5) + قناة/قلب (§4) + سوق الإطلاق (§3)
+
+| # | المتطلب (المصدر) | التنفيذ | الاختبار ونطاقه | الدليل | الحكم |
+|---|---|---|---|---|---|
+| V1 | «Telegram قناة وليس قلب النظام» (§4 · مبدأ 1) | فصل القناة عبر Adapter (ADR-007): `MockChannelAdapter` القابل للتبديل · لا `telegram.sendMessage` في منطق الأعمال | dispatch-e2e: «can a real order find a real driver» عبر 6 خدمات HTTP — **يثبت أن المسار لا يعتمد تلغرام** | [R2] 13/13 | **MEASURED_REAL** (فصلُ القناةِ) |
+| V2 | «Wasla User ID الهوية الداخلية الأساسية» + «الروابط الخارجية ليست المفتاح» (مبدآن 2-3) | `services/identity` (Wasla Public ID · Identity Links · History) | customer-e2e: «creates an identity and a readable profile from a bot /start alone» | [R2] 11/11 | **MEASURED_REAL** |
+| V3 | «لا تطبيق Driver Native؛ السائق عبر Bot+Mini App» (مبدأ 4) | `bots/driver-bot` + `apps/driver-mini-app` (لا native app) | بنية مستودع مقيساة (جرد CLM-0579) | جرد CLM-0579 | **MEASURED_REAL** (بنيةً) |
+| V4 | «العميل مجاني؛ لا عمولة على العميل» (مبدأ 6) | لا مسار فوترة للعميل في عقود الطلبات (أحداث orders بلا `price` للعميل) | فحوص العقد (أحداث orders) | عقد `order` | **منفذ في العقد** (غيابُ العمولةِ قياسُه سالبيٌ مقيسٌ في العقد) |
+| V5 | «لا Wallet/Escrow لرحلات العملاء» (مبدأ 7) | لا wallet في عقود الرحلة · دفع مباشر مع إثبات | عقد `order` (أحداث بلا escrow) | عقد | **منفذ في العقد** |
+| V6 | «اشتراك السائق نموذج الإيراد المباشر» (مبدأ 8) | `services/subscriptions` (دفتر مدد وامتيازات — ADR-015) | subscription-e2e (بوابة Postgres) | [R3] exit-gate-e2e (subscription) success | **MEASURED_REAL عبر CI** |
+| V7 | «المدفوعات مباشرة بين الأطراف مع إثبات النزاع» (مبدأ 9) | `payment_disputed` حالة + agreed-price | order-e2e (16) | [R2] 16/16 | **MEASURED_REAL** |
+| V8 | «Reputation Engine جزء أساسي» (مبدأ 11) | `services/reputation` (ADR-014) | reputation-e2e (12) | [R2] 12/12 | **MEASURED_REAL** |
+| V9 | «Referral يحسب الفعليين لا فتح البوت» (مبدأ 12) | `services/referrals` (ADR-015: مكافأة مشتقة من وقائع) | فحوص وحدوية للنطاق | عقود referrals | **منفذ** (تحقق سلوكي مغطى بفحوص وحدوية لا e2e مستقل) |
+| V10 | «Matching وDispatch منفصلان منطقيًا» (مبدأ 15) | خدمتان منفصلتان (`matching` · `dispatch`) — ADR-011 | dispatch-e2e: تدرج المناطق عبر HTTP من matching | [R2] 13/13 | **MEASURED_REAL** |
+| V11 | «Search منصة مستقلة منطقيًا» (مبدأ 16) | `services/search` (خدمة مستقلة) | search-e2e | [R3] exit-gate-e2e (search) success | **MEASURED_REAL عبر CI** |
+| V12 | «الخدمات الحساسة قابلة للتدقيق» (مبدأ 17) | `services/audit` (سجل append-only) | admin e2e: «PUT to audit events returns 405» (إلغاء القابلية للتعديل) | [R1] 30/30 | **MEASURED_REAL** |
+| V13 | «لا اعتماد بين الخدمات عبر قواعد بيانات الآخرين؛ الاتصال عبر Contracts» (مبدأ 19) | عقود مطبوعة `packages/contracts/*` لكل خدمة · حارس سالب في subscriptions | فحوص الحوكمة (repo-structure) + تعليق عقد subscriptions | عقد | **منفذ ومحرَس** |
+| V14 | «سوق الإطلاق: SAR · العربية/الإنجليزية/الأردية» (§3) | i18n مفاتيح ثلاثية (ar/en/ur) · RTL | frontend-quality e2e: «?locale=en switches lang/dir» في التطبيقات الثلاثة | [R1] 3/3 تطبيقات | **MEASURED_REAL** |
+| V15 | «مبدأ 5: Mini App للثقيل والبوت للخفيف» | التطبيقات الثلاثة تحمل الشاشات الثقيلة والبوتات للإطلاق | جرد CLM-0579 + مواصفات e2e | جرد | **MEASURED_REAL** (بنيةً) |
+
+**مبادئ دون صفٍّ مستقل (14 · 18 · 20):** 14 (وحدة Order Engine مع قابلية الفصل) — بنية `orders` الموحدة قائمة؛ قابلية الفصل لاحقة بالتصميم لا اختبار لها (تصميمي). 18 (الميزة الثانوية لا توقف Core) — مبدأ معماري، لا اختبار سلوكي محدد وُجد له. 20 (إصدارية العقود) — العقود مطبوعة بمسارات إصدارية (عقد orders يحمل `policyVersion`).
+
+## §B SERVICES.md — الخدمات ودورة الحياة والتسعير
+
+| # | المتطلب (المصدر) | التنفيذ | الاختبار | الدليل | الحكم |
+|---|---|---|---|---|---|
+| S1 | «24 خدمة» (الجدول) | **27 خدمة فعلًا** — الزائد: `negotiations` · `customers` · `observability` (جرد CLM-0579) | `ls services/` (قياس مباشر) | قياس هذا الدليل | **تقادم مواصفة** (G-S1) |
+| S2 | دورة الحياة «DRAFT → PUBLISHED → …» (§تفاصيل) | **لا DRAFT** (ADR-010) — نفس G1 | — | — | **تقادم مواصفة** (G1 نفسه — مصدر ثانٍ) |
+| S3 | حالات الاشتراك السبع (§جدول الخدمة 10) | **4 حالات** (ADR-015) — نفس G3 | — | — | **تقادم مواصفة** (G3 نفسه) |
+| S4 | «أول شهر مجاني» (§تفاصيل Subscriptions) | **14 يومًا** (ADR-015) — نفس G2 | — | — | **تقادم مواصفة** (G2 نفسه) |
+| S5 | تسعير الاشتراك «250/250/400 SAR/شهر» (§تفاصيل) | **لا مرساة تنفيذ وجدت**: `price_minor` في كتالوج الخطط «للعرض فقط» (تعليق schema.sql) **ولا قيم 250/400 في العقود أو الشفرة** — التسعير يُزرع خارج المخطط المجمد أو غير منفذ في الشفرة | بحثٌ مباشر في `services/subscriptions` و`packages/contracts/subscription` (قياس هذا الدليل) | قياس | **فجوة مرساة** (G-S2: لا مصدر حقيقة للسعر في المستودع — قرار مالك: أين يعيش التسعير؟) |
+| S6 | حقول الهوية (internal_uuid · wasla_public_id · telegram_user_id · phone encrypted) | `services/identity` + `services/auth` (تطبيع/تحقق الهاتف) | فحوص وحدوية للنطاق | عقود identity/auth | **منفذ** (تحققٌ سلوكي جزئي عبر customer-e2e) |
+| S7 | قنوات الإشعارات (Telegram · WebSocket · Push-like · SMS fallback · Email) | `services/notifications` (Template · Channel · Priority · Retry · Dedup) | channel-e2e (27 PASS + 25 DB-skipped) | [R2] + [R3] | **MEASURED_REAL جزئيًا** (الجزءُ المتخطى Postgres — G6) |
+| S8 | «Assignment سجل نهائي بحقوله» (§Matching vs Dispatch) | `services/dispatch` (الإسناد بحقوله) | dispatch-e2e | [R2] 13/13 | **MEASURED_REAL** |
+| S9 | «كل تغيير حالة Event + Audit Record» | أحداث orders + audit | order-e2e (16) | [R2] | **MEASURED_REAL** |
+
+## §C CUSTOMER_MINI_APP_SPEC — الشاشات الثماني ومعايير القبول
+
+| # | المتطلب (المصدر) | التنفيذ | الاختبار (التوكيد المحدد) | الدليل | الحكم |
+|---|---|---|---|---|---|
+| C-1 | 8 شاشات §3.1-3.8 (Home · Ride Form · Delivery Form · Marketplace · Search · My Orders · Reputation · Profile) | `apps/customer-mini-app` (شاشات موجودة) | navigation: «home shows all 8 menu items» + تنقل لكل شاشة + accessibility لكل شاشة (9 فحوص axe) | [R1] 35/35 | **MEASURED_REAL** |
+| C-2 | معاينة الطلب قبل الإرسال §3.2 (POST preview) | شاشة Ride Form | order-flow: «preview order sends Bearer token» | [R1] | **MEASURED_REAL** |
+| C-3 | إرسال بـIdempotency-Key (201 نشر · 200 إعادة) §3.2 | عميل النداء | order-flow: «submit order sends Bearer token and Idempotency-Key» | [R1] | **MEASURED_REAL** |
+| C-4 | تدفق المصادقة §4 (initData مرة واحدة · رمز في الذاكرة · 409 للضغطة المزدوجة · لا localStorage) | عميل الجلسة (ADR-019) | auth-session: «initData يُحقق مرة» · «no API calls without token» · «localStorage does not contain session token» · «sessionStorage…» · «API calls carry Bearer» | [R1] | **MEASURED_REAL** |
+| C-5 | معايير UX §5.3 (منع الإرسال المزدوج · رسائل خطأ عربية · حالة فارغة · مؤشر تحميل) | الشاشات | order-flow: «form validation prevents submit with empty fields» · «submit error shows error message» · places: «shows empty state when no places» | [R1] | **MEASURED_REAL** |
+| C-6 | إدارة الأماكن §3.8 (إضافة/حذف) | شاشة Places | places-flow: «adds/deletes a place with Bearer token» | [R1] | **MEASURED_REAL** |
+| C-7 | i18n ثلاثي + RTL §6 | طبقة i18n | frontend-quality: «?locale=en switches document lang/dir» | [R1] | **MEASURED_REAL** |
+| C-8 | حدود المرحلة §7 (لا دفع · لا محادثة داخلية · خريطة متقدمة لاحقًا) | غيابٌ مقصودٌ لا نقص | بنية التطبيق (لا شاشات دفع) | جرد | **متفق مع الحد المعلن** |
+
+**حدود المحاكاة المعلنة:** اختبارات Playwright تثبت سلوك الواجهة مع API محاكى في طبقة المسار — **التكامل الخلفي الحقيقي مثبت بجنح الخدمات [R2]** (customer-e2e 11/11 عبر HTTP حقيقي).
+
+## §D DRIVER_MINI_APP_SPEC — الشاشات التسع وآلة الحالات
+
+| # | المتطلب (المصدر) | التنفيذ | الاختبار | الدليل | الحكم |
+|---|---|---|---|---|---|
+| D-1 | 9 شاشات §4.1-4.9 | `apps/driver-mini-app` | navigation: تنقل لكل الشاشات التسع + accessibility لكل شاشة (8 فحوص axe) | [R1] 34/34 | **MEASURED_REAL** |
+| D-2 | تبديل التوفر §4.2 (`PUT availability`) | شاشة Home | offer-flow + واجهة التوفر (اختبارات الوحدة للواجهة) | [R1] + فحوص وحدوية | **MEASURED_REAL** (الواجهة) |
+| D-3 | قبول/رفض العروض §4.3 مع العد التنازلي | شاشة العروض | offer-flow: «offers screen renders without errors» — **التوكيد المحدد لقبول/رفض العرض عبر HTTP مغطى في dispatch-e2e (13/13) لا في Playwright** | [R1] + [R2] | **MEASURED_REAL** (موزعة على طبقتين) |
+| D-4 | قاعدة حرجة §6: «الزر يظهر فقط عند السماح · الانتقال غير القانوني 409» | أزرار الحالة في شاشة المهمة | **driver-e2e (الخدمة): 14/14 تغطي الأهلية والعرض والقبول** + order-e2e (16/16 تغطي رفض الانتقال غير القانوني 409) | [R2] | **MEASURED_REAL** (على مستوى الخدمة) |
+| D-5 | انتقالات السائق الأربع §6 (`assigned→en_route→arrived→in_progress→completed`) | عقد order (آلة الحالات) | order-e2e | [R2] 16/16 | **MEASURED_REAL** |
+| D-6 | لا تخزين الرمز §4.1/10.12 | عميل الجلسة | auth-session: «localStorage/sessionStorage does not contain session token» | [R1] | **MEASURED_REAL** |
+| D-7 | فشل الشبكة/الجلسة §7 | لافتة offline + إعادة تهيئة | frontend-quality: «offline banner appears when network drops» | [R1] | **MEASURED_REAL** |
+| D-8 | i18n + إمكانية الوصول §8-9 | طبقة i18n + axe | accessibility (8 شاشات) + locale | [R1] | **MEASURED_REAL** |
+
+## §E ADMIN_MVP_SPEC — الشاشات الخمس وRBAC والتدقيق
+
+| # | المتطلب (المصدر) | التنفيذ | الاختبار | الدليل | الحكم |
+|---|---|---|---|---|---|
+| A-1 | 5 شاشات §4.1-4.5 (Dashboard · Users · Drivers · Orders · Audit) | `apps/admin-portal` | navigation + accessibility (5 شاشات axe) | [R1] 30/30 | **MEASURED_REAL** |
+| A-2 | مراجعة الوثائق §4.3 (قبول/رفض) | شاشة Drivers | users-drivers-flow: «drivers detail view shows document review buttons» | [R1] | **MEASURED_REAL** |
+| A-3 | RBAC §5 (operator مقيّد · admin أعلى) | مصفوفة authz (M1-05 · ADR-027) | audit-rbac: «operator can view dashboard/audit/orders» + اختبارات رفض (403) | [R1] | **MEASURED_REAL** |
+| A-4 | Audit غير قابل للتعديل §4.5/6.2 (UAT-08) | `services/audit` (**مُنفَّذ بالكامل الآن** — لا scaffold كما في زمن المواصفة) | audit-rbac: «audit log has no edit/delete buttons» + «PUT to audit events returns 405» | [R1] | **MEASURED_REAL** |
+| A-5 | فلترة سجل التدقيق §4.5 | شاشة Audit | audit-rbac: «shows filter bar» · «action filter dropdown» · «resource type filter» | [R1] | **MEASURED_REAL** |
+| A-6 | الطلبات عرض فقط §4.4 | شاشة Orders | orders-flow (30/30 ضمن الإجمالي) | [R1] | **MEASURED_REAL** |
+| A-7 | «Audit service scaffolded فقط» (المتطلب الأساسي §2) | **تقادم مواصفة**: الخدمة الآن كاملة التنفيذ (domain/http/infrastructure) | قياس بنية + audit-rbac | قياس هذا الدليل | **تقادم مواصفة** (G-S3: حالة المتطلب الأساسي تجاوزها التنفيذ) |
+
+## §F FRONTEND_UX_QUALITY_SPEC — المعايير التسعة (مُقاسة أصلًا في M3-06)
+
+المصفوفة التسعة (localization تكافؤ · تشغيل لغات · RTL · accessibility axe · error states · loading · offline · responsiveness 375px · E2E كامل على بناء الإنتاج) — **مواصفة مُقاسة أصلًا** (CLM-0323 · 2026-09-23) وأرقامها (E2E 35/34/30) **طابقت قياسي اليوم** [R1]. الحد المعلن في المواصفة نفسها صادق (مبدّل اللغة المرئي مؤجل بقرار · offline كشفٌ لا طابور كتابة). **لا فجوة جديدة** — تحققٌ مستقل مطابق.
+
+## §G ROADMAP.md — سجل الادعاءات (ليس وثيقة متطلبات)
+
+ROADMAP.md هو **سجلُ ادعاءاتٍ زمني** (كل CLM سطر) لا وثيقةَ متطلباتٍ — «تتبع متطلباته» يعني: أثرُ كلِ ادعاءٍ حيٌّ ومتزامن. الدليل: فحص `roadmap.yml` freshness (كل دفع) + إدخالات TASK_LOG المتطابقة. القياس: أحدث إدخال CLM-0590 حاضر وفحص freshness أخضر على آخر ثلاثة دمجات (39016919091 · 39019898483 · 39023469313). **MEASURED_REAL** (آلية المزامنة) — وليس مصدرَ متطلباتٍ جديدٍ يُتتبَّع.
+
+## §H LAUNCH_TO_100_ROADMAP.md — الخارطة الحاكمة (وثيقة قوانين)
+
+«متطلباتها» قوانينُ عمليةٌ يفرضها فاحصو الحوكمة أنفسهم — تتبعها = ربط كل قانونٍ بفاحصِه المُنفِّذ:
+
+| القانون (§) | الفاحص المُنفِّذ | الحالة المقيسة |
+|---|---|---|
+| §0.11 «لا عمل بلا Claim نشط» | `validate-work-claims.sh` | PASS (كل شريحة) |
+| §0.12 «نطاق الحجز بمسارات» | `validate-work-claims.sh` (فحص التغطية) | PASS |
+| §2.1 «كل تغيير له أثر موثق» | `require-doc-update.sh` | PASS |
+| §2.2 «لا Done بلا Evidence» | `validate-state-sync.sh` (بوابات الإصدار) | PASS |
+| قاعدة منع تعارض الترقيم §0.14 | `validate-launch-board.sh` | PASS (120 عنصرًا) |
+| قالب PR الكامل (§Task…) | `verify-governance.sh` | PASS (خروجٌ 0 · تنبيهُ الفحص المتخطى معلومُ الهوية — «CI مانع» لقطةٌ مؤرَّخة) |
+
+**MEASURED_REAL** — القوانين الحاكمة **مفعّلة آليًا لا ديكورية**، وهذا أعلى درجات التتبع (القانون يحرس نفسه).
+
+## §I BOT_ROLE_SPEC — إعادة استخدام تتبّع CLM-0580 وتقييم حدوده
+
+تتبّع CLM-0580 (11 متطلبًا) **يُعاد استخدامه ولا يُعاد كأنه غير منفذ**. تقييمُ حدودِهِ (قراءة جديدة الآن):
+- **حد قِدَم:** قياسُه من 2026-10-17 صباحًا (قبل إغلاق M0-52 وسياسة ADR-071) — لم يتغير سلوكُ البوتاتِ منذَهُ (لا شفرةَ قنواتٍ تغيّرت في الشرائح اللاحقة — كلُّها توثيقية) فالقياسُ ما زالَ صالحًا **بنيةً**.
+- **حد بيئة:** مثلُ بقية الأجنحة — تشغيلُهُ المحليُّ بكياسبَ معلنةٍ، وبواباتُهُ الكاملةُ عبر CI [R3].
+
+## §J التتبع في الاتجاه المعاكس (تنفيذ/اختبارات ← متطلبات)
+
+| العنصر غير المرتبط أو المكرر | الحكم |
+|---|---|
+| `apps/admin-web` (مجلد `.gitkeep` فارغ) | **عنصر بلا متطلب ناظر** في أي مواصفة متتبعة — placeholder من جرد CLM-0579 (يخدم «Admin Web Portal» في قنوات USER_FLOWS §1 كذكرٍ فقط — لا مواصفة شاشاتٍ له) |
+| `apps/partner-mini-app` (`.gitkeep` فارغ) | نفس النمط — واجهة الشريك §4.4 من USER_FLOWS **غير منفذة** (فجوة G5 القائمة) |
+| تكرارُ حالةِ DRAFT و«الشهر المجاني» و«السبع حالات» في **SERVICES.md وUSER_FLOWS معًا** | **ازدواجية مصدر** — صُحِّح USER_FLOWS (CLM-0590) و**SERVICES.md ما زال يحملها** (G-S2/G-S4: يحتاج نفس التصحيح المؤرخ — لم يُصحَّح في هذه الشريحة لأنه قرار مالك المصادر) |
+| `services/customers` و`services/negotiations` و`services/observability` | **تنفيذ بلا صفٍّ في SERVICES.md** (الجدل من جرد CLM-0579) — SERVICES.md متقادم (G-S1) |
+
+## §K سجل الفجوات (معرّف · حكم مبرر · مصدر · نوع مفصول)
+
+| المعرف | الفجوة | النوع | الإجراء |
+|---|---|---|---|
+| **G-S1** | SERVICES.md يعد 24 خدمة والفعلي 27 (negotiations · customers · observability بلا صفوف) | **تقادم مواصفة** | قرار مالك: تحديث الجدول (توثيق) |
+| **G-S2** | تسعير الاشتراك (250/250/400) **بلا مرساة تنفيذ في المستودع** — `price_minor` «للعرض فقط» ولا قيم في العقود | **فجوة مرساة** (أين يعيش مصدر حقيقة السعر؟) | قرار مالك: بذرة كتالوج في العقود أم إعلان أنه تكوين تشغيلي |
+| **G-S3** | ADMIN_MVP §2 يقول «Audit scaffolded فقط» والخدمة الآن كاملة | **تقادم مواصفة** (تجاوزها التنفيذ) | تحديث حالة المتطلب الأساسي (توثيق) |
+| **G-S4** | SERVICES.md ما زال يحمل DRAFT/الشهر/السبع حالات (المصادر الثلاثة G1-G3 مكررة فيه) | **تقادم مواصفة مزدوج المصدر** | نفس تصحيح CLM-0590 يُطبَّق عليه (قرار مالك) |
+| **G5** (قائمة) | واجهة الشريك placeholder | فجوة تنفيذ | قائمة (عنصر عمل مستقل) |
+| **G6** (قائمة) | بوابات Postgres محليًا | **فجوة بيئة** (دليلُها من CI مكتمل [R3]) | بيئة Postgres تدميريّة |
+| **G7** (قائمة) | golden/staging | **فجوة بيئة** | قرار staging |
+| **G4** (قائمة) | مهلة المرشح 10ث/30ث | **UNRESOLVED — معروض على المالك** | قرار مالك |
+| **G-S5** | مبادئ VISION 14/18/20 بلا اختبار سلوكي محدد (تصميمية) | **فجوة تغطية تصميمية** (معلنة لا مسكوت عنها) | ليست عيبًا — مبادئ معمارية يصعب اختبارها سلوكيًا |
+
+## §L الحدود المعلنة (لا ادعاءات أوسع من الأدلة)
+
+1. **اختبارات Playwright تثبت الواجهة مع API محاكى معلن** — التكامل الخلفي مثبت بجنح الخدمات عبر HTTP حقيقي [R2] وبوابات CI [R3]. لا يُدّعى أن نجاح المجموعة إثباتٌ لمتطلبات أوسع من توكيداتها المحددة.
+2. **G6/G7 فجوتان بيئيتان** — لم تُدمجا قسرًا؛ دليل G6 من CI (تشغيلٌ على رأس محدد لا إعادة محلية).
+3. **BOT_ROLE_SPEC** قياسُه صالح بنيةً (لا شفرة قنوات تغيّرت) — لكنه قياس صباحي بحدود كياسبه المعلنة.
+4. **لا نسبة اكتمال** إجمالية — M0-53 يبقى `In Progress`.
+5. **تعارض جديد مكتشف:** G-S2 (لا مرساة للتسعير) — **معروض على المالك** ضمن سجل الفجوات.
+
+## §M الحزمة المحلية (تُقاس قبل الدفع وتُوثق هنا)
+
+| الفحص | النتيجة |
+|---|---|
+| `validate-state-sync.sh origin/main HEAD` | **PASS** (ledger 4 · documentation 4) |
+| `verify-governance.sh origin/main HEAD` | **PASS** (خروجٌ 0 · الفحوصُ المنفَّذةُ نجحت · التحققُ المحليُّ جزئيٌّ — الفحصُ المتخطى معلومُ الهويةِ: «CI مانع» لقطةٌ مؤرَّخة) |
+| `test-governance.sh` | **689 ناجح · 0 فاشل** |
+| `validate-work-claims.sh origin/main HEAD` | **PASS** |
+| `validate-merged-branches.sh` | **PASS** |
+| `validate-launch-board.sh` | **OK (120 عنصرًا)** |
