@@ -1,0 +1,1057 @@
+{
+  "meta": {
+    "title": "CLM-0579 — Stage Zero structural census of the repository (first bounded slice)",
+    "base_sha": "6c4a8fa6bc9692a3261d10e13dbf30632b6768ce",
+    "measured_at_utc": "2026-10-17T00:10:00Z",
+    "method": "mechanical tree walk: directory presence, file counts by type, package.json presence, .gitkeep marker, Dockerfile presence, contracts dir presence, migration dir count, test-file count, /health string match",
+    "limits": "presence-only census; does NOT verify behavior, contracts match, test pass, deployment, or production readiness; classification uses the six Stage Zero labels; \"NOT_PROVEN\" is used only for evidence limits, never as a seventh component status"
+  },
+  "counts": {
+    "services": 27,
+    "apps": 5,
+    "bots": 3,
+    "packages": 40,
+    "infra": 9,
+    "gitkeep_only_dirs": 26,
+    "ts_files_tracked": 1454,
+    "test_files_tracked": 525,
+    "openapi_yml": 17,
+    "schema_sql": 18,
+    "events_json": 16,
+    "workflows": 17,
+    "scripts_checks": 47
+  },
+  "census": {
+    "services": {
+      "analytics": {
+        "path": "services/analytics",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "audit": {
+        "path": "services/audit",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "api.openapi.yml",
+          "schema.sql"
+        ],
+        "src_ts_files": 18,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/audit-service",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 29
+      },
+      "auth": {
+        "path": "services/auth",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "billing": {
+        "path": "services/billing",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "api.openapi.yml",
+          "schema.sql"
+        ],
+        "src_ts_files": 27,
+        "test_files": 12,
+        "test_like": 12,
+        "pkg_name": "@wasla/billing-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 57
+      },
+      "chat": {
+        "path": "services/chat",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "compliance": {
+        "path": "services/compliance",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "customers": {
+        "path": "services/customers",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 34,
+        "test_files": 18,
+        "test_like": 18,
+        "pkg_name": "@wasla/customers-service",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 78
+      },
+      "delivery": {
+        "path": "services/delivery",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 68,
+        "test_files": 62,
+        "test_like": 62,
+        "pkg_name": "@wasla/delivery-service",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 159
+      },
+      "dispatch": {
+        "path": "services/dispatch",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 42,
+        "test_files": 29,
+        "test_like": 29,
+        "pkg_name": "@wasla/dispatch-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 92
+      },
+      "drivers": {
+        "path": "services/drivers",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 45,
+        "test_files": 22,
+        "test_like": 22,
+        "pkg_name": "@wasla/drivers-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 91
+      },
+      "fraud": {
+        "path": "services/fraud",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "geography": {
+        "path": "services/geography",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql",
+          "seeds"
+        ],
+        "src_ts_files": 28,
+        "test_files": 11,
+        "test_like": 11,
+        "pkg_name": "@wasla/geography-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 61
+      },
+      "identity": {
+        "path": "services/identity",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 30,
+        "test_files": 14,
+        "test_like": 14,
+        "pkg_name": "@wasla/identity-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 65
+      },
+      "marketplace": {
+        "path": "services/marketplace",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 51,
+        "test_files": 35,
+        "test_like": 35,
+        "pkg_name": "@wasla/marketplace-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 107
+      },
+      "matching": {
+        "path": "services/matching",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 35,
+        "test_files": 20,
+        "test_like": 20,
+        "pkg_name": "@wasla/matching-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 76
+      },
+      "negotiations": {
+        "path": "services/negotiations",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 48,
+        "test_files": 21,
+        "test_like": 21,
+        "pkg_name": "@wasla/negotiations-service",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 86
+      },
+      "notifications": {
+        "path": "services/notifications",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "observability": {
+        "path": "services/observability",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 6,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/observability-collector",
+        "has_main": true,
+        "total_files": 12
+      },
+      "orders": {
+        "path": "services/orders",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 36,
+        "test_files": 16,
+        "test_like": 16,
+        "pkg_name": "@wasla/orders-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 71
+      },
+      "partners": {
+        "path": "services/partners",
+        "entry": [
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "schema.sql"
+        ],
+        "src_ts_files": 25,
+        "test_files": 9,
+        "test_like": 9,
+        "pkg_name": "@wasla/partners-service",
+        "has_main": false,
+        "gitkeep": 1,
+        "total_files": 43
+      },
+      "referrals": {
+        "path": "services/referrals",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "reputation": {
+        "path": "services/reputation",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 46,
+        "test_files": 21,
+        "test_like": 21,
+        "pkg_name": "@wasla/reputation-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 88
+      },
+      "rides": {
+        "path": "services/rides",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "search": {
+        "path": "services/search",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 35,
+        "test_files": 23,
+        "test_like": 23,
+        "pkg_name": "@wasla/search-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 83
+      },
+      "subscriptions": {
+        "path": "services/subscriptions",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 46,
+        "test_files": 21,
+        "test_like": 21,
+        "pkg_name": "@wasla/subscriptions-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 84
+      },
+      "support": {
+        "path": "services/support",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 21,
+        "test_files": 8,
+        "test_like": 8,
+        "pkg_name": "@wasla/support-service",
+        "has_main": false,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 43
+      },
+      "translation": {
+        "path": "services/translation",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      }
+    },
+    "apps": {
+      "admin-portal": {
+        "path": "apps/admin-portal",
+        "src_ts_files": 30,
+        "test_files": 5,
+        "test_like": 5,
+        "pkg_name": "@wasla/admin-portal",
+        "has_main": false,
+        "total_files": 63
+      },
+      "admin-web": {
+        "path": "apps/admin-web",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "customer-mini-app": {
+        "path": "apps/customer-mini-app",
+        "src_ts_files": 17,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/customer-mini-app",
+        "has_main": false,
+        "total_files": 48
+      },
+      "driver-mini-app": {
+        "path": "apps/driver-mini-app",
+        "src_ts_files": 28,
+        "test_files": 7,
+        "test_like": 7,
+        "pkg_name": "@wasla/driver-mini-app",
+        "has_main": false,
+        "gitkeep": 1,
+        "total_files": 63
+      },
+      "partner-mini-app": {
+        "path": "apps/partner-mini-app",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      }
+    },
+    "bots": {
+      "customer-bot": {
+        "path": "bots/customer-bot",
+        "entry": [
+          "src/index.ts",
+          "src/main.ts",
+          "src/server.ts"
+        ],
+        "src_ts_files": 8,
+        "test_files": 6,
+        "test_like": 6,
+        "pkg_name": "@wasla/customer-bot",
+        "has_main": false,
+        "total_files": 18
+      },
+      "driver-bot": {
+        "path": "bots/driver-bot",
+        "entry": [
+          "src/index.ts",
+          "src/main.ts",
+          "src/server.ts"
+        ],
+        "src_ts_files": 8,
+        "test_files": 6,
+        "test_like": 6,
+        "pkg_name": "@wasla/driver-bot",
+        "has_main": false,
+        "total_files": 18
+      },
+      "partner-bot": {
+        "path": "bots/partner-bot",
+        "entry": [
+          "src/index.ts",
+          "src/main.ts",
+          "src/server.ts"
+        ],
+        "src_ts_files": 3,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/partner-bot",
+        "has_main": false,
+        "total_files": 9
+      }
+    },
+    "packages": {
+      "app-edge-e2e": {
+        "path": "packages/app-edge-e2e",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/app-edge-e2e",
+        "has_main": false,
+        "total_files": 6
+      },
+      "auth-sdk": {
+        "path": "packages/auth-sdk",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 7,
+        "test_files": 3,
+        "test_like": 3,
+        "pkg_name": "@wasla/auth-sdk",
+        "has_main": true,
+        "total_files": 12
+      },
+      "authz-policy": {
+        "path": "packages/authz-policy",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 7,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/authz-policy",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 12
+      },
+      "billing-e2e": {
+        "path": "packages/billing-e2e",
+        "src_ts_files": 1,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/billing-e2e",
+        "has_main": false,
+        "total_files": 5
+      },
+      "bot-runtime": {
+        "path": "packages/bot-runtime",
+        "entry": [
+          "src/index.ts",
+          "src/http/server.ts"
+        ],
+        "src_ts_files": 16,
+        "test_files": 16,
+        "test_like": 16,
+        "pkg_name": "@wasla/bot-runtime",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 36
+      },
+      "channel-core": {
+        "path": "packages/channel-core",
+        "entry": [
+          "src/index.ts"
+        ],
+        "contracts": [
+          "README.md",
+          "api.openapi.yml",
+          "errors.md",
+          "events.json",
+          "schema.sql"
+        ],
+        "src_ts_files": 13,
+        "test_files": 7,
+        "test_like": 7,
+        "pkg_name": "@wasla/channel-core",
+        "has_main": false,
+        "total_files": 28
+      },
+      "channel-e2e": {
+        "path": "packages/channel-e2e",
+        "src_ts_files": 2,
+        "test_files": 3,
+        "test_like": 3,
+        "pkg_name": "@wasla/channel-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 8
+      },
+      "channel-edge": {
+        "path": "packages/channel-edge",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 4,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/channel-edge",
+        "has_main": false,
+        "total_files": 12
+      },
+      "channel-postgres": {
+        "path": "packages/channel-postgres",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 13,
+        "test_files": 5,
+        "test_like": 5,
+        "pkg_name": "@wasla/channel-postgres",
+        "has_main": false,
+        "total_files": 26
+      },
+      "compliance-review": {
+        "path": "packages/compliance-review",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/compliance-review",
+        "has_main": false,
+        "total_files": 6
+      },
+      "config": {
+        "path": "packages/config",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 2,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/config",
+        "has_main": false,
+        "total_files": 8
+      },
+      "contracts": {
+        "path": "packages/contracts",
+        "src_ts_files": 47,
+        "test_files": 59,
+        "test_like": 59,
+        "health": "yes",
+        "gitkeep": 1,
+        "total_files": 180
+      },
+      "customer-e2e": {
+        "path": "packages/customer-e2e",
+        "src_ts_files": 4,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/customer-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 8
+      },
+      "date-time": {
+        "path": "packages/date-time",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "delivery-e2e": {
+        "path": "packages/delivery-e2e",
+        "src_ts_files": 2,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/delivery-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 7
+      },
+      "dispatch-e2e": {
+        "path": "packages/dispatch-e2e",
+        "src_ts_files": 2,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/dispatch-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 7
+      },
+      "driver-e2e": {
+        "path": "packages/driver-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/driver-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 6
+      },
+      "errors": {
+        "path": "packages/errors",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 1,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/errors",
+        "has_main": true,
+        "gitkeep": 1,
+        "total_files": 5
+      },
+      "events": {
+        "path": "packages/events",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "golden-e2e": {
+        "path": "packages/golden-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/golden-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 6
+      },
+      "i18n": {
+        "path": "packages/i18n",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "incident-ops": {
+        "path": "packages/incident-ops",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/incident-ops",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 6
+      },
+      "load-testing": {
+        "path": "packages/load-testing",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/load-testing",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 7
+      },
+      "marketplace-e2e": {
+        "path": "packages/marketplace-e2e",
+        "src_ts_files": 2,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/marketplace-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 7
+      },
+      "negotiation-e2e": {
+        "path": "packages/negotiation-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/negotiation-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 6
+      },
+      "observability": {
+        "path": "packages/observability",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 5,
+        "test_files": 2,
+        "test_like": 2,
+        "pkg_name": "@wasla/observability",
+        "has_main": true,
+        "health": "yes",
+        "total_files": 10
+      },
+      "order-e2e": {
+        "path": "packages/order-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/order-e2e",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 6
+      },
+      "outbox": {
+        "path": "packages/outbox",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 4,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/outbox",
+        "has_main": true,
+        "total_files": 8
+      },
+      "partners-e2e": {
+        "path": "packages/partners-e2e",
+        "src_ts_files": 1,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/partners-e2e",
+        "has_main": false,
+        "total_files": 7
+      },
+      "pilot-feedback": {
+        "path": "packages/pilot-feedback",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/pilot-feedback",
+        "has_main": false,
+        "total_files": 6
+      },
+      "reputation-e2e": {
+        "path": "packages/reputation-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/reputation-e2e",
+        "has_main": false,
+        "total_files": 6
+      },
+      "resilience": {
+        "path": "packages/resilience",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 7,
+        "test_files": 7,
+        "test_like": 7,
+        "pkg_name": "@wasla/resilience",
+        "has_main": true,
+        "health": "yes",
+        "total_files": 19
+      },
+      "search-e2e": {
+        "path": "packages/search-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/search-e2e",
+        "has_main": false,
+        "total_files": 6
+      },
+      "service-auth": {
+        "path": "packages/service-auth",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 15,
+        "test_files": 13,
+        "test_like": 13,
+        "pkg_name": "@wasla/service-auth",
+        "has_main": false,
+        "health": "yes",
+        "total_files": 31
+      },
+      "subscription-e2e": {
+        "path": "packages/subscription-e2e",
+        "src_ts_files": 2,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/subscription-e2e",
+        "has_main": false,
+        "total_files": 6
+      },
+      "telegram-adapter": {
+        "path": "packages/telegram-adapter",
+        "entry": [
+          "src/index.ts"
+        ],
+        "src_ts_files": 11,
+        "test_files": 9,
+        "test_like": 9,
+        "pkg_name": "@wasla/telegram-adapter",
+        "has_main": false,
+        "total_files": 23
+      },
+      "telemetry": {
+        "path": "packages/telemetry",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "test-utils": {
+        "path": "packages/test-utils",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "tick-scheduler": {
+        "path": "packages/tick-scheduler",
+        "entry": [
+          "src/index.ts",
+          "src/main.ts"
+        ],
+        "src_ts_files": 4,
+        "test_files": 1,
+        "test_like": 1,
+        "pkg_name": "@wasla/tick-scheduler",
+        "has_main": false,
+        "total_files": 9
+      },
+      "ui": {
+        "path": "packages/ui",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      }
+    },
+    "infra": {
+      "docker": {
+        "path": "infra/docker",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "environments": {
+        "path": "infra/environments",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 7
+      },
+      "kubernetes": {
+        "path": "infra/kubernetes",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "gitkeep": 1,
+        "total_files": 1
+      },
+      "migrations": {
+        "path": "infra/migrations",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "total_files": 1
+      },
+      "observability": {
+        "path": "infra/observability",
+        "dockerfile": "Dockerfile.alertmanager",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "total_files": 11
+      },
+      "render": {
+        "path": "infra/render",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "total_files": 3
+      },
+      "secrets": {
+        "path": "infra/secrets",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "total_files": 1
+      },
+      "terraform": {
+        "path": "infra/terraform",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "total_files": 16
+      },
+      "tls": {
+        "path": "infra/tls",
+        "src_ts_files": 0,
+        "test_files": 0,
+        "test_like": 0,
+        "total_files": 1
+      }
+    }
+  }
+}
