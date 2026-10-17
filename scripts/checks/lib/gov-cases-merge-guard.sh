@@ -1,14 +1,17 @@
-# gov-cases-merge-guard.sh — cases for scripts/ops/merge-on-approved-head.sh (CLM-0559 · RISK-0064).
+# gov-cases-merge-guard.sh — cases for scripts/ops/merge-on-approved-head.sh (CLM-0559 · RISK-0064 · ADR-071).
 #
 # Sourced from scripts/checks/test-governance.sh; relies on t() defined there.
 # The guard is exercised against a stub `gh` (no network): each case writes the API answers
-# the stub returns, then asserts the guard merges ONLY when the required reviewer's newest
-# review is APPROVED on the exact current head and every check run on that head passed — and
-# that the merge it issues carries --match-head-commit <head> and never --admin.
+# the stub returns, then asserts the guard merges when the PR is open with green checks on
+# the current head — with or without any approval (ADR-071: approval is not a required
+# condition) — and refuses on an explicit objection (CHANGES_REQUESTED on head), a failed or
+# pending check, a non-open PR, or `--admin`. The merge it issues must carry
+# --match-head-commit <head> and never --admin.
 #
-# Reference: docs/16-progress/SINGLE_REVIEWER_DEPENDENCY_REVIEW_2026-10-07.md §6.1–§6.2 and §7.
+# Reference: docs/15-decisions/ADR-071-approval-not-required-for-merge.md and
+# docs/16-progress/SINGLE_REVIEWER_DEPENDENCY_REVIEW_2026-10-07.md §6–§9.
 
-printf '\n\033[1m[م] حارسُ الدمجِ على الرأسِ المعتمَد (CLM-0559 · RISK-0064)\033[0m\n'
+printf '\n\033[1m[م] حارسُ الدمجِ على الرأسِ المعتمَد (CLM-0559 · RISK-0064 · ADR-071)\033[0m\n'
 
 MG="$REPO_ROOT/scripts/ops/merge-on-approved-head.sh"
 if [[ ! -f "$MG" ]]; then
@@ -38,40 +41,34 @@ _mg_set() { # _mg_set <pr-line> <reviews> <runs>
   printf '%b\n' "$1" > "$MG_DIR/pr"; printf '%b\n' "$2" > "$MG_DIR/reviews"; printf '%b\n' "$3" > "$MG_DIR/runs"
   rm -f "$MG_DIR/merged"
 }
-_mg_run() { MG_DIR="$MG_DIR" GH="$MG_DIR/gh" REPO=o/r REQUIRED_REVIEWER=rev bash "$MG" 7 --squash; }
+_mg_run() { MG_DIR="$MG_DIR" GH="$MG_DIR/gh" REPO=o/r bash "$MG" 7 --squash; }
 _mg_merged_on_head() { _mg_run && grep -q -- "--match-head-commit $MG_HEAD" "$MG_DIR/merged" && ! grep -q -- "--admin" "$MG_DIR/merged"; }
 
-OPEN="open\t$MG_HEAD\tauthor"
+OPEN="open\t$MG_HEAD"
 GREEN="WASLA CI / verify\tcompleted\tsuccess\nRestore\tcompleted\tskipped"
 
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "$GREEN"
-t "الموافقةُ على الرأسِ والفحوصُ خضراء ⇒ دمجٌ بـ--match-head-commit" pass _mg_merged_on_head
+_mg_set "$OPEN" "" "$GREEN"
+t "لا مراجعةَ إطلاقًا (ADR-071: الموافقةُ ليست شرطًا) والفحوصُ خضراء ⇒ دمجٌ بـ--match-head-commit" pass _mg_merged_on_head
 
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_OLD\t2026-10-14T00:00:00Z" "$GREEN"
-t "موافقةٌ على التزامٍ أقدم (حالةُ #711) ⇒ رفض" fail _mg_run
+_mg_set "$OPEN" "APPROVED\t$MG_HEAD" "$GREEN"
+t "موافقةٌ موجودةٌ على الرأس ⇒ دمج (استشاريةٌ لا شرط)" pass _mg_merged_on_head
 
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z\nrev\tCHANGES_REQUESTED\t$MG_HEAD\t2026-10-14T01:00:00Z" "$GREEN"
-t "طلبُ تغييراتٍ بعدَ الموافقةِ على الرأس ⇒ رفض" fail _mg_run
+_mg_set "$OPEN" "APPROVED\t$MG_OLD" "$GREEN"
+t "موافقةٌ على التزامٍ أقدم (شكلُ #734) ⇒ دمجٌ الآن (ADR-071 ألغى شرطَ الموافقة)" pass _mg_merged_on_head
 
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z\nrev\tDISMISSED\t$MG_HEAD\t2026-10-14T01:00:00Z" "$GREEN"
-t "موافقةٌ أُسقطت (DISMISSED) ⇒ رفض" fail _mg_run
+_mg_set "$OPEN" "APPROVED\t$MG_HEAD\nCHANGES_REQUESTED\t$MG_HEAD" "$GREEN"
+t "اعتراضٌ صريحٌ (CHANGES_REQUESTED) على الرأس ⇒ رفض" fail _mg_run
 
-_mg_set "$OPEN" "other\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "$GREEN"
-t "موافقةٌ من غيرِ المراجِعِ المطلوب ⇒ رفض" fail _mg_run
-
-_mg_set "open\t$MG_HEAD\trev" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "$GREEN"
-t "المراجِعُ هو صاحبُ الـPR (موافقةٌ ذاتية) ⇒ رفض" fail _mg_run
-
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "WASLA CI / verify\tcompleted\tfailure"
+_mg_set "$OPEN" "APPROVED\t$MG_HEAD" "WASLA CI / verify\tcompleted\tfailure"
 t "فحصٌ فاشلٌ على الرأس ⇒ رفض" fail _mg_run
 
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "WASLA CI / verify\tin_progress\t"
+_mg_set "$OPEN" "APPROVED\t$MG_HEAD" "WASLA CI / verify\tin_progress\t"
 t "فحصٌ لم يكتملْ على الرأس ⇒ رفض" fail _mg_run
 
-_mg_set "closed\t$MG_HEAD\tauthor" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "$GREEN"
+_mg_set "closed\t$MG_HEAD" "APPROVED\t$MG_HEAD" "$GREEN"
 t "PR غيرُ مفتوح ⇒ رفض" fail _mg_run
 
-_mg_set "$OPEN" "rev\tAPPROVED\t$MG_HEAD\t2026-10-14T00:00:00Z" "$GREEN"
-t "--admin يُرفضُ ولو كانَ كلُّ شيءٍ أخضر" fail env MG_DIR="$MG_DIR" GH="$MG_DIR/gh" REPO=o/r REQUIRED_REVIEWER=rev bash "$MG" 7 --admin
+_mg_set "$OPEN" "APPROVED\t$MG_HEAD" "$GREEN"
+t "--admin يُرفضُ ولو كانَ كلُّ شيءٍ أخضر" fail env MG_DIR="$MG_DIR" GH="$MG_DIR/gh" REPO=o/r bash "$MG" 7 --admin
 
 rm -rf "$MG_DIR"
