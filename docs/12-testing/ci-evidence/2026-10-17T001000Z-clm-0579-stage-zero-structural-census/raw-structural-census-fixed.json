@@ -5,7 +5,9 @@
     "measured_at_utc": "2026-10-17T00:55:00Z",
     "method": "git ls-tree -r --name-only on the named SHA; per-component counts of tracked files, non-test TS, test TS, package.json, Dockerfile, api.openapi.yml, schema.sql, events.json",
     "correction_of": "raw-structural-census.json (first detector counted only first-level files and misclassified 7 non-empty dirs as placeholders)",
-    "limits": "presence-only census; does NOT verify behavior, contracts match, test pass, deployment, or production readiness; the six Stage Zero labels are used; NOT_PROVEN is an evidence limitation only, never a seventh component status"
+    "limits": "presence-only census; does NOT verify behavior, contracts match, test pass, deployment, or production readiness; the six Stage Zero labels are used; NOT_PROVEN is an evidence limitation only, never a seventh component status",
+    "placeholder_dirs_true_count": 18,
+    "correction_note_2": "infra/tls holds supabase-root-2021-ca.pem (a real tracked file) — not a placeholder; TS totals clarified: 1454 = all .ts (929 src + 525 test)"
   },
   "placeholder_dirs_true_count": 19,
   "census": {

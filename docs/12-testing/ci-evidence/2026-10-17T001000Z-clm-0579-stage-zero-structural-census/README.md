@@ -16,10 +16,13 @@
 # كل الملفات المتتبعة
 git ls-tree -r --name-only 6c4a8fa6bc9692a3261d10e13dbf30632b6768ce
 
-# ملفات TS (غير اختبار)
-git ls-tree -r --name-only 6c4a8fa6 | grep '\.ts$' | grep -vE '\.(test|integration)\.ts$' | wc -l   # = 1454
+# ملفات TS (الكل)
+git ls-tree -r --name-only 6c4a8fa6 | grep '\.ts$' | wc -l   # = 1454
 
-# ملفات اختبار
+# منها ملفات مصدر (غير اختبار)
+git ls-tree -r --name-only 6c4a8fa6 | grep '\.ts$' | grep -vE '\.(test|integration)\.ts$' | wc -l   # = 929
+
+# منها ملفات اختبار
 git ls-tree -r --name-only 6c4a8fa6 | grep -cE '\.(test|integration)\.ts$'   # = 525
 
 # مجلد placeholder حقيقي (لا ملف متتبع تحته غير .gitkeep)
@@ -35,9 +38,10 @@ git ls-tree -r --name-only 6c4a8fa6 | grep -cE '\.(test|integration)\.ts$'   # =
 | ما قِيس | كيف قِيس | القيمة |
 |---|---|---|
 | مكوّنات المستوى الثاني: خدمات / تطبيقات / بوتات / حزم / بنية تحتية | مسح `git ls-tree` على الرأس | 27 / 5 / 3 / 40 / 9 (مجموع 84) |
-| ملفات TS متتبعة (غير اختبار) | `git ls-tree` | 1454 |
-| ملفات اختبار متتبعة | `git ls-tree` | 525 |
-| مجلدات لا تحتها أي ملف متتبع غير `.gitkeep` | فحص متتابع لكل مجلد | **19** (وليس 26 — التصحيحُ موثَّقٌ أدناه) |
+| ملفات TS متتبعة — **الكل** | `git ls-tree` | **1454** |
+| منها ملفات مصدر (غير اختبار) | `git ls-tree` | **929** |
+| منها ملفات اختبار (`.test.ts`/`.integration.ts`) | `git ls-tree` | **525** |
+| مجلدات لا تحتها أي ملف متتبع غير `.gitkeep` | فحص متتابع لكل مجلد | **18** (وليس 26 — التصحيحُ موثَّقٌ أدناه) |
 | ملفات `api.openapi.yml` | `git ls-tree` | 17 |
 | ملفات `schema.sql` | `git ls-tree` | 18 |
 | ملفات `events.json` | `git ls-tree` | 16 |
@@ -49,7 +53,7 @@ git ls-tree -r --name-only 6c4a8fa6 | grep -cE '\.(test|integration)\.ts$'   # =
 
 ### §2.1 تصحيح الكاشف الأولي (موثَّق بالإضافة لا بالمحو)
 
-الكاشفُ الأوليُّ عدَّ 26 مجلدَ `.gitkeep`. **العددُ الصحيحُ 19.** السببُ الجذريُّ: الكاشفُ الأوليُّ عدَّ الملفاتِ في المستوى الأولِ للمجلدِ فقط، فظنَّ أنَّ مجلدًا يحملُ `.gitkeep` في جذرِهِ وملفاتٍ فعليةً في أدلةٍ فرعيةٍ هو placeholder. الحالاتُ السبعُ المصحَّحةُ:
+الكاشفُ الأوليُّ عدَّ 26 مجلدَ `.gitkeep`. **العددُ الصحيحُ 18.** السببُ الجذريُّ: الكاشفُ الأوليُّ عدَّ الملفاتِ في المستوى الأولِ للمجلدِ فقط، فظنَّ أنَّ مجلدًا يحملُ `.gitkeep` في جذرِهِ وملفاتٍ فعليةً في أدلةٍ فرعيةٍ هو placeholder. الحالاتُ السبعُ المصحَّحةُ:
 
 | المجلد | `.gitkeep` في الجذر؟ | الملفات المتتبعة فعليًا | التصحيح |
 |---|---|---|---|
@@ -145,7 +149,7 @@ git ls-tree -r --name-only 6c4a8fa6 | grep -cE '\.(test|integration)\.ts$'   # =
 | outbox | 7 | 4 | 1 | IMPLEMENTED_UNVERIFIED |
 | config | 7 | 2 | 2 | IMPLEMENTED_UNVERIFIED |
 | tick-scheduler | 7 | 4 | 1 | IMPLEMENTED_UNVERIFIED |
-| packages `*-e2e` (16 حزمة) | 4–7 لكل منها | 1–4 | 1–3 | IMPLEMENTED_UNVERIFIED |
+| `*-e2e` (15 حزمةً مُسمّاةً واحدةً واحدةً: app-edge · billing · channel · customer · delivery · dispatch · driver · golden · marketplace · negotiation · order · partners · reputation · search · subscription) | 4–7 لكلٍّ منها | 1–4 | 1–3 | IMPLEMENTED_UNVERIFIED |
 | date-time | 1 | 0 | 0 | PLACEHOLDER |
 | events | 1 | 0 | 0 | PLACEHOLDER |
 | i18n | 1 | 0 | 0 | PLACEHOLDER |
@@ -153,7 +157,7 @@ git ls-tree -r --name-only 6c4a8fa6 | grep -cE '\.(test|integration)\.ts$'   # =
 | test-utils | 1 | 0 | 0 | PLACEHOLDER |
 | ui | 1 | 0 | 0 | PLACEHOLDER |
 
-**الملخص:** 34 حزمة `IMPLEMENTED_UNVERIFIED` (33 بـpackage.json + `contracts` ذاتُ الـ12 package.json فرعيًا) · 6 حزم `PLACEHOLDER`.
+**الملخص (مُتصحَّح):** 34 حزمةً `IMPLEMENTED_UNVERIFIED` (منها `contracts` ذاتُ الـ12 package.json فرعيًا) · **6** حزمٍ `PLACEHOLDER` (date-time · events · i18n · telemetry · test-utils · ui). 40 = 34 + 6.
 
 ### §3.6 البنية التحتية (`infra/`)
 
@@ -167,7 +171,8 @@ git ls-tree -r --name-only 6c4a8fa6 | grep -cE '\.(test|integration)\.ts$'   # =
 | secrets | 1 | IMPLEMENTED_UNVERIFIED | secret-inventory.json (28 سرًا) |
 | migrations | 1 | IMPLEMENTED_UNVERIFIED | migration-owners.json (الهجراتُ الفعليةُ تعيشُ في `services/*/db/`) |
 | terraform | 16 | IMPLEMENTED_UNVERIFIED | main.tf · environments · variables |
-| tls | 1 (`.gitkeep` فقط) | PLACEHOLDER | WORK_INDEX |
+| tls | 1 (`supabase-root-2021-ca.pem` — **ملفٌ حقيقيٌّ لا `.gitkeep`**) | IMPLEMENTED_UNVERIFIED | شهادةُ CA حقيقيةٌ متتبَّعة |
+
 
 ---
 
