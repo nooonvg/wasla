@@ -30,12 +30,12 @@
 
 | الفحص | النتيجة |
 |---|---|
-| `validate-state-sync.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `verify-governance.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `test-governance.sh` | (يُملأ قبل الـcommit) |
-| `validate-work-claims.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `validate-merged-branches.sh` | (يُملأ قبل الـcommit) |
-| `validate-launch-board.sh` | (يُملأ قبل الـcommit) |
+| `validate-state-sync.sh origin/main HEAD` | **PASS** (ledger 4 · documentation 7) |
+| `verify-governance.sh origin/main HEAD` | **PASS** (تنبيهُ 1 تخطٍّ مُعلن) |
+| `test-governance.sh` | **689 ناجح · 0 فاشل** (الحارسُ الجديدُ بلا فحصِ موافقة · 8 طفراتٍ لسياسةِ ADR-071) |
+| `validate-work-claims.sh origin/main HEAD` | **PASS** |
+| `validate-merged-branches.sh` | **PASS** |
+| `validate-launch-board.sh` | **OK (119 عنصرًا)** |
 
 ## §5 ما لا تدّعيه هذه الشريحة
 
