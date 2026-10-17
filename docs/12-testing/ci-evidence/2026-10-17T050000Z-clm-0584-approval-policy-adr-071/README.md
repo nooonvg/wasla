@@ -52,12 +52,12 @@
 
 | الفحص | النتيجة |
 |---|---|
-| `validate-state-sync.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `verify-governance.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `test-governance.sh` | (يُملأ قبل الـcommit) |
-| `validate-work-claims.sh origin/main HEAD` | (يُملأ قبل الـcommit) |
-| `validate-merged-branches.sh` | (يُملأ قبل الـcommit) |
-| `validate-launch-board.sh` | (يُملأ قبل الـcommit) |
+| `validate-state-sync.sh origin/main HEAD` | **PASS** (security 2 · governance 7 · ledger 4) |
+| `verify-governance.sh origin/main HEAD` | **PASS** (تنبيهُ 1 تخطٍّ مُعلن) |
+| `test-governance.sh` | **689 ناجح · 0 فاشل** (انخفضَ من 691 بمقدارِ حالتَيِ الطفراتِ المحذوفتَينِ 10→8 — تحوّلُ السياسةِ في الاختبارِ نفسِه) |
+| `validate-work-claims.sh origin/main HEAD` | **PASS** (حجزانِ في النطاقِ: CLM-0584 + CLM-0585 — وفقَ مخرجِ الفحصِ نفسِه) |
+| `validate-merged-branches.sh` | **PASS** |
+| `validate-launch-board.sh` | **OK (119 عنصرًا)** |
 
 ## §6 القياس الحي بعد التنفيذ (يُقاس بعد الدمج وتغيير الإعداد — §4)
 
