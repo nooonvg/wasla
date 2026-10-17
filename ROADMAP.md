@@ -111,6 +111,10 @@ CLM-0525 (2026-10-11): ADR-069 المرحلة 2 الجزء 2 — حزمة الح
 
 **Earlier milestone:** the inventory-conflict flag ledger gained a write route: `POST /delivery/inventory-conflicts/{flag_id}/acknowledgement` records the acknowledger from the **proven service identity alone** — never from the request body — and the first acknowledgement wins in a single statement (ADR-026 §4.20).
 
+CLM-0594 (2026-10-18): المرحلةُ صفر · الشريحةُ الثالثة — بناءُ سجلِ المتطلباتِ القابلِ للفحصِ [`REQUIREMENTS_REGISTRY.md`](docs/01-product/REQUIREMENTS_REGISTRY.md) (~60 متطلبًا · 10 مصادرَ · حالاتُ فحصٍ TRACE-MAPPED/NEW-UNTRACE · فهرسُ الفجواتِ لا يُحلُّ) — فجوةُ المرحلةِ 2 المسجَّلةُ في خريطةِ التقاطعِ. لا شفرةَ ولا نشرَ ولا قرارَ مالكٍ · G4/G-S2 UNRESOLVED كما هي. راجع `docs/16-progress/TASK_LOG.md` (CLM-0594).
+CLM-0595 (2026-10-18): تصحيحُ شريحةِ CLM-0594 (مراجعةٌ مستقلةٌ): رابطٌ معطوبٌ · صيغةُ مُعرّفاتٍ · أحكامٌ C7/N3/N2 المُصحَّحةُ (CLM-0589 §C3/§C4) · فهرسُ الفجواتِ يُطابِقُ CLM-0590 · وصفُ المخرَجِ فهرسٌ جزئيٌّ لا مصفوفةٌ · «28/28» صُحِّحَت · سندُ ما بعدَ الدمجِ داخلَ الدليلِ · انحرافانِ مسجَّلانِ (توسيعُ النطاقِ · الدمجُ بلا غلافٍ). راجع `docs/16-progress/TASK_LOG.md` (CLM-0595).
+CLM-0597 (2026-10-18): دمجُ main داخلَ فرعِ #730 ثانيةً — إزالةُ تعارضِ TASK_LOG بعدَ 6 دمجاتٍ (الإضافةُ لا المحو) · #730 كانَ DIRTY عادَ · الحاجزُ (INC-0007) لم يُلمسْ ولا دمجَ ولا نشر. راجع `docs/16-progress/TASK_LOG.md` (CLM-0597).
+
 ## What this project is
 
 WASLA MARKET is the commerce system of WASLA. It is a permanently independent
