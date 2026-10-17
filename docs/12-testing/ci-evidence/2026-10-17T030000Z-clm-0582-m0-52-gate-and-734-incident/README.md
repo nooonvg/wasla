@@ -61,10 +61,10 @@ guard exit=1 · no merge issued
 
 | الفحص | النتيجة |
 |---|---|
-| `validate-state-sync.sh` | (يُملأ قبلَ الـcommit) |
-| `verify-governance.sh origin/main HEAD` | (يُملأ قبلَ الـcommit) |
-| `test-governance.sh` | (يُملأ قبلَ الـcommit) |
-| `validate-merged-branches.sh` | (يُملأ قبلَ الـcommit) |
-| `validate-launch-board.sh` | (يُملأ قبلَ الـcommit) |
+| `validate-state-sync.sh origin/main HEAD` | **PASS** (ledger 4 · security 1 · documentation 8) |
+| `verify-governance.sh origin/main HEAD` | **PASS** (كلُّ الفحوصِ المُنفَّذةِ نجحت · تنبيهُ 1 تخطٍّ مُعلن) |
+| `test-governance.sh` | **691 ناجح · 0 فاشل** (رأسُ الشريحةِ قبلَ الدفعِ) |
+| `validate-merged-branches.sh` | **PASS** (لا فرعًا مدموجًا يتيمًا · لا حجزًا نشطًا لعملٍ مُدمج) |
+| `validate-launch-board.sh` | **OK (119 عنصرًا)** |
 
 **مسارُ الدمجِ لهذا الـPR نفسِه:** لن يُدمجَ إلا عبرَ الحارس (`scripts/ops/merge-on-approved-head.sh`) بعدَ موافقةِ `xuuux-voox` على الرأسِ الكاملِ الحاليّ — لا دمجًا مباشرًا.
