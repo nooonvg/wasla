@@ -219,3 +219,14 @@ ROADMAP.md هو **سجلُ ادعاءاتٍ زمني** (كل CLM سطر) لا و
 ## §P5 ما لم يتغير
 
 G4 وG-S2 **UNRESOLVED — OWNER DECISION REQUIRED** (لم يُحسما) · لا شفرةَ ولا إعداداتٍ تشغيليةٍ ولا نشرَ Render · INC-0007/INC-0008/M6-20 كما هي · M0-53 يبقى `In Progress` بلا نسبةِ اكتمال.
+
+## §P6 حزمة الحوكمة لهذه الشريحة المصحِّحة (قبل الدفع)
+
+| الفحص | النتيجة |
+|---|---|
+| `validate-state-sync.sh origin/main HEAD` | **PASS** (ledger 4 · documentation 5) |
+| `verify-governance.sh origin/main HEAD` | **PASS** (خروجٌ 0 · الفحوصُ المنفَّذةُ نجحت · **التحققُ المحليُّ جزئيٌّ** — الفحصُ المتخطى: **«8) CI مانع»** سببُه المعلن: الأبوابُ نجحت على لقطةٍ مؤرَّخةٍ 2026-09-28T06:48:00Z ولم تُسأل الواجهةُ حيًّا) |
+| `test-governance.sh` | **689 ناجح · 0 فاشل** |
+| `validate-work-claims.sh origin/main HEAD` | **PASS** |
+| `validate-merged-branches.sh` | **PASS** |
+| `validate-launch-board.sh` | **OK (120 عنصرًا)** |
