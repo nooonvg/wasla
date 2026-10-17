@@ -1,0 +1,853 @@
+{
+  "meta": {
+    "title": "CLM-0579 — Stage Zero structural census (corrected)",
+    "base_sha": "6c4a8fa6bc9692a3261d10e13dbf30632b6768ce",
+    "measured_at_utc": "2026-10-17T00:55:00Z",
+    "method": "git ls-tree -r --name-only on the named SHA; per-component counts of tracked files, non-test TS, test TS, package.json, Dockerfile, api.openapi.yml, schema.sql, events.json",
+    "correction_of": "raw-structural-census.json (first detector counted only first-level files and misclassified 7 non-empty dirs as placeholders)",
+    "limits": "presence-only census; does NOT verify behavior, contracts match, test pass, deployment, or production readiness; the six Stage Zero labels are used; NOT_PROVEN is an evidence limitation only, never a seventh component status"
+  },
+  "placeholder_dirs_true_count": 19,
+  "census": {
+    "services/analytics": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/audit": {
+      "tracked_files": 26,
+      "src_ts": 18,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": false
+    },
+    "services/auth": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/billing": {
+      "tracked_files": 53,
+      "src_ts": 27,
+      "test_ts": 12,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": false
+    },
+    "services/chat": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/compliance": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/customers": {
+      "tracked_files": 75,
+      "src_ts": 34,
+      "test_ts": 18,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/delivery": {
+      "tracked_files": 156,
+      "src_ts": 68,
+      "test_ts": 62,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/dispatch": {
+      "tracked_files": 89,
+      "src_ts": 42,
+      "test_ts": 29,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/drivers": {
+      "tracked_files": 88,
+      "src_ts": 45,
+      "test_ts": 22,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/fraud": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/geography": {
+      "tracked_files": 58,
+      "src_ts": 28,
+      "test_ts": 11,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/identity": {
+      "tracked_files": 62,
+      "src_ts": 30,
+      "test_ts": 14,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/marketplace": {
+      "tracked_files": 104,
+      "src_ts": 51,
+      "test_ts": 35,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/matching": {
+      "tracked_files": 73,
+      "src_ts": 35,
+      "test_ts": 20,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/negotiations": {
+      "tracked_files": 83,
+      "src_ts": 48,
+      "test_ts": 21,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/notifications": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/observability": {
+      "tracked_files": 10,
+      "src_ts": 6,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/orders": {
+      "tracked_files": 68,
+      "src_ts": 36,
+      "test_ts": 16,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/partners": {
+      "tracked_files": 39,
+      "src_ts": 25,
+      "test_ts": 9,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": true,
+      "events_json": false
+    },
+    "services/referrals": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/reputation": {
+      "tracked_files": 85,
+      "src_ts": 46,
+      "test_ts": 21,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/rides": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "services/search": {
+      "tracked_files": 80,
+      "src_ts": 35,
+      "test_ts": 23,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/subscriptions": {
+      "tracked_files": 81,
+      "src_ts": 46,
+      "test_ts": 21,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/support": {
+      "tracked_files": 40,
+      "src_ts": 21,
+      "test_ts": 8,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "services/translation": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "apps/admin-portal": {
+      "tracked_files": 60,
+      "src_ts": 30,
+      "test_ts": 5,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "apps/admin-web": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "apps/customer-mini-app": {
+      "tracked_files": 45,
+      "src_ts": 17,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "apps/driver-mini-app": {
+      "tracked_files": 60,
+      "src_ts": 28,
+      "test_ts": 7,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "apps/partner-mini-app": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "bots/customer-bot": {
+      "tracked_files": 16,
+      "src_ts": 8,
+      "test_ts": 6,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "bots/driver-bot": {
+      "tracked_files": 16,
+      "src_ts": 8,
+      "test_ts": 6,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "bots/partner-bot": {
+      "tracked_files": 7,
+      "src_ts": 3,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/app-edge-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/auth-sdk": {
+      "tracked_files": 12,
+      "src_ts": 7,
+      "test_ts": 3,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/authz-policy": {
+      "tracked_files": 11,
+      "src_ts": 7,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/billing-e2e": {
+      "tracked_files": 4,
+      "src_ts": 1,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/bot-runtime": {
+      "tracked_files": 34,
+      "src_ts": 16,
+      "test_ts": 16,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/channel-core": {
+      "tracked_files": 27,
+      "src_ts": 13,
+      "test_ts": 7,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": true,
+      "schema_sql": true,
+      "events_json": true
+    },
+    "packages/channel-e2e": {
+      "tracked_files": 7,
+      "src_ts": 2,
+      "test_ts": 3,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/channel-edge": {
+      "tracked_files": 11,
+      "src_ts": 4,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/channel-postgres": {
+      "tracked_files": 24,
+      "src_ts": 13,
+      "test_ts": 5,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/compliance-review": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/config": {
+      "tracked_files": 7,
+      "src_ts": 2,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/contracts": {
+      "tracked_files": 144,
+      "src_ts": 47,
+      "test_ts": 59,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/customer-e2e": {
+      "tracked_files": 7,
+      "src_ts": 4,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/date-time": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/delivery-e2e": {
+      "tracked_files": 6,
+      "src_ts": 2,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/dispatch-e2e": {
+      "tracked_files": 6,
+      "src_ts": 2,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/driver-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/errors": {
+      "tracked_files": 5,
+      "src_ts": 1,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/events": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/golden-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/i18n": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/incident-ops": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/load-testing": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/marketplace-e2e": {
+      "tracked_files": 6,
+      "src_ts": 2,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/negotiation-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/observability": {
+      "tracked_files": 9,
+      "src_ts": 5,
+      "test_ts": 2,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/order-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/outbox": {
+      "tracked_files": 7,
+      "src_ts": 4,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/partners-e2e": {
+      "tracked_files": 4,
+      "src_ts": 1,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/pilot-feedback": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/reputation-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/resilience": {
+      "tracked_files": 16,
+      "src_ts": 7,
+      "test_ts": 7,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/search-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/service-auth": {
+      "tracked_files": 30,
+      "src_ts": 15,
+      "test_ts": 13,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/subscription-e2e": {
+      "tracked_files": 5,
+      "src_ts": 2,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/telegram-adapter": {
+      "tracked_files": 22,
+      "src_ts": 11,
+      "test_ts": 9,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/telemetry": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/test-utils": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/tick-scheduler": {
+      "tracked_files": 7,
+      "src_ts": 4,
+      "test_ts": 1,
+      "package_json": true,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "packages/ui": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/docker": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/environments": {
+      "tracked_files": 7,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/kubernetes": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/migrations": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/observability": {
+      "tracked_files": 11,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": true,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/render": {
+      "tracked_files": 3,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/secrets": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/terraform": {
+      "tracked_files": 16,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    },
+    "infra/tls": {
+      "tracked_files": 1,
+      "src_ts": 0,
+      "test_ts": 0,
+      "package_json": false,
+      "dockerfile": false,
+      "api_openapi": false,
+      "schema_sql": false,
+      "events_json": false
+    }
+  }
+}
