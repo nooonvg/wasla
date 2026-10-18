@@ -1,3 +1,14 @@
+# 2026-10-18 — CLM-0609 — G-S7: Home العميلِ 7 عناصرَ · الأماكنُ من Profile (ADR-072 D1)
+
+- **Work Item(s):** M0-53 (CLM-0609) — تنفيذُ قرارِ المالكِ ADR-072 D1.
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ · مكدَّسٌ على CLM-0608.
+- **Risk(s):** none — (سببُ none:) تغييرُ تنقّلٍ في الواجهةِ بقرارِ مالكٍ؛ لا عقدَ ولا خدمةَ.
+- **التغييرُ:** `apps/customer-mini-app` — Home.tsx (7 عناصرَ بترتيبِ المصدرِ) · Profile.tsx (قسمُ الأماكنِ برابطِ `#/places`) · اختباراتٌ: Home.test.tsx · Profile.test.tsx · e2e/navigation.spec.ts · e2e/places-flow.spec.ts.
+- **القياسُ:** vitest 74/74 · Playwright 36/36 · tsc 0 · طفرتانِ مقبوضتانِ.
+- **حدودٌ:** Playwright محاكًى — لا تكاملَ حيٌّ.
+- **Deployment:** `apps/**` ← render-deploy يعملُ بعدَ الدمجِ.
+- **Next:** إغلاقُ G-S7/RQ-CMA-7/RQ-CMA-54 بعدَ CI على main. [الدليل](../12-testing/ci-evidence/2026-10-18T083000Z-clm-0609-gs7-home-seven-places-profile/README.md)
+
 # 2026-10-18 — CLM-0608 — G-S11: عقدُ أرباحِ السائقِ — قياسٌ ثمَّ تحديثُ المواصفةِ · G-S13 جديدةٌ
 
 - **Work Item(s):** M0-53 (CLM-0608) — G-S11.
