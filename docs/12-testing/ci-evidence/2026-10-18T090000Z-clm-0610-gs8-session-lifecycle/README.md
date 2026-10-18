@@ -51,6 +51,11 @@
 
 `fetch` و`Telegram.WebApp` محاكيانِ؛ Playwright يحاكي `/edge/session` — لا تكاملَ حيٌّ مع `apps/*/edge` أو `services/identity`. التجديدُ استباقيٌّ؟ **لا** — الإعادةُ عندَ الانتهاءِ لا قبلَه (طلبٌ في لحظةِ الانتهاءِ قد يتلقّى 401 فيُعادُ). Telegram BackButton/Close لا يُمَسُّ.
 
-## §5 الإغلاقُ
+## §5 الأساسُ الآليُّ (BASELINE) والحوكمةُ
+
+- أربعةُ ملفّاتِ اختبارٍ جديدةٌ ← `test_files_tracked` 571 → **575** (البابُ 2 من الحارسِ 11 يرفضُ الأساسَ القديمَ). أُعيدَ التوليدُ وفقَ [BASELINE_FORMAT §4-§5](../../BASELINE_FORMAT.md): `verify.sh` كاملًا ← [raw/verify-log-stale-baseline-only.txt](raw/verify-log-stale-baseline-only.txt) (أخفقَ **فقط** في الفحصِ 11 بسببِ الأساسِ المتقادمِ ثمَّ حزمةِ الحوكمةِ التي تشغّلُه؛ الأنواعُ والاختباراتُ نجحتْ) ← `scripts/baseline.sh --log …` على شجرةٍ نظيفةٍ ← `validate-baseline.sh` ✓.
+- الفحوصُ الأربعةُ على الأساسِ exit 0 + تخطٍّ معلَنٌ (الفحصُ 8 لقطةٌ مؤرَّخةٌ 2026-09-28T06:48:00Z).
+
+## §6 الإغلاقُ
 
 G-S8 مفتوحٌ حتى الدمجِ ونجاحِ CI على main.

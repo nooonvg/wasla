@@ -6,6 +6,7 @@
 - **التغييرُ:** `apps/customer-mini-app` و`apps/driver-mini-app` — store/session.ts (`initStatus`/`initError`) · session-init.ts (لا يرفعُ · طلبٌ واحدٌ · `startSessionLifecycle` بمؤقّتِ انتهاءٍ وإعادةٍ محدودةٍ 3/5د · لا إعادةَ بعدَ فشلٍ أو خروجٍ · `retrySession`) · App.tsx (شاشةُ فشلٍ بإعادةٍ) · main.tsx · i18n. اختباراتٌ: session-init.test.ts (12) + App-session.test.tsx (3) لكلٍّ + E2E فشل→إعادة→تعافٍ.
 - **القياسُ:** العميلُ vitest 89/89 · Playwright 37/37 — السائقُ 147/147 · 35/35 · tsc 0 · 4 طفراتٍ مقبوضةٍ.
 - **حدودٌ:** fetch وTelegram محاكيانِ — لا تكاملَ حيٌّ مع edge/identity.
+- **الأساسُ (BASELINE):** `test_files_tracked` 571 → **575** — أربعةُ ملفّاتِ اختبارٍ جديدةٌ (`session-init.test.ts` و`App-session.test.tsx` في التطبيقينِ)؛ أُعيدَ التوليدُ بـ`scripts/baseline.sh` من سجلِّ `verify.sh` (أخفقَ على الأساسِ المتقادمِ وحدَه) — BASELINE_FORMAT §5.
 - **Deployment:** `apps/**` ← render-deploy يعملُ بعدَ الدمجِ.
 - **Next:** إغلاقُ G-S8/RQ-CMA-13/RQ-DMA-9/RQ-DMA-12 بعدَ CI على main. [الدليل](../12-testing/ci-evidence/2026-10-18T090000Z-clm-0610-gs8-session-lifecycle/README.md)
 
