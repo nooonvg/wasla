@@ -3,12 +3,14 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { RideOrder } from "../screens/RideOrder";
 import { useOrderFormStore } from "../store/order-form";
 import { useSessionStore } from "../store/session";
+import { usePlacesStore } from "../store/places";
 import "../i18n";
 
 // Mock the API client
 vi.mock("../api/client", () => ({
   apiClient: {
     post: vi.fn(),
+    get: vi.fn(),
   },
   ApiError: class ApiError extends Error {
     constructor(public status: number, message: string) {
@@ -20,10 +22,32 @@ vi.mock("../api/client", () => ({
 import { apiClient } from "../api/client";
 
 const mockedPost = apiClient.post as ReturnType<typeof vi.fn>;
+const mockedGet = apiClient.get as ReturnType<typeof vi.fn>;
+
+const savedPlaces = {
+  items: [
+    {
+      place_id: "place-home",
+      label: "المنزل",
+      zone_id: "z-home",
+      zone_path: ["المدينة", "العزيزية"],
+      created_at: "2026-10-18T00:00:00Z",
+    },
+    {
+      place_id: "place-work",
+      label: "العمل",
+      zone_id: "z-work",
+      zone_path: ["المدينة", "المركز"],
+      created_at: "2026-10-18T00:00:00Z",
+    },
+  ],
+  limit: 5,
+};
 
 describe("RideOrder screen", () => {
   beforeEach(() => {
     useOrderFormStore.getState().resetForm();
+    usePlacesStore.setState({ places: [], status: "idle", error: null });
     useSessionStore.setState({ token: "test-token", customerId: "WS-1234567890", expiresAt: Date.now() + 3600000 });
     vi.clearAllMocks();
   });
@@ -37,6 +61,98 @@ describe("RideOrder screen", () => {
     expect(screen.getByTestId("notes-input")).toBeInTheDocument();
     expect(screen.getByTestId("preview-button")).toBeInTheDocument();
     expect(screen.getByTestId("submit-button")).toBeInTheDocument();
+  });
+
+  it("renders the saved-place pickers for pickup and dropoff (G-S9.1)", () => {
+    render(<RideOrder />);
+
+    expect(screen.getByTestId("pickup-place-select")).toBeInTheDocument();
+    expect(screen.getByTestId("dropoff-place-select")).toBeInTheDocument();
+  });
+
+  it("loads saved places on mount and lists them in the pickup picker (G-S9.1)", async () => {
+    mockedGet.mockResolvedValue(savedPlaces);
+
+    render(<RideOrder />);
+
+    await waitFor(() => {
+      expect(mockedGet).toHaveBeenCalledWith("/customers/WS-1234567890/places");
+    });
+
+    const pickupSelect = (await screen.findByTestId("pickup-place-select")) as HTMLSelectElement;
+    const optionValues = Array.from(pickupSelect.options).map((o) => o.value);
+    expect(optionValues).toContain("place-home");
+    expect(optionValues).toContain("place-work");
+  });
+
+  it("submitting with saved places selected sends source saved_place with the place's zone and label (G-S9.1)", async () => {
+    mockedGet.mockResolvedValue(savedPlaces);
+    mockedPost.mockResolvedValue({} as never);
+
+    render(<RideOrder />);
+
+    const pickupSelect = (await screen.findByTestId("pickup-place-select")) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(Array.from(pickupSelect.options).some((o) => o.value === "place-home")).toBe(true);
+    });
+    fireEvent.change(pickupSelect, { target: { value: "place-home" } });
+
+    const dropoffSelect = screen.getByTestId("dropoff-place-select") as HTMLSelectElement;
+    fireEvent.change(dropoffSelect, { target: { value: "place-work" } });
+
+    fireEvent.change(screen.getByTestId("price-mode-select"), { target: { value: "customer_offer" } });
+    fireEvent.change(screen.getByTestId("offered-price-input"), { target: { value: "25" } });
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockedPost).toHaveBeenCalled();
+    });
+
+    const body = mockedPost.mock.calls[0][1] as {
+      stops: Array<{ kind: string; zone_id: string; source: string; label: string | null }>;
+    };
+    expect(body.stops[0]).toMatchObject({
+      kind: "pickup",
+      zone_id: "z-home",
+      source: "saved_place",
+      label: "المنزل",
+    });
+    expect(body.stops[1]).toMatchObject({
+      kind: "dropoff",
+      zone_id: "z-work",
+      source: "saved_place",
+      label: "العمل",
+    });
+  });
+
+  it("manually editing the zone after picking a place reverts the stop source to manual_zone (G-S9.1)", async () => {
+    mockedGet.mockResolvedValue(savedPlaces);
+    mockedPost.mockResolvedValue({} as never);
+
+    render(<RideOrder />);
+
+    const pickupSelect = (await screen.findByTestId("pickup-place-select")) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(Array.from(pickupSelect.options).some((o) => o.value === "place-home")).toBe(true);
+    });
+    fireEvent.change(pickupSelect, { target: { value: "place-home" } });
+
+    const zoneInput = screen.getByTestId("pickup-zone-input");
+    fireEvent.change(zoneInput, { target: { value: "z-manual" } });
+
+    fireEvent.change(screen.getByTestId("dropoff-zone-input"), { target: { value: "z-2" } });
+    fireEvent.change(screen.getByTestId("price-mode-select"), { target: { value: "customer_offer" } });
+    fireEvent.change(screen.getByTestId("offered-price-input"), { target: { value: "25" } });
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockedPost).toHaveBeenCalled();
+    });
+
+    const body = mockedPost.mock.calls[0][1] as {
+      stops: Array<{ kind: string; zone_id: string; source: string }>;
+    };
+    expect(body.stops[0]).toMatchObject({ zone_id: "z-manual", source: "manual_zone" });
   });
 
   it("shows offered price field only when price_mode is customer_offer", () => {
