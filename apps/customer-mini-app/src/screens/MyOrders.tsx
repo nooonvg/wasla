@@ -12,6 +12,9 @@ interface OrderRequest {
   created_at: string;
 }
 
+/** CMS §3.6 L86: the screen lists the customer's last five requests. */
+export const LAST_ORDERS_LIMIT = 5;
+
 export function MyOrders() {
   const { t } = useTranslation();
   const { token, customerId } = useSessionStore();
@@ -26,9 +29,16 @@ export function MyOrders() {
     setLoading(true);
     setError(null);
     try {
-      const params = filterStatus ? `?status=${filterStatus}` : "";
-      const result = await apiClient.get<{ items: OrderRequest[]; limit: number }>(
-        `/customers/${customerId}/order-requests${params}`
+      // G-S9.10 (CLM-0616): CMS §3.6 L86 «آخر 5 طلبات» · L90
+      // `GET /customers/{id}/order-requests?limit=5`. `limit` is the only query
+      // parameter of `listOrderRequests`; the status filter is kept as it was
+      // (sent alongside, unchanged) — the service does not declare or read it,
+      // a separate measured finding (G-S9.15), not resolved in this slice.
+      const params = new URLSearchParams();
+      if (filterStatus) params.set("status", filterStatus);
+      params.set("limit", String(LAST_ORDERS_LIMIT));
+      const result = await apiClient.get<{ items: OrderRequest[] }>(
+        `/customers/${customerId}/order-requests?${params.toString()}`
       );
       setOrders(result.items);
     } catch (e) {

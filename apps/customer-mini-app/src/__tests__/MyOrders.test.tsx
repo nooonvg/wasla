@@ -34,8 +34,10 @@ describe("MyOrders screen", () => {
     render(<MyOrders />);
 
     await waitFor(() => {
-      expect(mockedGet).toHaveBeenCalledWith("/customers/WS-1234567890/order-requests");
+      // G-S9.10 (CLM-0616): CMS §3.6 L90 `?limit=5`. (Was the bare path — no limit.)
+      expect(mockedGet).toHaveBeenCalledWith("/customers/WS-1234567890/order-requests?limit=5");
     });
+    expect(mockedGet).toHaveBeenCalledTimes(1);
   });
 
   it("renders orders list", async () => {
@@ -79,8 +81,35 @@ describe("MyOrders screen", () => {
     fireEvent.change(screen.getByTestId("status-filter-select"), { target: { value: "submitted" } });
 
     await waitFor(() => {
-      expect(mockedGet).toHaveBeenCalledWith("/customers/WS-1234567890/order-requests?status=submitted");
+      // G-S9.10 (CLM-0616): the filter is kept and `limit=5` rides along.
+      // (Was `?status=submitted` — no limit.)
+      expect(mockedGet).toHaveBeenCalledWith(
+        "/customers/WS-1234567890/order-requests?status=submitted&limit=5",
+      );
     });
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    expect((screen.getByTestId("status-filter-select") as HTMLSelectElement).value).toBe("submitted");
+  });
+
+  it("sends limit=5 on every load: mount, filter change and filter reset (G-S9.10)", async () => {
+    mockedGet.mockResolvedValue({ items: [] });
+
+    render(<MyOrders />);
+    await waitFor(() => expect(mockedGet).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getByTestId("status-filter-select"), { target: { value: "submitted" } });
+    await waitFor(() => expect(mockedGet).toHaveBeenCalledTimes(2));
+
+    fireEvent.change(screen.getByTestId("status-filter-select"), { target: { value: "" } });
+    await waitFor(() => expect(mockedGet).toHaveBeenCalledTimes(3));
+
+    const calls = mockedGet.mock.calls.map(([url]) => new URL(url as string, "http://x"));
+    for (const url of calls) {
+      expect(url.pathname).toBe("/customers/WS-1234567890/order-requests");
+      expect(url.searchParams.getAll("limit")).toEqual(["5"]);
+    }
+    expect(calls.map((url) => url.searchParams.get("status"))).toEqual([null, "submitted", null]);
+    expect((screen.getByTestId("status-filter-select") as HTMLSelectElement).value).toBe("");
   });
 
   it("shows error on failure", async () => {

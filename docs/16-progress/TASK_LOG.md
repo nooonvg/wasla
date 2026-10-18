@@ -1,3 +1,13 @@
+# 2026-10-18 — CLM-0616 — G-S9.10: MyOrders تطلبُ آخرَ خمسةِ طلباتٍ (limit=5)
+
+- **Work Item(s):** M0-53 (CLM-0616) — G-S9.10 وحدَه (RQ-CMA-39).
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ.
+- **Risk(s):** none — (سببُ none:) الشاشةُ ترسلُ معاملًا يعلنُه العقدُ ضمنَ حدودِه (5 ∈ 1..50)؛ لا تغييرَ عقدٍ ولا حدٍّ ولا `production_open`؛ مغطًّى بأربعِ طفراتٍ.
+- **التغييرُ:** `apps/customer-mini-app` — `MyOrders.tsx` يرسلُ `limit=5` في التحميلِ الأوّليِّ وعندَ تغييرِ المرشّحِ وإعادتِه، والمرشّحُ محفوظٌ · `services/customers` — اختبارُ HTTP حقيقيٌّ (7 طلباتٍ ← 5 أحدثُها) · السجلُّ: ملاحظتا G-S9.10/RQ-CMA-39 وصفُّ G-S9.15 (اختلافُ `status` — مفتوحٌ).
+- **القياسُ:** customer vitest 90/90 · Playwright 37/37 · customers 152/152 · tsc 0 · 4 طفراتٍ مُلتقَطةٍ · test_files_tracked 578 بلا تغييرٍ.
+- **Deployment:** `apps/**` ← render-deploy بعدَ الدمجِ (خلفَ حدٍّ مغلقٍ).
+- **Next:** إغلاقُ G-S9.10 وRQ-CMA-39 بعدَ CI على main · G-S9 الأمُّ مفتوحةٌ. [الدليل](../12-testing/ci-evidence/2026-10-18T140000Z-clm-0616-gs9-10-myorders-last-five/README.md)
+
 # 2026-10-18 — CLM-0615 — سجلُّ الإغلاقِ — أحكامُ M0-53 للشرائحِ المدموجةِ
 
 - **Work Item(s):** M0-53 (CLM-0615) — أحكامُ السجلِّ المؤرَّخةُ لـG-T1 · G-S6 · G-S7 · G-S8 · G-S11 · G-S12.7/UAT-08 · G-S10.1/2 · G-S13.
