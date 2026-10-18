@@ -26,6 +26,11 @@ const resources = {
       },
       session: {
         expired: "انتهت الجلسة، يرجى إعادة الدخول",
+        not_in_telegram: "افتح التطبيق من تلغرام لبدء الجلسة",
+        edge_rejected: "تعذّر بدء الجلسة",
+        network: "تعذّر الاتصال لبدء الجلسة",
+        invalid_response: "ردّ غير صالح عند بدء الجلسة",
+        retry_limit: "تكرّر انتهاء الجلسة — أعد المحاولة",
       },
       ride_order: {
         title: "طلب مشوار",
@@ -166,6 +171,11 @@ const resources = {
       },
       session: {
         expired: "Session expired, please re-enter",
+        not_in_telegram: "Open the app from Telegram to start a session",
+        edge_rejected: "Could not start the session",
+        network: "Could not connect to start the session",
+        invalid_response: "Invalid response while starting the session",
+        retry_limit: "The session keeps expiring — please retry",
       },
       ride_order: {
         title: "Request a Ride",
@@ -306,6 +316,11 @@ const resources = {
       },
       session: {
         expired: "سیشن ختم ہو گیا، دوبارہ داخل ہوں",
+        not_in_telegram: "سیشن شروع کرنے کے لیے ایپ ٹیلیگرام سے کھولیں",
+        edge_rejected: "سیشن شروع نہیں ہو سکا",
+        network: "سیشن شروع کرنے کے لیے رابطہ نہیں ہو سکا",
+        invalid_response: "سیشن شروع کرتے وقت غلط جواب",
+        retry_limit: "سیشن بار بار ختم ہو رہا ہے — دوبارہ کوشش کریں",
       },
       ride_order: {
         title: "سواری کی درخواست",

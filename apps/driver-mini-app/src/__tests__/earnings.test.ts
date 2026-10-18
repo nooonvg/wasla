@@ -41,6 +41,9 @@ describe("Earnings store", () => {
       setSession: vi.fn(),
       clearSession: vi.fn(),
       isAuthenticated: () => true,
+      initStatus: "ready" as const,
+      initError: null,
+      setInitState: vi.fn(),
     });
   });
 
@@ -96,6 +99,9 @@ describe("Earnings store", () => {
       setSession: vi.fn(),
       clearSession: vi.fn(),
       isAuthenticated: () => false,
+      initStatus: "idle" as const,
+      initError: null,
+      setInitState: vi.fn(),
     });
 
     await useEarningsStore.getState().fetchEarnings();
