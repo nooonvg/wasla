@@ -1,3 +1,13 @@
+# 2026-10-18 — CLM-0606 — G-T1: أسماءُ ثلاثةِ اختباراتٍ تطابقُ توكيداتِها
+
+- **Work Item(s):** M0-53 (CLM-0606) — G-T1.
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ · مكدَّسٌ على CLM-0605.
+- **Risk(s):** none — (سببُ none:) أسماءُ اختباراتٍ فقط.
+- **التغييرُ:** 3 أسطرِ أسماءٍ — `apps/customer-mini-app` (Home.test.tsx) · `apps/driver-mini-app` (JobDetail.test.tsx) · `apps/admin-portal` (e2e/audit-rbac.spec.ts) — لا توكيدَ ولا محدِّدَ تغيّرَ.
+- **القياسُ:** vitest 72/132/101 مطابقٌ · Playwright audit-rbac 9/9.
+- **Deployment:** `apps/**` غيرُ مستثنًى ← render-deploy يعملُ بعدَ الدمجِ (اختباراتٌ فقط؛ لا تغييرَ تشغيليٌّ).
+- **Next:** إغلاقُ G-T1 بعدَ CI على main. [الدليل](../12-testing/ci-evidence/2026-10-18T070000Z-clm-0606-gt1-test-names/README.md)
+
 # 2026-10-18 — CLM-0605 — UAT-08: رفضُ تعديلِ سجلِّ التدقيقِ بـ405 + Allow (ADR-072 D2)
 
 - **Work Item(s):** M0-53 (CLM-0605) — تنفيذُ قرارِ المالكِ ADR-072 D2.

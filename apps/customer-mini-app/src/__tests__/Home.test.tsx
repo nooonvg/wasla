@@ -9,7 +9,7 @@ describe("Home", () => {
     expect(screen.getByText("وَصْلة")).toBeInTheDocument();
   });
 
-  it("renders all seven menu items", () => {
+  it("renders each of the seven spec menu items (presence, not count)", () => {
     render(<Home />);
     expect(screen.getByText("اطلب مشوار")).toBeInTheDocument();
     expect(screen.getByText("اطلب توصيل")).toBeInTheDocument();
