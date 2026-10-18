@@ -20,7 +20,7 @@
 | M1-05: مصفوفة سياسات التفويض (ADR-027) | ✅ مُنفَّذ |
 | M2-01: صورة الحاوية وسلسلة التوريد | ✅ مُنفَّذ |
 | M2-04: مخطط الإعداد ومصدر حقيقته | ✅ مُنفَّذ |
-| Audit service (services/audit/) | ~~⚠️ scaffolded فقط — يحتاج تنفيذ~~ ✅ مُنفَّذ — *(تصحيحٌ مؤرَّخٌ CLM-0600 · 2026-10-18: الخدمةُ مُنفَّذةٌ الآن (domain/http/infrastructure — 26 ملفًا) واختبارُها السلوكيُّ في CI (audit-rbac: «no edit/delete buttons» · «PUT to audit events returns 405») — قياسُ CLM-0591 A-4/A-7. **حدُّ الادعاءِ:** هذا يثبتُ التنفيذَ والسلوكَ المُقاسَ لا التشغيلَ الإنتاجيَّ للواجهةِ الإداريةِ.)* |
+| Audit service (services/audit/) | ~~⚠️ scaffolded فقط — يحتاج تنفيذ~~ ✅ مُنفَّذ — *(تصحيحٌ مؤرَّخٌ CLM-0600 · حُدَّ الادعاءُ في CLM-0601: الخدمةُ مُنفَّذةٌ (domain/http/infrastructure — 26 ملفًا) · **التوكيداتُ المقروءةُ فعليًّا (CLM-0601):** `services/audit/src/__tests__/http/audit-routes.test.ts` يغطي POST/GET للخدمةِ نفسِها (18 توكيدًا) · `apps/admin-portal/e2e/audit-rbac.spec.ts` يغطي تكاملَ الواجهةِ (no edit/delete · PUT→405 محليًّا). **حدُّ الادعاءِ:** التنفيذُ والتوكيداتُ المقروءةُ لا التشغيلُ الإنتاجيُّ · تشغيلُ جناحِ CI الفعليُّ مربوطٌ بفحصِ CI لا بهذهِ الشريحةِ.)* |
 | Services with admin endpoints | ✅ معظم الخدمات لديها مسارات إدارية |
 
 ## 3. شخصيات المستخدم (Personas)
@@ -115,7 +115,7 @@
 | Drivers (port 8085) | `GET /drivers`, `GET /drivers/:id`, `POST /drivers/:id/suspend`, `POST /drivers/:id/reinstate`, `GET /drivers/:id/documents`, `POST /drivers/:id/documents/:docId/review` | ✅ مُنفَّذ |
 | Orders (port 8087) | `GET /orders`, `GET /orders/:id` | ✅ مُنفَّذ |
 | Customers (port 8080) | `GET /customers`, `GET /customers/:id`, `POST /customers/:id/suspend`, `POST /customers/:id/reinstate` | ⚠️ يحتاج مسارات إدارية |
-| Audit (new) | `POST /audit/events`, `GET /audit/events` | ~~⚠️ جديد — يحتاج تنفيذ~~ ✅ مُنفَّذ — *(تصحيحٌ مؤرَّخٌ CLM-0600 · نفسِ الدليلِ)* |
+| Audit (new) | `POST /audit/events`, `GET /audit/events` | ~~⚠️ جديد — يحتاج تنفيذ~~ ✅ مُنفَّذ — *(تصحيحٌ مؤرَّخٌ CLM-0600 · التوكيداتُ المقروءةُ في CLM-0601: `audit-routes.test.ts` يغطي المسارينِ للخدمةِ نفسِها)* |
 
 ## 8. UAT Scenarios (User Acceptance Testing)
 
