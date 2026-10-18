@@ -75,6 +75,7 @@
 ```
 
 - تبديل حالة التوفر (`available` / `busy`) عبر `PUT /drivers/:id/availability`
+  - *(2026-10-18 · CLM-0613 / G-S10 — ملاحظةٌ مؤرَّخةٌ بلا محوٍ: العقدُ المعتمَدُ المنفَّذُ يجعلُ السائقَ يُعلِنُ `available` / `offline` فقط (`DRIVER_DECLARED_AVAILABILITY` في `packages/contracts/driver`)، و`busy` تضعُه المنظومةُ أثناءَ مهمّةٍ ويُرفَضُ من هذا المسارِ بـ400. الواجهةُ تتبعُ العقدَ — [الدليل](../12-testing/ci-evidence/2026-10-18T103000Z-clm-0613-gs10-driver-availability-eligibility/README.md) §2.)*
 - عرض حالة الأهلية (إذا كان غير مؤهل، يظهر تنبيه)
 - قائمة المهام النشطة (إن وُجدت) تعرض كأول عنصر
 
