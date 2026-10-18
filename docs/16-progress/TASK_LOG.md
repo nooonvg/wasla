@@ -1,3 +1,13 @@
+# 2026-10-18 — CLM-0620 — إغلاقُ G-S9.1 بدليلِ main
+
+- **Work Item(s):** M0-53 (CLM-0620) — إغلاقُ G-S9.1 وحدَه (RQ-CMA-15).
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ · G-S9 الأمُّ وG-S9.15 مفتوحتانِ · لا نسبةَ اكتمالٍ.
+- **Risk(s):** none — (سببُ none:) وثائقُ فقط؛ الحكمُ يُحيلُ إلى #769 المدموجِ بالغلافِ وCI ناجحٍ ونشرٍ PASS على `811341de`؛ النصُّ السابقُ (حكمُ CLM-0618) مُشطَبٌ بالإضافةِ لا ممحوٌّ.
+- **التغييرُ:** `docs/01-product/REQUIREMENTS_REGISTRY.md` — G-S9.1 مُغلقٌ · RQ-CMA-15 (فرعُ «اسمِ مكانٍ») مُغلقٌ · ملاحظتا G-S9 الأمِّ بلا تغييرٍ · سجلُّ الإغلاقِ في `docs/12-testing/ci-evidence/`.
+- **القياسُ:** WASLA CI على main [39159736345](https://github.com/skyosv10-art/wasla/actions/runs/39159736345) success (42/42 — db-integration customer ✓) · Roadmap freshness [39159736277](https://github.com/skyosv10-art/wasla/actions/runs/39159736277) ✓ · Render deploy [39159736279](https://github.com/skyosv10-art/wasla/actions/runs/39159736279) PASS.
+- **Deployment:** وثائقُ فقط ← لا نشرَ.
+- **Next:** G-S9.2/G-S9.3 عقدٌ أولًا (geography)؛ G-S9.15 قرارُ نطاقٍ. [الدليل](../12-testing/ci-evidence/2026-10-18T203000Z-clm-0620-gs9-1-closure/README.md)
+
 # 2026-10-18 — CLM-0619 — M3-08: مزامنةُ أرقامِ عقدِ المسارِ (76→77)
 
 - **Work Item(s):** M3-08 (CLM-0619) — تحديثُ الأرقامِ المنشورةِ في وثيقةِ عقدِ المسارِ.
