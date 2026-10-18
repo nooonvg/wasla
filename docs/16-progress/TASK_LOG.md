@@ -1,3 +1,13 @@
+# 2026-10-18 — CLM-0617 — إغلاقُ G-S9.10 بدليلِ main
+
+- **Work Item(s):** M0-53 (CLM-0617) — إغلاقُ G-S9.10 وحدَه (RQ-CMA-39).
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ · G-S9 الأمُّ وG-S9.15 مفتوحتانِ · لا نسبةَ اكتمالٍ.
+- **Risk(s):** none — (سببُ none:) وثائقُ فقط؛ الحكمُ يُحيلُ إلى #767 المدموجِ بالغلافِ وCI ناجحٍ ونشرٍ PASS على `22bbaa98`؛ النصُّ السابقُ مشطوبٌ لا ممحوٌّ.
+- **التغييرُ:** `docs/01-product/REQUIREMENTS_REGISTRY.md` — G-S9.10 مُغلقٌ · RQ-CMA-39 TRACE-MAPPED · ملاحظةُ G-S9 الأمِّ · سجلُّ الإغلاقِ في `docs/12-testing/ci-evidence/`.
+- **القياسُ:** WASLA CI 39141579846 success 41/41 (db-integration customer ✓) · Roadmap freshness 39141579835 · Render 39141579777 PASS 24 `live=22bbaa9`.
+- **Deployment:** وثائقُ فقط ← لا نشرَ.
+- **Next:** G-S9.15 قرارُ نطاقٍ؛ بقيّةُ فروعِ G-S9 بدليلِها. [الدليل](../12-testing/ci-evidence/2026-10-18T150000Z-clm-0617-gs9-10-closure/README.md)
+
 # 2026-10-18 — CLM-0616 — G-S9.10: MyOrders تطلبُ آخرَ خمسةِ طلباتٍ (limit=5)
 
 - **Work Item(s):** M0-53 (CLM-0616) — G-S9.10 وحدَه (RQ-CMA-39).
