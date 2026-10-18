@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-18T09:23:24Z
-الالتزام: 29ae611e60117ad88280df62949f003731ac1cca  الفرع: stage-zero/clm-0613-gs10-driver-availability-eligibility  شجرةٌ نظيفةٌ
+التاريخ (UTC): 2026-10-18T10:02:42Z
+الالتزام: 26979ee97113d399241dbe1e2c1e01ed371bbe47  الفرع: stage-zero/clm-0614-gs13-earnings-filter  شجرةٌ نظيفةٌ
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
 القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
@@ -9,18 +9,18 @@
   packages                   74
   packages_with_typecheck    70
   packages_with_test         74
-  test_files_tracked         577
+  test_files_tracked         578
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          28
   risks_not_closed           23
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-18T103000Z-clm-0613-gs10-driver-availability-eligibility/raw/verify-log-stale-baseline-only.txt):
-  tests_passed               6140
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-18T110000Z-clm-0614-gs13-earnings-filter/raw/verify-log-stale-baseline-only.txt):
+  tests_passed               6145
   test_files_executed        437
   governance_suite_cases     688
   governance_suite_failed    1
   verify_overall             failed
 
-البصمة: sha256:d58596ca461ede00d3138ff2ccf22b27414f73fc02f6cd0d02b21b226eaffd12
+البصمة: sha256:87460fc5cc39faa00914a8334bc79c1cd0e78cd7086b1ca69068298874c119b6
 المرجع: docs/12-testing/BASELINE_FORMAT.md
