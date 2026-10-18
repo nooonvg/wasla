@@ -128,7 +128,7 @@
 | UAT-05: View order | عرض تفاصيل طلب | عرض المسار والسائق والحالة |
 | UAT-06: View audit log | عرض سجل التدقيق | عرض الأحداث مع الفلترة |
 | UAT-07: RBAC enforcement | محاولة operator الوصول لإدارة الفريق | رفض الوصول (403) |
-| UAT-08: Audit immutability | محاولة تعديل سجل تدقيق | رفض (405 أو 403) |
+| UAT-08: Audit immutability | محاولة تعديل سجل تدقيق | رفض (405 أو 403) — *(قرارُ المالكِ 2026-10-18 · [ADR-072](../15-decisions/ADR-072-owner-decisions-gs7-uat08.md) D2: **405 Method Not Allowed مع ترويسة `Allow`**)* |
 
 ## 9. خارطة الموجات (Wave Breakdown)
 
