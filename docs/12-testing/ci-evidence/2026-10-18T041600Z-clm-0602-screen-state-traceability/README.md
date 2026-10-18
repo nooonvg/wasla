@@ -280,3 +280,20 @@
 ## §11 سندُ CI على رأسِ PR وما بعدَ الدمجِ
 
 يُوثَّقُ في تعليقاتِ PR ثمَّ يُنقلُ إلى هذا الدليلِ بإضافةٍ مؤرَّخةٍ بعدَ الدمجِ (حكمُ CI لا يُستنتجُ من الدفعِ ولا من النتائجِ المحليةِ).
+
+### §11.1 إضافةٌ مؤرَّخةٌ (CLM-0603 · 2026-10-18) — السندُ الفعليُّ
+
+| البندُ | القيمةُ |
+|---|---|
+| رأسُ PR [#753](https://github.com/skyosv10-art/wasla/pull/753) | `e1cd21eeb6fe6edea439d4ae7dcd8dceaad8306f` |
+| WASLA CI على الرأسِ | [run 39097208972](https://github.com/skyosv10-art/wasla/actions/runs/39097208972) — success · 41/41 وظيفةً · 0 غيرُ ناجحٍ |
+| Roadmap freshness على الرأسِ | [run 39097205816](https://github.com/skyosv10-art/wasla/actions/runs/39097205816) — success |
+| قابليةُ الدمجِ قبلَ القرارِ | MERGEABLE / CLEAN · main = `9e1c622d` (لم يتحرّكْ) |
+| الدمجُ | `scripts/ops/merge-on-approved-head.sh 753 --squash` (ADR-071 · بلا `--admin`) ← `OK pr=753 head=e1cd21ee… checks: success=42 skipped_or_neutral=0 failed=0 pending=0` |
+| SHA الدمجِ على main | `d29e4e0998d6f2a61571a159ce1c0f364a9efa5e` |
+| WASLA CI على main | [run 39098300595](https://github.com/skyosv10-art/wasla/actions/runs/39098300595) — success · 41/41 |
+| Roadmap freshness على main | [run 39098300645](https://github.com/skyosv10-art/wasla/actions/runs/39098300645) — success |
+| النشرُ | كلُّ المساراتِ المعدَّلةِ تحتَ `docs/**` أو `**/*.md` ← `paths-ignore` في `render-deploy.yml` ← **لا تشغيلَ نشرٍ** لـ`d29e4e09` (آخرُ تشغيلٍ لـrender-deploy على `505e7e6d` بتاريخِ 2026-10-17). |
+
+هذا السندُ يثبتُ دمجَ **وثائقِ التتبّعِ** وسلامةَ CI عليها فقط؛ لا يغيّرُ أيَّ حكمٍ في §3–§8 ولا يُغلقُ أيَّ فجوةٍ.
+
