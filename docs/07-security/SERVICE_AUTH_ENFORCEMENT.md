@@ -1034,6 +1034,7 @@ axios-retry، request-promise، isomorphic-fetch، cross-fetch) يجبُ أن ت
 | `POST /audit/events` | `audit:write` | — (مسارٌ إداريٌّ بلا مُنتَفِعٍ) | — |
 | `GET /audit/events` | `audit:read` | — (مسارٌ إداريٌّ بلا مُنتَفِعٍ) | — |
 | `GET /health` | مفتوحٌ بتصنيفٍ صريح | — | — |
+| PUT · PATCH · DELETE على `/audit/events` و PUT · PATCH · DELETE · POST على `/audit/events/{id}` | **لا مسارَ مسجَّلٌ** — هويّةُ خدمةٍ مثبتةٌ بلا صلاحيّةٍ (المغلقُ افتراضيًّا للمسارِ غيرِ المسجَّلِ) ثمَّ **405 + `Allow`** (ADR-072 D2 · CLM-0605) | — | — |
 
 <!-- audit-scopes:end -->
 
