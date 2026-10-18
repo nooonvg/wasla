@@ -55,6 +55,10 @@ DMS §4.2 L77 يقولُ `available` / `busy`؛ العقدُ المعتمَدُ 
 
 النداءانِ الجديدانِ (`GET …/eligibility` و`PUT …/availability`) يرفعانِ المقيسَ في `docs/12-testing/APP_API_ROUTES.md` §5: `APP_CALL_SITES` 74→**76** · `DISTINCT_APP_CALLS` 67→**69** · `MATCHED_CALL_SITES` 74→**76** — كلاهما يطابقُ مسارَ خدمةٍ (البابُ 2) وله بادئةُ توجيهٍ (البابُ 6)؛ نُشرتِ الأرقامُ المقيسةُ (البابُ 5 كانَ يرفضُ المنشورَ القديمَ).
 
+## §5c الأساسُ الآليُّ (BASELINE)
+
+ملفّا اختبارٍ جديدانِ ← `test_files_tracked` 575 → **577**. أُعيدَ التوليدُ وفقَ [BASELINE_FORMAT §4-§5](../../BASELINE_FORMAT.md): `verify.sh` كاملًا على الأساسِ ← [raw/verify-log-stale-baseline-only.txt](raw/verify-log-stale-baseline-only.txt) (أخفقَ **فقط** في الفحصِ 11 — الأساسُ المتقادمُ — ثمَّ حزمةِ الحوكمةِ التي تشغّلُه؛ الأنواعُ والاختباراتُ نجحتْ) ← `scripts/baseline.sh --log …` على شجرةٍ نظيفةٍ ← `validate-baseline.sh` ✓.
+
 ## §6 حدودُ الدليلِ
 
 Playwright وvitest الواجهةِ محاكيانِ؛ دليلُ الصلاحيّةِ والعقدِ هو اختبارُ الخدمةِ (§4). لا تكاملَ حيٌّ (الحدُّ مغلقٌ). G-S10 مفتوحٌ: G-S10.1/G-S10.2 تُغلقانِ بعدَ CI على main؛ G-S10.3/G-S10.4 قائمتانِ.

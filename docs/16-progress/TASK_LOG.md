@@ -5,6 +5,7 @@
 - **Risk(s):** none — (سببُ none:) واجهةٌ تنادي مساراتٍ قائمةً مختبَرةً، واختباراتٌ جديدةٌ للخدمةِ بلا تغييرِ شفرتِها؛ الحدُّ لم يُوسَّعْ.
 - **التغييرُ:** `apps/driver-mini-app` — Home (تبديلُ التوفّرِ available↔offline وفقَ العقدِ · حكمُ الأهليّةِ · غيرُ المؤهَّلِ/الموقوفُ بكلِّ الأسبابِ ورابطِ الوثائقِ) · Profile (صفُّ الأهليّةِ) · store/types/i18n · `services/drivers` — اختبارُ حدودِ الصلاحيّةِ (403/404/400 بلا تغييرِ بياناتٍ) · ملاحظةٌ مؤرَّخةٌ تحتَ DMS L77.
 - **القياسُ:** driver vitest 158/158 · Playwright 37/37 · drivers 224/224 · tsc 0 · 4 طفراتٍ مُلتقَطةٍ. حاجزانِ: مدخلا الحدِّ رفضَهما الحارسُ 28 (EA-SNAPSHOT-NEW — قرارٌ موثَّقٌ) فأُعيدَ الملفُّ · المهامُ النشطةُ بلا عقدٍ.
+- **الأساسُ (BASELINE):** `test_files_tracked` 575 → **577** — ملفّا اختبارٍ جديدانِ (`services/drivers/src/__tests__/availability-eligibility-boundaries.test.ts` و`apps/driver-mini-app/e2e/home-availability.spec.ts`)؛ أُعيدَ التوليدُ بـ`scripts/baseline.sh` من سجلِّ `verify.sh` (أخفقَ على الأساسِ المتقادمِ وحدَه) — BASELINE_FORMAT §5.
 - **Deployment:** `apps/**` و`services/**` ← render-deploy بعدَ الدمجِ.
 - **Next:** G-S10.3 شريحةُ عقدٍ · G-S10.4 قرارٌ موثَّقٌ. [الدليل](../12-testing/ci-evidence/2026-10-18T103000Z-clm-0613-gs10-driver-availability-eligibility/README.md)
 
