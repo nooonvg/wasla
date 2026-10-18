@@ -1,3 +1,23 @@
+# 2026-10-18 — CLM-0619 — M3-08: مزامنةُ أرقامِ عقدِ المسارِ (76→77)
+
+- **Work Item(s):** M3-08 (CLM-0619) — تحديثُ الأرقامِ المنشورةِ في وثيقةِ عقدِ المسارِ.
+- **Status:** Released عندَ فتحِ PR (نفسُ فرعِ CLM-0618) · الحجزُ `Active` قبلَ أيِّ تعديلٍ.
+- **Risk(s):** none — (سببُ none:) وثيقةُ قياسٍ فقط؛ البابُ الخامسُ من `validate-app-api-routes.sh` يُلزمُ تطابقَ المنشورِ مع المقيسِ؛ نداءُ `GET /customers/:id/places` الجديدُ في `SavedPlacePicker` (CLM-0618) رفعَ القياسَ 76→77.
+- **التغييرُ:** `docs/12-testing/APP_API_ROUTES.md` — `APP_CALL_SITES`/`MATCHED_CALL_SITES` 76→77 · `DISTINCT_APP_CALLS` = 69 (المسارُ نفسُه مُسجَّلٌ سابقًا) · `Last Updated` ← CLM-0618/0619.
+- **القياسُ:** `validate-app-api-routes.sh` ✓ (نداءاتٌ 77 · مطابِقةٌ 77 · فجواتٌ 0) — محليًّا وفي CI.
+- **Deployment:** وثائقُ فقط ← لا نشرَ.
+- **Next:** لا شيءَ مستقلًّا — حكمُ CLM-0618 بعدَ CI على main.
+
+# 2026-10-18 — CLM-0618 — G-S9.1: منتقي «اسمِ مكانٍ» محفوظٍ للالتقاطِ/الوصولِ
+
+- **Work Item(s):** M0-53 (CLM-0618) — G-S9.1 وحدَه (RQ-CMA-15).
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ.
+- **Risk(s):** none — (سببُ none:) شاشةٌ تقرأُ عقدًا قائمًا (`GET /customers/:id/places` — G-S7) وتملأُ حقولَ نموذجٍ قائمةً؛ `source=saved_place` معلَنٌ في عقدِ التوقفِ أصلًا؛ لا تغييرَ عقدٍ ولا حدٍّ ولا `production_open`؛ مغطًّى بثلاثِ طفراتٍ مُلتقَطةٍ.
+- **التغييرُ:** `apps/customer-mini-app` — مكوّنُ `SavedPlacePicker` جديدٌ (متجرُ الأماكنِ المشتركُ · إعادةُ المحاولةِ بعدَ فشلٍ) · `RideOrder.tsx`/`DeliveryOrder.tsx`: منتقيانِ (التقاط/وصول) يملآنِ zone_id وlabel ويضبطانِ `source=saved_place`؛ التحريرُ اليدويُّ للمنطقةِ يعيدُ `manual_zone` · `store/order-form.ts`: `pickupSource`/`dropoffSource` (افتراضيٌّ `manual_zone`) يمرّانِ إلى `buildOrderRequest` · i18n بثلاثِ لغاتٍ · السجلُّ: ملاحظتا G-S9.1/RQ-CMA-15.
+- **القياسُ:** customer vitest 96/96 (90→96: 6 اختباراتٍ جديدةً) · tsc 0 · 3 طفراتٍ مُلتقَطةٍ (حذفُ `source=saved_place` · تثبيتُ `manual_zone` · حذفُ تعبئةِ label) · لا ملفَّ اختبارٍ جديدًا (الاختباراتُ داخلَ ملفَّينِ قائمَينِ) · Playwright حكمُهُ من CI.
+- **Deployment:** `apps/**` ← render-deploy بعدَ الدمجِ (التطبيقُ خلفَ حدٍّ مغلقٍ `production_open=false`).
+- **Next:** إغلاقُ G-S9.1 وRQ-CMA-15 بعدَ CI على main · G-S9 الأمُّ مفتوحةٌ. [الدليل](../12-testing/ci-evidence/2026-10-18T193000Z-clm-0618-gs9-1-saved-place-picker/README.md)
+
 # 2026-10-18 — CLM-0617 — إغلاقُ G-S9.10 بدليلِ main
 
 - **Work Item(s):** M0-53 (CLM-0617) — إغلاقُ G-S9.10 وحدَه (RQ-CMA-39).

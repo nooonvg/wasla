@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useOrderFormStore, buildOrderRequest, validateOrderForm, type VehicleClass, type PriceMode } from "../store/order-form";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
+import { SavedPlacePicker } from "../components/SavedPlacePicker";
 
 const VEHICLE_CLASSES: VehicleClass[] = ["sedan", "suv", "van", "pickup", "motorcycle", "truck_small"];
 const PRICE_MODES: PriceMode[] = ["negotiable", "customer_offer"];
@@ -12,6 +13,46 @@ export function RideOrder() {
   const store = useOrderFormStore();
   const { token, customerId } = useSessionStore();
   const [formError, setFormError] = useState<string | null>(null);
+  const [pickupPlaceId, setPickupPlaceId] = useState("");
+  const [dropoffPlaceId, setDropoffPlaceId] = useState("");
+
+  const handlePickupPlace = useCallback(
+    (place: { place_id: string; label: string; zone_id: string }) => {
+      store.setPickupZoneId(place.zone_id);
+      store.setPickupLabel(place.label);
+      store.setPickupSource("saved_place");
+      setPickupPlaceId(place.place_id);
+    },
+    [store]
+  );
+
+  const handleDropoffPlace = useCallback(
+    (place: { place_id: string; label: string; zone_id: string }) => {
+      store.setDropoffZoneId(place.zone_id);
+      store.setDropoffLabel(place.label);
+      store.setDropoffSource("saved_place");
+      setDropoffPlaceId(place.place_id);
+    },
+    [store]
+  );
+
+  const handlePickupZoneChange = useCallback(
+    (value: string) => {
+      store.setPickupZoneId(value);
+      store.setPickupSource("manual_zone");
+      setPickupPlaceId("");
+    },
+    [store]
+  );
+
+  const handleDropoffZoneChange = useCallback(
+    (value: string) => {
+      store.setDropoffZoneId(value);
+      store.setDropoffSource("manual_zone");
+      setDropoffPlaceId("");
+    },
+    [store]
+  );
 
   const handlePreview = useCallback(async () => {
     if (!token || !customerId) return;
@@ -74,13 +115,20 @@ export function RideOrder() {
       <h1>{t("ride_order.title")}</h1>
 
       {/* Pickup */}
+      <SavedPlacePicker
+        id="pickup-place"
+        label={t("ride_order.pickup_saved_place")}
+        testId="pickup-place-select"
+        selectedPlaceId={pickupPlaceId}
+        onSelect={handlePickupPlace}
+      />
       <div className="form-group">
         <label htmlFor="pickup-zone">{t("ride_order.pickup_zone")}</label>
         <input
           id="pickup-zone"
           type="text"
           value={store.pickupZoneId}
-          onChange={(e) => store.setPickupZoneId(e.target.value)}
+          onChange={(e) => handlePickupZoneChange(e.target.value)}
           placeholder={t("ride_order.zone_placeholder")}
           aria-label={t("ride_order.pickup_zone")}
           data-testid="pickup-zone-input"
@@ -100,13 +148,20 @@ export function RideOrder() {
       </div>
 
       {/* Dropoff */}
+      <SavedPlacePicker
+        id="dropoff-place"
+        label={t("ride_order.dropoff_saved_place")}
+        testId="dropoff-place-select"
+        selectedPlaceId={dropoffPlaceId}
+        onSelect={handleDropoffPlace}
+      />
       <div className="form-group">
         <label htmlFor="dropoff-zone">{t("ride_order.dropoff_zone")}</label>
         <input
           id="dropoff-zone"
           type="text"
           value={store.dropoffZoneId}
-          onChange={(e) => store.setDropoffZoneId(e.target.value)}
+          onChange={(e) => handleDropoffZoneChange(e.target.value)}
           placeholder={t("ride_order.zone_placeholder")}
           aria-label={t("ride_order.dropoff_zone")}
           data-testid="dropoff-zone-input"
