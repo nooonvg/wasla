@@ -5,6 +5,7 @@
 - **Risk(s):** none — (سببُ none:) الخدمةُ صارتْ تطابقُ عقدَها المنشورَ (400 معلَنٌ)، والمستهلكُ الوحيدُ (تطبيقُ السائقِ) يرسلُ دائمًا قيمةً صالحةً؛ مغطًّى بطفراتٍ.
 - **التغييرُ:** `services/orders` — رفضُ `period` الغائبِ/الخارجِ عن التعدادِ (400) بعدَ الملكيّةِ + 4 اختباراتٍ (التعدادُ · الترتيبُ · نوافذُ الفترةِ · الملغى) · `apps/driver-mini-app` — المكتملةُ فقط للقائمةِ والعدِّ والمجموعِ · النداءُ `?period=` وحدَه · اختبارُ وحدةٍ وE2E.
 - **القياسُ:** orders 664/664 · driver vitest 159/159 · Playwright 38/38 · tsc 0 · 3 طفراتٍ مُلتقَطةٍ.
+- **الأساسُ (BASELINE):** `test_files_tracked` 577 → **578** — ملفُّ اختبارٍ جديدٌ (`apps/driver-mini-app/e2e/earnings-filter.spec.ts`)؛ أُعيدَ التوليدُ بـ`scripts/baseline.sh` من سجلِّ `verify.sh` (أخفقَ على الأساسِ المتقادمِ وحدَه) — BASELINE_FORMAT §5.
 - **Deployment:** `apps/**` و`services/**` ← render-deploy بعدَ الدمجِ.
 - **Next:** إغلاقُ G-S13 وRQ-DMA-33 بعدَ CI على main. [الدليل](../12-testing/ci-evidence/2026-10-18T110000Z-clm-0614-gs13-earnings-filter/README.md)
 

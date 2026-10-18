@@ -30,6 +30,10 @@
 
 **طفراتٌ مقيسةٌ (أُعيدتِ الملفّاتُ):** إزالةُ فلترِ المكتملةِ ← يُخفقُ L126 · إلغاءُ فحصِ `period` ← يُخفقُ L140 · نقلُ فحصِ `period` قبلَ الملكيّةِ ← يُخفقُ L151.
 
+## §5 الأساسُ الآليُّ (BASELINE)
+
+ملفُّ اختبارٍ جديدٌ ← `test_files_tracked` 577 → **578**. أُعيدَ التوليدُ وفقَ [BASELINE_FORMAT §4-§5](../../BASELINE_FORMAT.md): `verify.sh` كاملًا على الأساسِ ← [raw/verify-log-stale-baseline-only.txt](raw/verify-log-stale-baseline-only.txt) (أخفقَ **فقط** في الفحصِ 11 — الأساسُ المتقادمُ — ثمَّ حزمةِ الحوكمةِ التي تشغّلُه؛ الأنواعُ والاختباراتُ نجحتْ) ← `scripts/baseline.sh --log …` على شجرةٍ نظيفةٍ ← `validate-baseline.sh` ✓.
+
 ## §4 حدودُ الدليلِ
 
 اختبارُ الخدمةِ على المستودعِ في الذاكرةِ؛ فلترُ Postgres (`drizzle/repository.ts` L468-470) لم يتغيّرْ ولم يُشغَّلْ محلّيًّا (لا Postgres). المسارُ خلفَ حدٍّ مغلقٍ (`production_open=false`) — لا تكاملَ حيٌّ. G-S13 يُغلقُ بعدَ CI على main.

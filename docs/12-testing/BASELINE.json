@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-18T09:23:24Z",
+  "generated_at": "2026-10-18T10:02:42Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "29ae611e60117ad88280df62949f003731ac1cca",
-    "branch": "stage-zero/clm-0613-gs10-driver-availability-eligibility",
+    "commit": "26979ee97113d399241dbe1e2c1e01ed371bbe47",
+    "branch": "stage-zero/clm-0614-gs13-earnings-filter",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3404
+    "tracked_files": 3411
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 577,
+    "test_files_tracked": 578,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-18T103000Z-clm-0613-gs10-driver-availability-eligibility/raw/verify-log-stale-baseline-only.txt",
-    "tests_passed": 6140,
+    "source": "docs/12-testing/ci-evidence/2026-10-18T110000Z-clm-0614-gs13-earnings-filter/raw/verify-log-stale-baseline-only.txt",
+    "tests_passed": 6145,
     "test_files_executed": 437,
     "governance_suite_cases": 688,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:d58596ca461ede00d3138ff2ccf22b27414f73fc02f6cd0d02b21b226eaffd12",
+  "fingerprint": "sha256:87460fc5cc39faa00914a8334bc79c1cd0e78cd7086b1ca69068298874c119b6",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
