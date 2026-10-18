@@ -297,3 +297,7 @@
 
 هذا السندُ يثبتُ دمجَ **وثائقِ التتبّعِ** وسلامةَ CI عليها فقط؛ لا يغيّرُ أيَّ حكمٍ في §3–§8 ولا يُغلقُ أيَّ فجوةٍ.
 
+### §11.2 إضافةٌ مؤرَّخةٌ (CLM-0606 · 2026-10-18) — إعادةُ تسميةِ اختباراتِ G-T1
+
+الإحالاتُ في §3–§5 تبقى صحيحةً **على `9e1c622d`** (لا تُعادُ كتابتُها). بعدَ CLM-0606 صارتِ الأسماءُ: Home L12 ← `renders each of the seven spec menu items (presence, not count)` · JobDetail L112 ← `shows the complete transition button when status is in_progress` · audit-rbac L123 ← `audit page exposes no form to edit audit events (UI only — HTTP 405 is proven in services/audit)`. التوكيداتُ والأسطرُ دونَ تغييرٍ. [الدليل](../2026-10-18T070000Z-clm-0606-gt1-test-names/README.md)
+
