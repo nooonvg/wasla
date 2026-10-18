@@ -47,7 +47,7 @@
 | 23 | `audit` | Team 09 | Audit trail لكل عملية حساسة، Audit integrity، لا حذف للأثر |
 | 24 | `analytics` | Team 09 | Analytics، Warehouse/OLAP، Reporting foundations، KPIs (Fill Rate، ETA Accuracy، ...) |
 | 25 | `customers` | Team 02 | Customer Core (ADR-009): ملف العميل، العناوين، القنوات، ربط الهوية — موضعُ نواةِ العميلِ وحدُّ استقبالِ الطلبِ — *(أُضيف CLM-0600 · من الجردِ)* |
-| 26 | `negotiations` | Team 05 | نواةُ التفاوضِ (ADR-013): الخيوطُ والجولاتُ والانتهاءُ المُخزَّنُ غيرُ المجدولِ — الخدمةُ **بلا HTTP بعدُ** (حدٌّ مُعلَنٌ — README الخدمةِ) — *(أُضيف CLM-0600 · من الجردِ)* |
+| 26 | `negotiations` | Team 05 | نواةُ التفاوضِ (ADR-013): الخيوطُ والجولاتُ والانتهاءُ المُخزَّنُ غيرُ المجدولِ · HTTP قائمٌ (`POST /negotiations/tick` في `src/http/app.ts` — قياسُ CLM-0601 من الشجرةِ الحيةِ؛ README الخدمةِ متقادمٌ 2026-08-23 وفجوتُهُ مسجَّلةٌ) — *(أُضيف CLM-0600 · وُصِّف بقياسٍ في CLM-0601)* |
 | 27 | `observability` | Team 09 | المراقبةُ (ADR-041/053): Prometheus · Alertmanager · OpenTelemetry Collector — *(أُضيف CLM-0600 · من الجردِ)* |
 
 ---
@@ -70,10 +70,10 @@ Order
 دورة حياة الطلب (Order lifecycle):
 
 ```text
-~~DRAFT~~ → PUBLISHED → SEARCHING → OFFERED → NEGOTIATING (optional) → ACCEPTED → ASSIGNED → DRIVER_EN_ROUTE → ARRIVED → IN_PROGRESS → COMPLETED
-
-> *(تصحيحٌ مؤرَّخٌ CLM-0600 · 2026-10-18: `DRAFT` مشطوبٌ — المحرّكُ لا يُنفّذُ `DRAFT` والطلبُ يُخلَقُ بحالةِ `published` ([ADR-010](../15-decisions/ADR-010-order-engine-state-machine-and-assignment-boundary.md) البندُ 2) — نفسُ تصحيحِ CLM-0590 على USER_FLOWS.)*
+PUBLISHED → SEARCHING → OFFERED → NEGOTIATING (optional) → ACCEPTED → ASSIGNED → DRIVER_EN_ROUTE → ARRIVED → IN_PROGRESS → COMPLETED
 ```
+
+> *(تصحيحٌ مؤرَّخٌ CLM-0600 · 2026-10-18 (أُصلح تنسيقًا في CLM-0601): `DRAFT` مشطوبٌ من المخطط — المحرّكُ لا يُنفّذُ `DRAFT` والطلبُ يُخلَقُ بحالةِ `published` ([ADR-010](../15-decisions/ADR-010-order-engine-state-machine-and-assignment-boundary.md) البندُ 2) — نفسُ تصحيحِ CLM-0590 على USER_FLOWS. النسخةُ الأصليةُ للمخططِ: `DRAFT → PUBLISHED → …` (محفوظةٌ هنا بالإحالةِ لا بالمحوِ).)*
 
 حالات جانبية: `EXPIRED`, `NO_DRIVER_FOUND`, `DRIVER_REJECTED`, `DRIVER_TIMEOUT`, `DRIVER_CANCELLED`, `CUSTOMER_CANCELLED`, `PARTNER_CANCELLED`, `PAYMENT_DISPUTED`, `FAILED`, `BLOCKED`, `UNDER_REVIEW`.
 
@@ -105,9 +105,9 @@ Ride only          250 SAR / month
 Both               400 SAR / month
 ```
 
-~~أول شهر مجاني بعد إكمال التسجيل. التجديد شهري. لا يوجد حد أقصى افتراضي للأشهر المجانية.~~
+~~أول شهر مجاني بعد إكمال التسجيل.~~ التجديد شهري. لا يوجد حد أقصى افتراضي للأشهر المجانية.
 
-> *(تصحيحٌ مؤرَّخٌ CLM-0600 · 2026-10-18: التجربةُ **14 يومًا** ([ADR-015](../15-decisions/ADR-015-driver-subscription-entitlement-ledger-and-derived-referral-rewards.md) · العقدُ `SUBSCRIPTION_LAUNCH_TRIAL_DAYS = 14`) — نفسُ تصحيحِ CLM-0590.)*
+> *(تصحيحٌ مؤرَّخٌ CLM-0600 · 2026-10-18 (حُصر النطاقُ في CLM-0601): مدةُ التجربةِ المجانيةِ **14 يومًا** لا شهرًا ([ADR-015](../15-decisions/ADR-015-driver-subscription-entitlement-ledger-and-derived-referral-rewards.md) · العقدُ `SUBSCRIPTION_LAUNCH_TRIAL_DAYS = 14`) — نفسُ تصحيحِ CLM-0590. «التجديدُ شهريٌّ» و«لا حدَّ أقصى للأشهرِ المجانية» متطلبانِ غيرُ متعارضينِ معَ ADR-015 فبقيا غيرَ مشطوبين.)*
 
 ### Notifications (`notifications`)
 
