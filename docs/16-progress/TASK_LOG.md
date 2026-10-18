@@ -1,3 +1,13 @@
+# 2026-10-18 — CLM-0603 — إغلاقٌ موثَّقٌ لـCLM-0602 (#753)
+
+- **Work Item(s):** M0-53 (CLM-0603) — إغلاقٌ موثَّقٌ بإضافةٍ مؤرَّخةٍ؛ لا محتوى قياسٍ جديدٌ.
+- **Status:** Released عندَ فتحِ PR. الحجزُ سُجِّلَ `Active` قبلَ أيِّ تعديلٍ (CLM-0603 غيرُ مستعملٍ — grep والفروعُ وPRs).
+- **Risk(s):** none — توثيقٌ فقط.
+- **السندُ:** رأسُ #753 `e1cd21ee` — WASLA CI [39097208972](https://github.com/skyosv10-art/wasla/actions/runs/39097208972) 41/41 · Roadmap freshness [39097205816](https://github.com/skyosv10-art/wasla/actions/runs/39097205816) success · دمجٌ عبرَ الغلافِ (success=42 · failed=0 · pending=0 · بلا `--admin`) ← `d29e4e0998d6f2a61571a159ce1c0f364a9efa5e` · main: WASLA CI [39098300595](https://github.com/skyosv10-art/wasla/actions/runs/39098300595) 41/41 · Roadmap freshness [39098300645](https://github.com/skyosv10-art/wasla/actions/runs/39098300645) success.
+- **Deployment:** none — `paths-ignore` (`docs/**`, `**/*.md`) ينطبقُ؛ لا تشغيلَ render-deploy لـ`d29e4e09`.
+- **لم يُمسَّ:** G4 · G-S2 · G7 · G6 (عائقٌ بيئيٌّ) · G-S6..G-S12/G-T1 مفتوحةٌ · #730 HOLD.
+- **Next:** G-S8/G-S10/G-S12 أعمالُ تنفيذٍ مستقلةٌ؛ G-S7/G-S9/G-S11 ورمزُ UAT-08 لمالكِ المصدرِ. [الدليل §11.1](../12-testing/ci-evidence/2026-10-18T041600Z-clm-0602-screen-state-traceability/README.md)
+
 # 2026-10-18 — CLM-0602 — M0-53 §24b: مصفوفةُ تتبّعِ الشاشةِ × الحالةِ × التوكيدِ المحددِ
 
 - **Work Item(s):** M0-53 (CLM-0602) — امتدادُ المرحلةِ صفر (§24b) · ليس إعادةَ بناءٍ للسجلِّ ولا إعلانَ اكتمالٍ.
