@@ -1,3 +1,14 @@
+# 2026-10-18 — CLM-0608 — G-S11: عقدُ أرباحِ السائقِ — قياسٌ ثمَّ تحديثُ المواصفةِ · G-S13 جديدةٌ
+
+- **Work Item(s):** M0-53 (CLM-0608) — G-S11.
+- **Status:** Released عندَ فتحِ PR · الحجزُ `Active` قبلَ أيِّ تعديلٍ · مكدَّسٌ على CLM-0607.
+- **Risk(s):** none — (سببُ none:) وثائقُ ومواصفةٌ فقط؛ لا كودَ.
+- **القياسُ:** `GET /orders/drivers/:driverPublicId/jobs` منشورٌ (`listDriverJobs`) · في مصفوفةِ التفويضِ · مقيَّدٌ بالمالكِ (404) · 5 اختباراتِ خدمةٍ · `/orders/lookup` لا يقبلُ إلا `order_public_id` → المسارُ المنفَّذُ هو المعتمدُ.
+- **التغييرُ:** DMS §4.5 و§5 بإضافةٍ مؤرَّخةٍ (النصُّ السابقُ محفوظٌ) · ملاحظاتٌ على RQ-DMA-33/G-S11.
+- **G-S13 (جديدةٌ):** مِسبارٌ على harness الخدمةِ: `status=completed` يُتجاهَلُ فتصلُ الملغاةُ و`computeSummary` يعدُّها · `period` خارجَ enum → 200.
+- **Deployment:** none — وثائقُ فقط (هذا الـPR).
+- **Next:** إغلاقُ G-S11 بعدَ CI على main · شريحةُ G-S13. [الدليل](../12-testing/ci-evidence/2026-10-18T080000Z-clm-0608-gs11-driver-earnings-contract/README.md)
+
 # 2026-10-18 — CLM-0607 — G-S6: README خدمةِ التفاوضِ يطابقُ HTTP الفعليَّ
 
 - **Work Item(s):** M0-53 (CLM-0607) — G-S6.
