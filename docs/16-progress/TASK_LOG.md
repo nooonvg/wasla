@@ -5,6 +5,7 @@
 - **Risk(s):** RISK-0068 → open (السببُ عولِجَ في الشفرةِ؛ الاستعادةُ بقرارِ المالكِ ثمَّ قياسٌ على main).
 - **التغييرُ:** `scripts/deploy/render_plan.py` (جديدٌ) · `render-sync.py` (يخطّطُ لكلِّ خدمةٍ ويُنشرُ `deploy` وحدَه · `--plan-only` · `--all` · `WASLA_SERVICE` بمفتاحِه) · `render-deploy.yml` (`fetch-depth: 0` · بلا `paths-ignore` · مدخلُ `full`) · `validate-render-deploy-plan.sh` (جديدٌ، إلزاميٌّ في `verify.sh`) · VERIFY_COMMAND.
 - **القياسُ:** خطّةٌ حيّةٌ للقراءةِ فقط على `c5ea8a34`: نشرُ 1/24 (`wasla-customer-app` ← #772) · الفحصُ ✓ · 11/11 طفرةً.
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T120000Z-clm-0626-render-selective-deploy/raw/plan-only-c5ea8a34.json` (خطّةٌ حيّةٌ للقراءةِ فقط) · `raw/validate-render-deploy-plan.txt` · run سابقٌ [39186018063](https://github.com/skyosv10-art/wasla/actions/runs/39186018063) (FAIL 24/24 — السببُ) · حكمُ CI على رأسِ PR بعدَ الدفعِ.
 - **Deployment:** أوّلُ تشغيلٍ بعدَ الدمجِ ينشرُ `wasla-customer-app` وحدَه — وسيفشلُ بنفادِ الدقائقِ حتى قرارِ المالكِ.
 - **Next:** قرارُ المالكِ ثمَّ قياسُ `render-deploy.yml` على main (`live=`) لإغلاقِ نشرِ CLM-0622 وRISK-0068. [الدليل](../12-testing/ci-evidence/2026-10-19T120000Z-clm-0626-render-selective-deploy/README.md)
 
