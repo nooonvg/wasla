@@ -36,12 +36,15 @@ def load_sync(root, target_override=None, env=None):
         shutil.copy(os.path.join(root, "scripts/deploy/render-sync.py"), os.path.join(d, "scripts/deploy/render-sync.py"))
         t = json.load(open(os.path.join(root, "infra/render/deploy-target.json")))
         if target_override: t.update(target_override)
+        ev = t.get("isolation_evidence")
+        if isinstance(ev, str) and ev and not ev.startswith("missing/"):
+            os.makedirs(os.path.dirname(os.path.join(d, ev)) or d, exist_ok=True); open(os.path.join(d, ev), "w").write("fixture\n")
         json.dump(t, open(os.path.join(d, "infra/render/deploy-target.json"), "w"))
         spec = importlib.util.spec_from_file_location("rs_under_test", os.path.join(d, "scripts/deploy/render-sync.py"))
         mod = importlib.util.module_from_spec(spec)
         old_env = dict(os.environ)
         try:
-            for k in ("RENDER_API_KEY", "RENDER_DEPLOY_INTENT", "RENDER_DEPLOY_PURPOSE"): os.environ.pop(k, None)
+            for k in ("RENDER_API_KEY", "RENDER_DEPLOY_INTENT", "RENDER_DEPLOY_PURPOSE", "RENDER_DEPLOY_CONFIRM"): os.environ.pop(k, None)
             os.environ.update(env or {})
             spec.loader.exec_module(mod)
             return mod, ""
@@ -51,7 +54,8 @@ def load_sync(root, target_override=None, env=None):
             os.environ.clear(); os.environ.update(old_env)
     finally: shutil.rmtree(d)
 
-DEPLOY = {"mode": "deploy", "owner_id": "tea-testworkspace01"}
+DEPLOY = {"mode": "deploy", "owner_id": "tea-testworkspace01", "isolation_evidence": "docs/fixture/isolation.md"}
+VERBOSE = []  # case lines, printed for the real tree only
 PROD = "abcdefghijklmnopqrst"
 SECRET = "s3cr3t-value-must-not-leak"
 
@@ -60,6 +64,8 @@ def run_main(mod, argv, env, api):
     def fake(method, path, body=None):
         calls.append((method, path)); return api(method, path)
     mod.call = fake
+    mod.time.sleep = lambda *_: None
+    sys.modules["render_plan"] = STUB_PLAN
     old_env, old_argv = dict(os.environ), sys.argv
     out = io.StringIO()
     try:
@@ -71,6 +77,90 @@ def run_main(mod, argv, env, api):
     finally:
         os.environ.clear(); os.environ.update(old_env); sys.argv = old_argv
     return rc, msg, out.getvalue(), calls
+
+import types
+STUB_PLAN = types.ModuleType("render_plan")  # the plan itself is CLM-0626's check; here every service plans `deploy`
+STUB_PLAN.git = lambda repo, *a: types.SimpleNamespace(returncode=0, stdout="f" * 40 + "\n")
+STUB_PLAN.workspace_packages = lambda repo, target: {}
+STUB_PLAN.REGISTRY_PATH = "no-registry.json"
+STUB_PLAN.registry_for_target = lambda repo, target, cur: ({}, "stub registry")
+STUB_PLAN._norm = lambda x: (x or "").strip("/")
+STUB_PLAN.inputs_for = lambda repo, target, s, ws, pkgs, reg: ([], "stub")
+STUB_PLAN.decide = lambda repo, live, target, inputs, force=False, why=None: {"decision": "deploy", "reason": "stub"}
+
+SVC = [("srv-a", "wasla-customer-bot"), ("srv-b", "wasla-identity"), ("srv-c", "wasla-orders")]
+
+def fake_api(isolated=True):
+    def api(method, path):
+        if method == "POST": return {"id": "dep-" + path.split("/")[2], "status": "live"}
+        if path.startswith("/services?"):
+            return [{"service": {"id": i, "name": n, "type": "web_service", "ownerId": "tea-testworkspace01",
+                                 "serviceDetails": {"envSpecificDetails": {"dockerContext": "services/x"}}}} for i, n in SVC]
+        if path.startswith("/env-groups?"):
+            return [{"envGroup": {"id": "evg-1", "name": "wasla-test-db" if isolated else "wasla-prod-db", "serviceLinks": [{"id": i} for i, _ in SVC]}}]
+        if path.startswith("/env-groups/"):
+            ref = "zyxwvutsrqponmlkjihg" if isolated else PROD
+            return {"envVars": [{"key": "DATABASE_URL", "value": f"postgresql://wasla_test.{ref}:{SECRET}@x/postgres"}]}
+        if "/env-vars/" in path: raise RuntimeError(f"GET {path} -> 404: b''")
+        if "/deploys?" in path: return [{"deploy": {"status": "live", "commit": {"id": "f" * 40}}}]
+        return []
+    return api
+
+def approved(**over):
+    items = {"T1": {"services": ["wasla-customer-bot", "wasla-identity", "wasla-customers"], "approved": False, "approval": None},
+             "T2": {"services": ["wasla-customer-bot", "wasla-identity"], "approved": True, "approval": "docs/fixture/owner-approval.md"}}
+    fleet = {"approved": False, "approval": None}
+    for k, v in over.items():
+        if k == "fleet": fleet = v
+        else: items[k] = v
+    return {**DEPLOY, "environment": "test", "production_database_refs": [PROD], "test_plan_items": items, "fleet_deploy": fleet}
+
+GOOD = {"RENDER_API_KEY": "k", "RENDER_DEPLOY_INTENT": "test-only", "RENDER_DEPLOY_CONFIRM": "test-only", "RENDER_DEPLOY_PURPOSE": "T2"}
+# (id, description, target override, env, argv extra, isolated, expected refusal fragment | None, expected POSTed services)
+NEG = [
+    ("N1", "confirm absent", {}, {**GOOD, "RENDER_DEPLOY_CONFIRM": ""}, [], True, "confirm must be exactly", None),
+    ("N2", "confirm wrong ('yes')", {}, {**GOOD, "RENDER_DEPLOY_CONFIRM": "yes"}, [], True, "confirm must be exactly", None),
+    ("N3", "intent absent (workflow gate bypassed)", {}, {k: v for k, v in GOOD.items() if k != "RENDER_DEPLOY_INTENT"}, [], True, "RENDER_DEPLOY_INTENT", None),
+    ("N4", "purpose not in the plan ('smoke-test')", {}, {**GOOD, "RENDER_DEPLOY_PURPOSE": "smoke-test"}, [], True, "is not an item of the approved test plan", None),
+    ("N5", "purpose blank", {}, {**GOOD, "RENDER_DEPLOY_PURPOSE": "  "}, [], True, "RENDER_DEPLOY_PURPOSE", None),
+    ("N6", "purpose T1 defined but not approved", {}, {**GOOD, "RENDER_DEPLOY_PURPOSE": "T1"}, [], True, "is not approved by the owner", None),
+    ("N7", "full=true on item T2", {}, GOOD, ["--all"], True, "cannot widen test-plan item T2", None),
+    ("N8", "FLEET without full=true", {}, {**GOOD, "RENDER_DEPLOY_PURPOSE": "FLEET"}, [], True, "requires full=true", None),
+    ("N9", "FLEET + full=true, fleet not approved", {}, {**GOOD, "RENDER_DEPLOY_PURPOSE": "FLEET"}, ["--all"], True, "FLEET is not approved", None),
+    ("N10", "approved T2 on a non-isolated workspace", {}, GOOD, [], False, "isolation finding", None),
+    ("N11", "--only outside the item", {}, GOOD, ["--only", "wasla-orders"], True, "outside the test-plan item", None),
+    ("N12", "item names a service absent from the workspace", {"T2": {"services": ["wasla-customer-bot", "wasla-ghost"], "approved": True, "approval": "x"}}, GOOD, [], True, "not in the workspace", None),
+    ("N13", "approved item with an empty approval reference", {"T2": {"services": ["wasla-customer-bot"], "approved": True, "approval": " "}}, GOOD, [], True, "is not approved by the owner", None),
+    ("P1", "control: approved T2, isolated → only T2 services", {}, GOOD, [], True, None, ["srv-a", "srv-b"]),
+    ("P2", "control: approved FLEET + full=true, isolated → whole fleet", {"fleet": {"approved": True, "approval": "docs/fixture/fleet.md"}}, {**GOOD, "RENDER_DEPLOY_PURPOSE": "FLEET"}, ["--all"], True, None, ["srv-a", "srv-b", "srv-c"]),
+]
+
+def gate_cases(root):
+    errs = []
+    for cid, desc, over, env, extra, isolated, refusal, posted in NEG:
+        mod, msg = load_sync(root, approved(**over))
+        if mod is None: errs.append(f"{cid} {desc}: approved fixture target did not load: {msg[:140]}"); continue
+        rc, msg, out, calls = run_main(mod, ["0" * 40] + extra, env, fake_api(isolated))
+        posts = sorted(p.split("/")[2] for m, p in calls if m == "POST")
+        if refusal:
+            ok = rc != 0 and refusal in msg and not posts
+            gate_only = refusal not in ("isolation finding", "outside the test-plan item", "not in the workspace")
+            if gate_only and calls: ok = False
+            got = f"refused before {'any call' if not calls else 'any POST'} ({len(calls)} GET) — {msg[:110]}" if rc != 0 else f"NOT refused, POST {posts}"
+        else:
+            ok = rc == 0 and posts == posted and "verdict: PASS" in out
+            got = f"rc={rc} POST {posts}"
+        VERBOSE.append(f"    {'✓' if ok else '✗'} {cid} {desc}: {got}")
+        if not ok: errs.append(f"{cid} {desc}: expected {'refusal «' + refusal + '» with 0 POST' if refusal else 'POST ' + str(posted)}, got {got}")
+        if SECRET in out + msg or PROD in out + msg: errs.append(f"{cid}: a database value was printed")
+        if any(re.search(r"/services/[^/]+/env-vars(\?|$)", p) for _, p in calls): errs.append(f"{cid}: the isolation preflight read the env-var list instead of keys")
+    # E — deploy mode needs an isolation-evidence file
+    for cid, desc, ev in (("E1", "deploy mode without isolation_evidence", None), ("E2", "isolation_evidence names a missing file", "missing/iso.md"), ("E3", "isolation_evidence escapes the repo", "../outside.md")):
+        mod, msg = load_sync(root, {**approved(), "isolation_evidence": ev})
+        ok = mod is None and "isolation_evidence" in msg
+        VERBOSE.append(f"    {'✓' if ok else '✗'} {cid} {desc}: {'load refused' if mod is None else 'LOADED'}")
+        if not ok: errs.append(f"{cid} {desc}: deploy target loaded")
+    return errs
 
 def test_only_rules(root, t):
     errs = []
@@ -107,20 +197,24 @@ def test_only_rules(root, t):
         got = F(g, sv, [PROD])
         if bool(got) != want: errs.append(f"isolation_findings wrong for '{desc}': {got}")
         if any(SECRET in x or PROD in x for x in got): errs.append(f"isolation finding leaks a value for '{desc}'")
-    # 6 — deploy without intent refused before any Render call
-    def api_prod(method, path):
-        if path.startswith("/services?"): return [{"service": {"id": "srv-1", "name": "wasla-orders", "type": "web_service", "ownerId": "tea-testworkspace01"}}]
-        if path.startswith("/env-groups?"): return [{"envGroup": {"id": "evg-1", "name": "wasla-prod-db", "serviceLinks": [{"id": "srv-1"}]}}]
-        if path.startswith("/env-groups/"): return {"envVars": [{"key": "DATABASE_URL", "value": f"postgresql://postgres.{PROD}:{SECRET}@x/postgres"}]}
-        if "/env-vars/" in path: raise RuntimeError(f"GET {path} -> 404: b''")
-        return []
-    rc, msg, out, calls = run_main(mod, ["0" * 40], {"RENDER_API_KEY": "k"}, api_prod)
-    if rc == 0 or calls or "RENDER_DEPLOY_INTENT" not in msg: errs.append(f"render-sync.py deploys without RENDER_DEPLOY_INTENT=test-only (rc={rc}, calls={len(calls)}, {msg[:120]})")
-    # 7 — isolation finding stops the deploy before any POST and before planning
-    rc, msg, out, calls = run_main(mod, ["0" * 40], {"RENDER_API_KEY": "k", "RENDER_DEPLOY_INTENT": "test-only", "RENDER_DEPLOY_PURPOSE": "T1"}, api_prod)
-    if rc == 0 or any(m == "POST" for m, _ in calls) or "isolation" not in msg: errs.append(f"isolation preflight not on the deploy path (rc={rc}, {msg[:120]})")
-    if SECRET in out + msg or PROD in out + msg: errs.append("render-sync.py prints a database value during the isolation preflight")
-    if any(re.search(r"/services/[^/]+/env-vars(\?|$)", p) for _, p in calls): errs.append("isolation preflight reads the env-var list instead of keys")
+    # 6/7 — behavioural gate + isolation on a fake Render API (CLM-0635: table of negative cases)
+    errs += gate_cases(root)
+    # workflow/target consistency (CLM-0635)
+    items = t.get("test_plan_items")
+    if not isinstance(items, dict) or not items: errs.append("deploy-target.json must declare test_plan_items")
+    else:
+        m = re.search(r"^      purpose:\n(?:        .*\n)*?        options:\n((?:          - .*\n)+)", wf, re.M)
+        opts = re.findall(r"- (\S+)", m.group(1)) if m else None
+        if opts != sorted(items) + ["FLEET"]: errs.append(f"render-deploy.yml purpose must be a choice of exactly {sorted(items) + ['FLEET']} (got {opts})")
+        for k, v in items.items():
+            if not isinstance(v.get("approved"), bool): errs.append(f"test_plan_items.{k}.approved must be a boolean")
+        if t.get("mode") == "frozen" and any(v.get("approved") for v in items.values()) and not t.get("isolation_evidence"):
+            pass  # an approval may be recorded while frozen; deploy mode still needs isolation_evidence
+    if not isinstance(t.get("fleet_deploy"), dict): errs.append("deploy-target.json must declare fleet_deploy (separate whole-fleet path)")
+    if 'case "${RENDER_DEPLOY_PURPOSE}" in' not in wf or '[ "${FULL_DEPLOY}" = "true" ] && [ "${RENDER_DEPLOY_PURPOSE}" != "FLEET" ]' not in wf:
+        errs.append("render-deploy.yml must reject unknown purposes and full=true outside FLEET")
+    if t.get("mode") == "deploy" and not (isinstance(t.get("isolation_evidence"), str) and os.path.isfile(os.path.join(root, t["isolation_evidence"]))):
+        errs.append("deploy mode needs isolation_evidence naming an existing evidence file (ADR-073 D4)")
     return errs
 
 def check(root):
@@ -137,6 +231,13 @@ def check(root):
     wf = open(os.path.join(root, ".github/workflows/render-deploy.yml")).read()
     if "scripts/deploy/render-sync.py" not in wf: errs.append("render-deploy.yml does not run render-sync.py")
     errs += test_only_rules(root, t)
+    # CLM-0635 — the local T2 procedure (no Render): its guard must hold offline
+    t2 = os.path.join(root, "scripts/test-env/t2_local.py")
+    if not os.path.isfile(t2): errs.append("scripts/test-env/t2_local.py missing (T2 local procedure)")
+    else:
+        r = subprocess.run([sys.executable, t2, "self-test"], capture_output=True, text=True)
+        if r.returncode != 0: errs.append("T2 local self-test failed: " + " | ".join(l.strip() for l in r.stdout.splitlines() if "✗" in l)[:200])
+        elif root == ".": VERBOSE.extend("  " + l for l in r.stdout.splitlines()[1:])
     if mode == "frozen":
         env = {k: v for k, v in os.environ.items() if k != "RENDER_API_KEY"}
         r = subprocess.run([sys.executable, os.path.join(root, "scripts/deploy/render-sync.py"), "0" * 40], capture_output=True, text=True, env=env)
@@ -144,17 +245,21 @@ def check(root):
     return errs
 
 errs = check(".")
+print("  gate + isolation cases (fake Render API, target unfrozen only inside the fixture):")
+for line in VERBOSE: print(line)
+VERBOSE.clear()
 for e in errs: print("  ✗", e)
 if errs: sys.exit(1)
 mode = json.load(open("infra/render/deploy-target.json"))["mode"]
 print(f"  ✓ Render deploy target declared ({mode}, environment=test); render-sync.py has no built-in workspace; frozen mode deploys nothing without network")
 print("  ✓ test-only: workflow_dispatch only (sha/purpose/confirm=test-only), deploy intent required, isolation preflight blocks production data before any deploy")
+print("  ✓ purpose gate (CLM-0635): one approved test-plan item, its services only; full=true never widens an item; FLEET is a separate approval; deploy mode needs isolation evidence")
 
 def mutate(desc, edits):
     """edits: list of (path, anchor, replacement) applied in order; all anchors must exist."""
     d = tempfile.mkdtemp()
     try:
-        for p in ("infra/render/deploy-target.json", "scripts/deploy/render-sync.py", ".github/workflows/render-deploy.yml"):
+        for p in ("infra/render/deploy-target.json", "scripts/deploy/render-sync.py", ".github/workflows/render-deploy.yml", "scripts/test-env/t2_local.py"):
             os.makedirs(os.path.dirname(os.path.join(d, p)), exist_ok=True); shutil.copy(p, os.path.join(d, p))
         for path, a, b in edits:
             q = os.path.join(d, path); s = open(q).read(); assert a in s, (path, a); open(q, "w").write(s.replace(a, b, 1))
@@ -174,7 +279,7 @@ cur_mode, cur_owner = cur["mode"], cur.get("owner_id")
 frozen_legacy = (cur.get("frozen_owners") or ["tea-damm8atbedkc73ca3ahg"])[0]
 mode_anchor = f'"mode": "{cur_mode}"'
 owner_anchor = '"owner_id": ' + ("null" if cur_owner is None else json.dumps(cur_owner))
-T, R, W = "infra/render/deploy-target.json", "scripts/deploy/render-sync.py", ".github/workflows/render-deploy.yml"
+T, R, W, X = "infra/render/deploy-target.json", "scripts/deploy/render-sync.py", ".github/workflows/render-deploy.yml", "scripts/test-env/t2_local.py"
 if cur_mode == "frozen":
     mut_owner = [(T, mode_anchor + ",\n  " + owner_anchor, f'"mode": "deploy",\n  "owner_id": {json.dumps(frozen_legacy)}')]
     mut_freeze = [(T, owner_anchor, f'"owner_id": {json.dumps(cur.get("legacy_owner") or "tea-db0vtkpsrm7s739dm5c0")}')]
@@ -199,7 +304,7 @@ cases = [
     ("workflow regains a push trigger", [(W, "on:\n  workflow_dispatch:", "on:\n  push:\n    branches: [main]\n  workflow_dispatch:")]),
     ("workflow gains a schedule", [(W, "on:\n  workflow_dispatch:", "on:\n  schedule:\n    - cron: '0 * * * *'\n  workflow_dispatch:")]),
     ("workflow confirm gate removed", [(W, '"${RENDER_DEPLOY_CONFIRM}" != "test-only"', '"${RENDER_DEPLOY_CONFIRM}" = "never"')]),
-    ("workflow purpose optional", [(W, "(e.g. T1), see RENDER_TEST_ENVIRONMENT_PLAN.md\"\n        required: true", "(e.g. T1), see RENDER_TEST_ENVIRONMENT_PLAN.md\"\n        required: false")]),
+    ("workflow purpose optional", [(W, "FLEET only with full=true and its own approval\"\n        required: true", "FLEET only with full=true and its own approval\"\n        required: false")]),
     ("workflow target defaults to the pushed commit", [(W, "TARGET_SHA: ${{ github.event.inputs.sha }}", "TARGET_SHA: ${{ github.event.inputs.sha || github.sha }}")]),
     ("render-sync accepts environment=production", [(R, 'if t.get("environment") != "test":', 'if t.get("environment") not in ("test", "production"):')]),
     ("render-sync deploy intent check removed", [(R, 'if deploying and (os.environ.get("RENDER_DEPLOY_INTENT") != "test-only"', 'if False and (os.environ.get("RENDER_DEPLOY_INTENT") != "test-only"')]),
@@ -209,6 +314,24 @@ cases = [
     ("isolation findings do not stop the deploy", [(R, "if iso and deploying:", "if iso and False:")]),
     ("isolation preflight dropped from the deploy path", [(R, 'iso = isolation_findings(*collect_isolation(svcs), TARGET["production_database_refs"])', "iso = []")]),
     ("isolation reads the env-var list", [(R, 'call("GET", f"/services/{sid}/env-vars/{key}")', 'call("GET", f"/services/{sid}/env-vars?limit=100")')]),
+    # CLM-0635 — purpose gate
+    ("gate accepts any purpose", [(R, "    if purpose not in items:\n", "    if False:\n"), (R, "    item = items[purpose]", "    item = items.get(purpose) or {'approved': True, 'approval': 'x', 'services': ['wasla-customer-bot']}")]),
+    ("gate ignores owner approval", [(R, '    if item.get("approved") is not True or not str(item.get("approval") or "").strip():', "    if False:")]),
+    ("full=true widens an item", [(R, "    if full:\n        return None, f\"full=true cannot widen", "    if False:\n        return None, f\"full=true cannot widen")]),
+    ("FLEET without its approval", [(R, '        if fleet.get("approved") is not True or not str(fleet.get("approval") or "").strip():', "        if False:")]),
+    ("gate drops the confirm check", [(R, '    if env.get("RENDER_DEPLOY_CONFIRM") != CONFIRM or env.get("RENDER_DEPLOY_INTENT") != CONFIRM:', "    if False:")]),
+    ("gate not called on the deploy path", [(R, "        scope, refusal = deploy_gate(TARGET, dict(os.environ), a.all)", "        scope, refusal = None, None")]),
+    ("item scope not applied to the services", [(R, '        svcs = [x for x in svcs if x["name"] in scope]', "        pass")]),
+    ("--only may leave the item", [(R, '        if a.only and not set(a.only.split(",")) <= set(scope):', "        if False:")]),
+    ("deploy target without isolation evidence loads", [(R, '    if not isinstance(ev, str) or not ev.strip() or ev.startswith("/") or ".." in ev.split("/") or not os.path.isfile(os.path.join(root, ev)):', "    if False:")]),
+    ("workflow purpose is free text", [(W, "        type: choice\n        options:\n          - T1\n          - T2\n          - FLEET\n", "")]),
+    ("workflow accepts full=true outside FLEET", [(W, '[ "${FULL_DEPLOY}" = "true" ] && [ "${RENDER_DEPLOY_PURPOSE}" != "FLEET" ]', '[ "${FULL_DEPLOY}" = "never" ]')]),
+    ("workflow accepts unknown purposes", [(W, 'case "${RENDER_DEPLOY_PURPOSE}" in', 'case "skip" in')]),
+    ("T2 register ignores the owner approval", [(X, '    if not t2_approval(target_path):\n        return None, "T2 is not approved', '    if False:\n        return None, "T2 is not approved')]),
+    ("T2 preflight accepts a remote database", [(X, '                if (u.hostname or "") not in LOCAL_HOSTS:', '                if False:')]),
+    ("T2 webhook URL may be plain http or Render", [(X, '    if u.scheme != "https" or not u.hostname:\n        return "the webhook URL must be https://"\n    if u.hostname.endswith("onrender.com") or u.hostname in LOCAL_HOSTS:', '    if False:\n        return "the webhook URL must be https://"\n    if False:')]),
+    ("T2 preflight accepts reused service-auth keys", [(X, '        if not kids or any(not k.startswith(KID_PREFIX) for k in kids):', '        if False:')]),
+    ("workflow options drift from the plan", [(W, "          - T2\n          - FLEET\n", "          - T2\n          - T3\n          - FLEET\n")]),
 ]
 ok = all([mutate(*c) for c in cases])
 if not ok: sys.exit(1)
