@@ -3,7 +3,7 @@
 - **Work Item(s):** M0-53 (CLM-0625) — حجزٌ ثانٍ على فرعِ CLM-0624 (WORK_CLAIM_RULE §6).
 - **Status:** Released عندَ فتحِ PR.
 - **Risk(s):** RISK-0068 → open (سببُ الزيادةِ؛ لا انحدارَ).
-- **التغييرُ:** `docs/12-testing/BASELINE.json/txt` عبرَ `verify.sh` ← `baseline.sh --log` (سجلٌّ داخلَ الشجرةِ) ← `validate-baseline.sh` ✓ · شجرةٌ نظيفةٌ.
+- **التغييرُ:** `docs/12-testing/BASELINE.json` و`docs/12-testing/BASELINE.txt` عبرَ `verify.sh` ← `baseline.sh --log` (سجلٌّ داخلَ الشجرةِ) ← `validate-baseline.sh` ✓ · شجرةٌ نظيفةٌ.
 - **Deployment:** وثائقُ فقط ← لا نشرَ.
 - **Next:** —. [القرارُ](../12-testing/ci-evidence/2026-10-19T100000Z-clm-0624-render-minutes-exhausted/README.md) §5
 
