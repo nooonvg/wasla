@@ -1,3 +1,12 @@
+# 2026-10-19 — CLM-0631 — دليلُ ما بعدَ دمجِ CLM-0630
+
+- **Work Item(s):** M6-18B (CLM-0631).
+- **Status:** Released · توثيقٌ فقط.
+- **Risk(s):** RISK-0068 → open.
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T170000Z-clm-0631-runtime-reads-merge-run/raw/render-sync-96560124.json` · `raw/render-deploy-39212686384.log` · CI 39212686359 success.
+- **Deployment:** Render 39212686384 FAIL — 1/24 مخطَّطٌ، `pipeline_minutes_exhausted`؛ الإنتاجُ على `811341de`.
+- **Next:** انتظارُ تأكيدِ المالكِ لاستعادةِ الدقائقِ ثمَّ فحصُ ما قبلَ التشغيلِ و`workflow_dispatch` بـ`cd5a8648…` و`full=false`. [الدليل](../12-testing/ci-evidence/2026-10-19T170000Z-clm-0631-runtime-reads-merge-run/README.md)
+
 # 2026-10-19 — CLM-0630 — إحكامُ حارسِ runtime-equivalent: ربطُ قراءةِ الملفِّ بوسيطِها
 
 - **Work Item(s):** M6-18B (CLM-0630).
