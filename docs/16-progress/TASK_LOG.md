@@ -1,3 +1,13 @@
+# 2026-10-19 — CLM-0624 — Render: نفادُ دقائقِ البناءِ (RISK-0068) · CLM-0622 غيرُ منشورٍ
+
+- **Work Item(s):** M0-53 (CLM-0624).
+- **Status:** Released عندَ فتحِ PR · **حاجزٌ فعليٌّ بيدِ المالكِ (فوترةٌ)**.
+- **Risk(s):** RISK-0068 (جديدٌ، open) — تكرارٌ لـRISK-0063 على المساحةِ الجديدةِ.
+- **القياسُ:** main `c386a98e`: WASLA CI [39186018083](https://github.com/skyosv10-art/wasla/actions/runs/39186018083) success · freshness success · Render [39186018063](https://github.com/skyosv10-art/wasla/actions/runs/39186018063) FAIL 24/24 `build_failed` `live=811341d` · سجلُّ البناءِ «run out of build pipeline minutes» · 897 نشرًا منذ 2026-10-01.
+- **التغييرُ:** RISK-0068 · ملاحظةُ G-S9.1 (CI ✓ · غيرُ منشورٍ) · الدليلُ مع raw (بلا أسرارٍ).
+- **Deployment:** وثائقُ فقط ← لا نشرَ (ولا يمكنُ).
+- **Next:** قرارُ المالكِ (حدُّ الإنفاقِ · الخطّةُ · انتظارُ التجدّدِ) ثمَّ إعادةُ `render-deploy.yml` وتسجيلُ `live=` · G-S9 الأمُّ مفتوحةٌ. [الدليل](../12-testing/ci-evidence/2026-10-19T100000Z-clm-0624-render-minutes-exhausted/README.md)
+
 # 2026-10-19 — CLM-0623 — إغلاقُ G-S9.14 بدليلِ main
 
 - **Work Item(s):** M0-53 (CLM-0623) — إغلاقُ G-S9.14 وحدَه (RQ-CMA-27 — اسمُ المسارِ).
