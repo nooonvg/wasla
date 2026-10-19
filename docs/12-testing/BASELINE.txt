@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-19T02:06:13Z
-الالتزام: 0623422d3cad7088621ea10f33da885b1126a216  الفرع: stage-zero/clm-0624-render-minutes-gs9-1-deploy-blocked  شجرةٌ نظيفةٌ
+التاريخ (UTC): 2026-10-19T08:38:38Z
+الالتزام: 27413ad0416de81d722f58bf44cdf34cb80db094  الفرع: stage-zero/clm-0632-render-test-only  شجرةٌ نظيفةٌ
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
 القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
@@ -13,7 +13,7 @@
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          28
-  risks_not_closed           24
+  risks_not_closed           25
 
 العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-19T100000Z-clm-0624-render-minutes-exhausted/raw/verify-log-stale-baseline-only.txt):
   tests_passed               6158
@@ -22,5 +22,5 @@
   governance_suite_failed    1
   verify_overall             failed
 
-البصمة: sha256:3ab1bd7b0d6b2ee7315b2e093450181ca4832abd151a90319ea6f63e797bb4fc
+البصمة: sha256:8fabe1fd102eaef1a3b4e71f3f6de44319c789f3e50640949031d9c28e140811
 المرجع: docs/12-testing/BASELINE_FORMAT.md
