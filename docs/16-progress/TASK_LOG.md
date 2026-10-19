@@ -1,3 +1,14 @@
+# 2026-10-19 — CLM-0628 — إغلاقُ مدخلاتِ Docker: تكافؤٌ سلوكيٌّ مُعلَنٌ + سجلُّ قراءاتِ التشغيلِ
+
+- **Work Item(s):** M6-18B (CLM-0628).
+- **Status:** Released عندَ تحويلِ PR من مسوّدةٍ · الحجزُ دُفعَ `Active` قبلَ أيِّ تعديلٍ.
+- **Risk(s):** RISK-0068 → open (السياسةُ صُحِّحتْ؛ الاستعادةُ غيرُ مُثبَتةٍ).
+- **التغييرُ:** `scripts/deploy/runtime_reads.py` + `runtime-reads.json` (30 ملفًّا) · `render_plan.py` (`runtime-equivalent` · كلُّ البياناتِ · القراءاتُ المُعلَنةُ · `registry_for_target` مُدقَّقٌ على الهدفِ) · `render-sync.py` · `validate-render-deploy-plan.sh` (انحدارٌ خارجَ الإغلاقِ داخلَ السياقِ · 19/19) · تصحيحٌ بالإضافةِ في دليلِ CLM-0626 §7.
+- **القياسُ:** مثالٌ مضادٌّ `observability/config.ts` ← `infra/observability/targets/` غائبٌ عن مدخلاتِ CLM-0626 · لا قرارَ خاطئٌ وقعَ (الفارقُ فارغٌ) · خطّةُ `cd5a8648` تحتَ السياسةِ النهائيّةِ 1/24.
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T140000Z-clm-0628-deploy-runtime-closure/raw/plan-only-cd5a8648.json` · `raw/validate-render-deploy-plan.txt` · `raw/audit-without-registry.txt` · حكمُ CI على رأسِ PR.
+- **Deployment:** لا تغييرَ صورةٍ؛ دمجُه يشغّلُ الخطّةَ (1/24) وتفشلُ حتى استعادةِ الدقائقِ.
+- **Next:** عندَ تأكيدِ المالكِ: `workflow_dispatch` بـ`cd5a8648…` و`full=false` ثمَّ القياسُ الحيُّ لكلِّ خدمةٍ. [الدليل](../12-testing/ci-evidence/2026-10-19T140000Z-clm-0628-deploy-runtime-closure/README.md)
+
 # 2026-10-19 — CLM-0627 — أوّلُ تشغيلٍ انتقائيٍّ على main: 1/24
 
 - **Work Item(s):** M6-18B (CLM-0627).
