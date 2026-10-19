@@ -30,7 +30,7 @@
 | `scripts/deploy/render-sync.py` | وضعُ deploy يشترطُ `environment=test` و`production_database_refs`؛ النشرُ يشترطُ `RENDER_DEPLOY_INTENT=test-only` و`RENDER_DEPLOY_PURPOSE` **قبلَ أيِّ نداءٍ**؛ فحصُ عزلٍ على المساحةِ كلِّها قبلَ التخطيطِ: مجموعةٌ مربوطةٌ اسمُها يحوي `prod`، أو مفتاحُ `*DATABASE_URL` (مقروءٌ **بالاسمِ**) يشيرُ إلى مشروعِ إنتاجٍ ← رفضٌ؛ القيمُ لا تُطبَعُ ولا تُكتَب؛ `environment` و`isolation_findings` في `render-sync.json` |
 | `scripts/checks/validate-render-deploy-target.sh` | القواعدُ 5–7 + 15 طفرةً جديدةً (المجموعُ 21) |
 | `scripts/checks/validate-render-deploy-plan.sh` | قاعدةُ «كلِّ push» (CLM-0626) استُبدلت بـ«لا push/schedule/PR/workflow_run»، والطفرةُ المقابلةُ |
-| `scripts/checks/validate-workflow-supply-chain.sh` | وصفُ `render-deploy.yml` في الجرد |
+| `scripts/checks/validate-workflow-supply-chain.sh` | وصفُ `render-deploy.yml` في الجرد — تحتَ حجزٍ ثانٍ **CLM-0633**: الملفُّ عُدِّلَ قبلَ حجزِه ورفضَه فحصُ الحجوزات (خارجَ نطاقِ CLM-0632)، فسُجِّلَ الحجزُ الثاني قبلَ الدفعِ بدلَ توسيعِ الأوّلِ (WORK_CLAIM_RULE §6) |
 
 ## 4. الاختبارات — كلُّ حالةٍ بنتيجتِها الفعليّة
 
