@@ -1,3 +1,14 @@
+# 2026-10-19 — CLM-0630 — إحكامُ حارسِ runtime-equivalent: ربطُ قراءةِ الملفِّ بوسيطِها
+
+- **Work Item(s):** M6-18B (CLM-0630).
+- **Status:** Released عندَ تحويلِ PR من مسوّدةٍ · الحجزُ دُفعَ `Active` قبلَ أيِّ تعديلٍ · مراجعةُ إحكامٍ لا إعادةُ تنفيذِ CLM-0628 ولا ادّعاءُ نشرٍ خاطئٍ.
+- **Risk(s):** RISK-0068 → open.
+- **الفجوةُ (مُعادٌ إنتاجُها على `8958621e`):** مسارٌ مطلقٌ ومركّبٌ وثابتٌ أُعيدَ توجيهُه إلى مطلقٍ — كلُّها `runtime-equivalent` صامتًا ببصمةِ الاسمِ×العددِ.
+- **التغييرُ:** `runtime_reads.py` (ماسحٌ ومُقيِّمٌ محافظٌ · بصمةُ `fn(arg) → target` · تغطيةٌ وتقادمٌ · `unresolved`/`delegated` · ربطٌ/استيرادٌ ديناميكيٌّ/إعادةُ تصديرٍ/`getBuiltinModule`/`start`) · `runtime-reads.json` (30 ملفًّا بالبصمةِ الجديدةِ) · `render_plan.py` (`unresolved_in` محافظٌ · `why`) · `render-sync.py` (`policy` في الخطّةِ أيضًا) · `validate-render-deploy-plan.sh` (35 حالةً · 36/36).
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T160000Z-clm-0630-runtime-reads-hardening/raw/validate-render-deploy-plan.txt` · `raw/repro-before-main-8958621e.txt` · `raw/audit-real-repo.txt` · `raw/plan-only-cd5a8648.json` · `raw/preflight-cd5a8648.json` · حكمُ CI على رأسِ PR.
+- **Deployment:** لا تغييرَ صورةٍ ولا نشرَ؛ خطّةُ `cd5a8648` = 1/24 (customer-app). دمجُه يشغّلُ الخطّةَ وتفشلُ حتى استعادةِ الدقائقِ.
+- **Next:** عندَ تأكيدِ المالكِ: إعادةُ فحصِ ما قبلَ التشغيلِ ثمَّ `workflow_dispatch` بـ`cd5a8648…` و`full=false`. [الدليل](../12-testing/ci-evidence/2026-10-19T160000Z-clm-0630-runtime-reads-hardening/README.md)
+
 # 2026-10-19 — CLM-0629 — دليلُ ما بعدَ دمجِ CLM-0628
 
 - **Work Item(s):** M6-18B (CLM-0629).

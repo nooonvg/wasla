@@ -134,19 +134,22 @@ def inputs_for(repo: str, rev: str, svc: dict, wasla_service: str | None, pkgs: 
     stype = svc.get("type")
     manifests = sorted(d + "/package.json" for d in pkgs.values())
 
-    def node_inputs(pkg: str) -> list[str] | None:
+    def node_inputs(pkg: str) -> tuple[list[str] | None, str]:
         if registry is None:
-            return None
+            return None, "no audited runtime-read registry"
         cl = closure(repo, rev, pkg, pkgs)
-        return cl + list(ROOT_COMMON) + manifests + runtime_reads.extra_inputs(registry, cl)
+        unresolved = runtime_reads.unresolved_in(registry, cl)
+        if unresolved:   # CLM-0630: a read the auditor cannot resolve never yields runtime-equivalent
+            return None, f"unresolved runtime read declared in {', '.join(unresolved)} (conservative)"
+        return cl + list(ROOT_COMMON) + manifests + runtime_reads.extra_inputs(registry, cl), ""
 
     det = svc.get("serviceDetails") or {}
     if stype == "static_site":
         m = re.findall(r"--filter\s+(\S+)", det.get("buildCommand") or "")
         if len(m) != 1 or m[0] not in pkgs:
             return None, "static site build command has no single known --filter package"
-        ins = node_inputs(m[0])
-        return (ins, f"static_site --filter {m[0]}") if ins is not None else (None, "no audited runtime-read registry")
+        ins, why = node_inputs(m[0])
+        return (ins, f"static_site --filter {m[0]}") if ins is not None else (None, why)
     env = det.get("envSpecificDetails") or {}
     dockerfile, ctx = _norm(env.get("dockerfilePath")), _norm(env.get("dockerContext"))
     if not dockerfile:
@@ -154,14 +157,15 @@ def inputs_for(repo: str, rev: str, svc: dict, wasla_service: str | None, pkgs: 
     if ctx in ("", "."):
         if not wasla_service or wasla_service not in pkgs:
             return None, f"image built from the repo root but WASLA_SERVICE={wasla_service!r} is not a workspace package"
-        ins = node_inputs(wasla_service)
+        ins, why = node_inputs(wasla_service)
         if ins is None:
-            return None, "no audited runtime-read registry"
+            return None, why
         return ins + [dockerfile, *IMAGE_COMMON], f"image WASLA_SERVICE={wasla_service}"
     return sorted({ctx + "/", dockerfile}), f"image context {ctx}"
 
 
-def decide(repo: str, live: str | None, target: str, inputs: list[str] | None, force: bool = False) -> dict:
+def decide(repo: str, live: str | None, target: str, inputs: list[str] | None, force: bool = False,
+           why: str = "") -> dict:
     if force:
         return {"decision": "deploy", "reason": "forced (--all)"}
     if live and (live == target or live.startswith(target) or target.startswith(live)):
@@ -169,7 +173,7 @@ def decide(repo: str, live: str | None, target: str, inputs: list[str] | None, f
     if not live:
         return {"decision": "deploy", "reason": "no live deploy"}
     if inputs is None:
-        return {"decision": "deploy", "reason": "build inputs not derivable"}
+        return {"decision": "deploy", "reason": "build inputs not derivable" + (f": {why}" if why else "")}
     if git(repo, "cat-file", "-e", f"{live}^{{commit}}").returncode != 0:
         return {"decision": "deploy", "reason": f"live commit {live[:8]} not in history"}
     d = git(repo, "diff", "--name-only", live, target, "--", *inputs)
