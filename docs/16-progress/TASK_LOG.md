@@ -1,7 +1,7 @@
 # 2026-10-19 — CLM-0635 — بوّابةُ غرضِ النشرِ المعتمَد + شرطُ أدلّةِ العزل + إجراءُ T2 المحلّيّ (بلا نشر)
 
-- **Work Item(s):** M6-18B (CLM-0635).
-- **Units:** `.github/workflows/render-deploy.yml` · `infra/render/deploy-target.json` · `scripts/deploy/render-sync.py` · `scripts/checks/validate-render-deploy-target.sh` · `scripts/test-env/t2_local.py` · `docs/12-testing/T2_LOCAL_WEBHOOK_PROCEDURE.md` · `docs/15-decisions/ADR-073-render-test-environment-only.md` · `docs/08-infrastructure/RENDER_TEST_ENVIRONMENT_PLAN.md` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/PRODUCT_STATUS_2026-10-19.md` · `docs/00-rules/VERIFY_COMMAND.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Work Item(s):** M6-18B (CLM-0635 · CLM-0636 — حجزٌ ثانٍ لـ`infra/render/host-sources.json`: تصنيفُ `scripts/test-env/t2_local.py` حارسًا، بعدَ إخفاقِ فحصِ مصادرِ مضيفاتِ Render في CI ‏39233914743).
+- **Units:** `.github/workflows/render-deploy.yml` · `infra/render/deploy-target.json` · `scripts/deploy/render-sync.py` · `scripts/checks/validate-render-deploy-target.sh` · `scripts/test-env/t2_local.py` · `docs/12-testing/T2_LOCAL_WEBHOOK_PROCEDURE.md` · `docs/15-decisions/ADR-073-render-test-environment-only.md` · `docs/08-infrastructure/RENDER_TEST_ENVIRONMENT_PLAN.md` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/PRODUCT_STATUS_2026-10-19.md` · `docs/00-rules/VERIFY_COMMAND.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `infra/render/host-sources.json`.
 - **Status:** Released. والهدفُ يبقى `frozen`.
 - **Change:**
   - `purpose` قائمةٌ مغلقةٌ (`T1`، `T2`، `FLEET`). ويُعادُ التحقّقُ من اعتمادِ البندِ في `test_plan_items`، ولا يُنشَرُ إلا خدماتُ البند.
