@@ -30,9 +30,16 @@ Deploy target (CLM-0501 · INC-0005):
   The old built-in default (the legacy workspace) made the first code merge of
   the blue/green window queue 24 deploys on the frozen legacy stack (INC-0005).
 
+Selective deploy (CLM-0626 · RISK-0068):
+  Only services whose build inputs differ between their *live* commit and the
+  target are deployed; see scripts/deploy/render_plan.py for the rule. A
+  service skipped as `equivalent` passes only because `git diff live target --
+  <inputs>` is empty — the evidence file records the live commit and inputs.
+  `--all` restores the fleet deploy; `--plan-only` measures and deploys nothing.
+
 Usage:
   RENDER_API_KEY=... python3 scripts/deploy/render-sync.py <sha> [--only a,b] \
-      [--verify-only] [--out path.json]
+      [--verify-only] [--plan-only] [--all] [--out path.json]
 """
 from __future__ import annotations
 
@@ -106,6 +113,16 @@ def latest_live(sid: str) -> dict | None:
     return None
 
 
+def wasla_service(sid: str) -> str | None:
+    """Read the single env var WASLA_SERVICE by key — never the whole env list (secrets)."""
+    try:
+        return (call("GET", f"/services/{sid}/env-vars/WASLA_SERVICE") or {}).get("value")
+    except RuntimeError as e:
+        if "-> 404" in str(e):
+            return None
+        raise
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sha")
@@ -113,6 +130,8 @@ def main() -> int:
     ap.add_argument("--verify-only", action="store_true")
     ap.add_argument("--out", default="")
     ap.add_argument("--timeout-min", type=int, default=45)
+    ap.add_argument("--plan-only", action="store_true")
+    ap.add_argument("--all", action="store_true")
     a = ap.parse_args()
 
     if TARGET["mode"] == "frozen":
@@ -137,9 +156,38 @@ def main() -> int:
     started = dt.datetime.now(dt.timezone.utc).isoformat()
     pending: dict[str, dict] = {}
 
+    # CLM-0626: plan per service from live commit → target, not from the last push.
+    import render_plan  # lazy: the frozen path above must not need the repo
+    repo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+    full = render_plan.git(repo, "rev-parse", "--verify", f"{a.sha}^{{commit}}")
+    if full.returncode != 0:
+        sys.exit(f"target {a.sha} is not a commit in this checkout (fetch-depth 0 required) — refusing to plan")
+    target = full.stdout.strip()
+    pkgs = render_plan.workspace_packages(repo, target)
+    plan: dict[str, dict] = {}
+    for s in svcs:
+        live0 = latest_live(s["id"])
+        live0_sha = (live0 or {}).get("commit", {}).get("id", "")
+        env = (s.get("serviceDetails") or {}).get("envSpecificDetails") or {}
+        ws = wasla_service(s["id"]) if s["type"] != "static_site" and render_plan._norm(env.get("dockerContext")) in ("", ".") else None
+        inputs, how = render_plan.inputs_for(repo, target, s, ws, pkgs)
+        plan[s["id"]] = {"live_before": live0_sha, "inputs_from": how, "inputs": inputs,
+                         **render_plan.decide(repo, live0_sha, target, inputs, force=a.all)}
+        print(f"plan {s['name']:24} {plan[s['id']]['decision']:10} live={live0_sha[:7] or '—':7} {plan[s['id']]['reason']}", flush=True)
+    to_deploy = [s for s in svcs if plan[s["id"]]["decision"] == "deploy"]
+    print(f"plan: deploy {len(to_deploy)}/{len(svcs)} (target {target[:8]})", flush=True)
+
+    if a.plan_only:
+        report = {"target_commit": target, "verdict": "PLAN", "deployed": 0, "started_at": started,
+                  "services": [{"service": s["name"], "id": s["id"], **plan[s["id"]]} for s in svcs]}
+        if a.out:
+            with open(a.out, "w", encoding="utf-8") as f:
+                json.dump(report, f, indent=2, ensure_ascii=False)
+        return 0
+
     if not a.verify_only:
-        for s in svcs:
-            d = call("POST", f"/services/{s['id']}/deploys", {"commitId": a.sha, "clearCache": "do_not_clear"})
+        for s in to_deploy:
+            d = call("POST", f"/services/{s['id']}/deploys", {"commitId": target, "clearCache": "do_not_clear"})
             pending[s["id"]] = {"name": s["name"], "deploy_id": d["id"], "status": d.get("status")}
             print(f"triggered {s['name']:24} {d['id']}", flush=True)
             time.sleep(1)
@@ -160,6 +208,10 @@ def main() -> int:
     for s in svcs:
         live = latest_live(s["id"])
         live_sha = (live or {}).get("commit", {}).get("id", "")
+        p = plan[s["id"]]
+        on_target = bool(live_sha) and (live_sha.startswith(target) or target.startswith(live_sha))
+        # `equivalent` holds only while the live commit is the one the plan diffed.
+        equivalent = p["decision"] == "equivalent" and live_sha == p["live_before"]
         results.append({
             "service": s["name"],
             "id": s["id"],
@@ -168,12 +220,17 @@ def main() -> int:
             "triggered_status": pending.get(s["id"], {}).get("status"),
             "live_commit": live_sha,
             "live_finished_at": (live or {}).get("finishedAt"),
-            "matches_target": live_sha.startswith(a.sha) or a.sha.startswith(live_sha or "x"),
+            "decision": p["decision"],
+            "reason": p["reason"],
+            "inputs_from": p["inputs_from"],
+            "changed": p.get("changed", []),
+            "matches_target": on_target or equivalent,
         })
 
     ok = all(r["matches_target"] for r in results)
     report = {
-        "target_commit": a.sha,
+        "target_commit": target,
+        "deployed": len(to_deploy) if not a.verify_only else 0,
         "started_at": started,
         "finished_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "verdict": "PASS" if ok else "FAIL",
@@ -185,7 +242,7 @@ def main() -> int:
             f.write(text + "\n")
     for r in results:
         mark = "✓" if r["matches_target"] else "✗"
-        print(f"{mark} {r['service']:24} live={r['live_commit'][:7] or '—':7} triggered={r['triggered_status']}")
+        print(f"{mark} {r['service']:24} live={r['live_commit'][:7] or '—':7} {r['decision']:10} triggered={r['triggered_status']}")
     print(f"verdict: {report['verdict']}")
     return 0 if ok else 1
 

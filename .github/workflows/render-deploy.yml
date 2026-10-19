@@ -15,18 +15,27 @@ name: Render deploy (main → Render, commit-pinned)
 #
 # Requires repository secret RENDER_API_KEY. If the secret is absent the job
 # FAILS (visible red), it does not skip silently.
+#
+# CLM-0626 · RISK-0068 — selective deploy. render-sync.py deploys only the
+# services whose build inputs differ between their LIVE commit and the target
+# (scripts/deploy/render_plan.py), never "what the last push touched". So the
+# workflow now runs on every push to main, docs included: a docs-only push
+# costs Render API reads and zero builds, and still converges a service whose
+# earlier code change never went live (e.g. #772 behind the docs-only #773).
+# fetch-depth 0: the live commits must be in history for the diff.
 
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
   workflow_dispatch:
     inputs:
       sha:
         description: "Commit to deploy (defaults to the workflow commit)"
         required: false
+      full:
+        description: "Deploy every service regardless of the plan (true/false)"
+        required: false
+        default: "false"
 
 permissions:
   contents: read
@@ -42,10 +51,11 @@ jobs:
     env:
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       TARGET_SHA: ${{ github.event.inputs.sha || github.sha }}
+      FULL_DEPLOY: ${{ github.event.inputs.full || 'false' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
       - name: Require RENDER_API_KEY (fail-closed)
         run: |
           if [ -z "${RENDER_API_KEY}" ]; then
@@ -53,7 +63,10 @@ jobs:
             exit 1
           fi
       - name: Deploy commit and verify live commit per service
-        run: python3 scripts/deploy/render-sync.py "$TARGET_SHA" --out render-sync.json
+        run: |
+          ALL=""
+          if [ "${FULL_DEPLOY}" = "true" ]; then ALL="--all"; fi
+          python3 scripts/deploy/render-sync.py "$TARGET_SHA" $ALL --out render-sync.json
       - name: Upload deploy evidence
         if: always()
         uses: actions/upload-artifact@v4
