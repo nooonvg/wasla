@@ -1,3 +1,12 @@
+# 2026-10-19 — CLM-0629 — دليلُ ما بعدَ دمجِ CLM-0628
+
+- **Work Item(s):** M6-18B (CLM-0629).
+- **Status:** Released · توثيقٌ فقط.
+- **Risk(s):** RISK-0068 → open.
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T150000Z-clm-0629-runtime-closure-merge-run/raw/render-sync-0cc96428.json` · `raw/render-deploy-39203999638.log` · CI 39203999652 success.
+- **Deployment:** Render 39203999638 FAIL — 1/24 مخطَّطٌ، `pipeline_minutes_exhausted`؛ الإنتاجُ على `811341de`.
+- **Next:** انتظارُ تأكيدِ المالكِ لاستعادةِ الدقائقِ ثمَّ `workflow_dispatch` بـ`cd5a8648…` و`full=false`. [الدليل](../12-testing/ci-evidence/2026-10-19T150000Z-clm-0629-runtime-closure-merge-run/README.md)
+
 # 2026-10-19 — CLM-0628 — إغلاقُ مدخلاتِ Docker: تكافؤٌ سلوكيٌّ مُعلَنٌ + سجلُّ قراءاتِ التشغيلِ
 
 - **Work Item(s):** M6-18B (CLM-0628).
