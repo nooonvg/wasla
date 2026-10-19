@@ -1,3 +1,19 @@
+# 2026-10-19 — CLM-0635 — بوّابةُ غرضِ النشرِ المعتمَد + شرطُ أدلّةِ العزل + إجراءُ T2 المحلّيّ (بلا نشر)
+
+- **Work Item(s):** M6-18B (CLM-0635).
+- **Units:** `.github/workflows/render-deploy.yml` · `infra/render/deploy-target.json` · `scripts/deploy/render-sync.py` · `scripts/checks/validate-render-deploy-target.sh` · `scripts/test-env/t2_local.py` · `docs/12-testing/T2_LOCAL_WEBHOOK_PROCEDURE.md` · `docs/15-decisions/ADR-073-render-test-environment-only.md` · `docs/08-infrastructure/RENDER_TEST_ENVIRONMENT_PLAN.md` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/PRODUCT_STATUS_2026-10-19.md` · `docs/00-rules/VERIFY_COMMAND.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released. والهدفُ يبقى `frozen`.
+- **Change:**
+  - `purpose` قائمةٌ مغلقةٌ (`T1`، `T2`، `FLEET`). ويُعادُ التحقّقُ من اعتمادِ البندِ في `test_plan_items`، ولا يُنشَرُ إلا خدماتُ البند.
+  - `full=true` لا يوسّعُ بندًا، والأسطولُ مسارُ `FLEET` باعتمادٍ مستقلّ.
+  - `mode=deploy` يحتاجُ `isolation_evidence`.
+  - أداةُ T2 المحلّيّة.
+  - تصحيحُ مصدرِ تقريرِ المنتج، وتوضيحٌ مؤرَّخٌ في RISK-0068.
+- **Risk(s):** RISK-0068 → open (توضيح) · RISK-0069 → open (E1–E4 غيرُ متحقّقة).
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T200000Z-clm-0635-deploy-purpose-gate/raw/validate-render-deploy-target.txt` (38/38) · `docs/12-testing/ci-evidence/2026-10-19T200000Z-clm-0635-deploy-purpose-gate/raw/t2-self-test.txt` (16/16) · `docs/12-testing/ci-evidence/2026-10-19T200000Z-clm-0635-deploy-purpose-gate/raw/t2-local-dry-run.txt` · `docs/12-testing/ci-evidence/2026-10-19T200000Z-clm-0635-deploy-purpose-gate/raw/product-status-remeasure-main.txt`.
+- **Deployment:** لا شيء. لا تشغيلَ لـ`render-deploy.yml`، ولا طلبَ نشر.
+- **Next:** قرارُ المالكِ في T2 وفي شروطِ E1–E4. [الدليل](../12-testing/ci-evidence/2026-10-19T200000Z-clm-0635-deploy-purpose-gate/README.md)
+
 # 2026-10-19 — CLM-0634 — دليلُ ما بعدَ دمجِ CLM-0632
 
 - **Work Item(s):** M6-18B (CLM-0634).

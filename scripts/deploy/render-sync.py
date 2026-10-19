@@ -36,7 +36,8 @@ Selective deploy (CLM-0626 · RISK-0068):
   service skipped as `runtime-equivalent` passes only because `git diff live
   target -- <runtime inputs>` is empty (runtime-input, not image-byte,
   equivalence — CLM-0628) — the evidence file records the live commit and inputs.
-  `--all` restores the fleet deploy; `--plan-only` measures and deploys nothing.
+  `--all` restores the fleet deploy only under purpose FLEET (CLM-0635);
+  `--plan-only` measures and deploys nothing.
 
 Test environment only (CLM-0632 · owner decision 2026-10-19):
   Render hosts tests, never production, and nothing spends money. A deploy needs
@@ -84,6 +85,11 @@ def load_target() -> dict:
     refs = t.get("production_database_refs")
     if not isinstance(refs, list) or not refs or not all(isinstance(r, str) and re.fullmatch(r"[a-z0-9]{20}", r) for r in refs):
         sys.exit("deploy-target.json: production_database_refs must list the production Supabase project ref(s) — refusing to deploy without an isolation rule")
+    # CLM-0635: unfreezing names a reviewable isolation-evidence file (ADR-073 D4 · E1–E4).
+    ev = t.get("isolation_evidence")
+    root = os.path.normpath(os.path.join(os.path.dirname(TARGET_FILE), "..", ".."))
+    if not isinstance(ev, str) or not ev.strip() or ev.startswith("/") or ".." in ev.split("/") or not os.path.isfile(os.path.join(root, ev)):
+        sys.exit("deploy-target.json: isolation_evidence must name an existing evidence file in the repository (ADR-073 D4) — refusing to deploy")
     return t
 
 
@@ -196,6 +202,41 @@ def collect_isolation(svcs: list[dict]) -> tuple[list[dict], dict]:
     return groups, service_db
 
 
+# CLM-0635 — purpose gate. A deploy names ONE approved item of the test plan
+# (docs/08-infrastructure/RENDER_TEST_ENVIRONMENT_PLAN.md) declared in
+# deploy-target.json `test_plan_items`; it may touch only that item's services.
+# `--all` (full=true) never widens an item: the whole fleet is a separate purpose,
+# FLEET, with its own explicit approval in `fleet_deploy`. Checked before any call.
+FLEET = "FLEET"
+CONFIRM = "test-only"
+
+
+def deploy_gate(target: dict, env: dict, full: bool) -> tuple[list[str] | None, str | None]:
+    """→ (service names the run may deploy, None = whole fleet) or (None, refusal)."""
+    if env.get("RENDER_DEPLOY_CONFIRM") != CONFIRM or env.get("RENDER_DEPLOY_INTENT") != CONFIRM:
+        return None, f"confirm must be exactly {CONFIRM!r} (RENDER_DEPLOY_CONFIRM and RENDER_DEPLOY_INTENT)"
+    purpose = (env.get("RENDER_DEPLOY_PURPOSE") or "").strip()
+    items = target.get("test_plan_items") or {}
+    if purpose == FLEET:
+        fleet = target.get("fleet_deploy") or {}
+        if not full:
+            return None, "purpose FLEET is the whole-fleet path and requires full=true"
+        if fleet.get("approved") is not True or not str(fleet.get("approval") or "").strip():
+            return None, "purpose FLEET is not approved (fleet_deploy.approved/approval) — the whole fleet is never implied"
+        return None, None
+    if purpose not in items:
+        return None, f"purpose {purpose[:40]!r} is not an item of the approved test plan ({sorted(items) + [FLEET]})"
+    item = items[purpose]
+    if item.get("approved") is not True or not str(item.get("approval") or "").strip():
+        return None, f"test-plan item {purpose} is not approved by the owner (test_plan_items.{purpose}.approved/approval)"
+    if full:
+        return None, f"full=true cannot widen test-plan item {purpose} beyond its services — use purpose FLEET"
+    names = item.get("services")
+    if not isinstance(names, list) or not names or not all(isinstance(n, str) and n.startswith("wasla-") for n in names):
+        return None, f"test-plan item {purpose} names no services"
+    return sorted(names), None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sha")
@@ -221,6 +262,13 @@ def main() -> int:
     deploying = not (a.plan_only or a.verify_only)
     if deploying and (os.environ.get("RENDER_DEPLOY_INTENT") != "test-only" or not os.environ.get("RENDER_DEPLOY_PURPOSE", "").strip()):
         sys.exit("refusing to deploy: RENDER_DEPLOY_INTENT=test-only and a RENDER_DEPLOY_PURPOSE (test-plan item) are required — Render is a test environment, deployed only on purpose")
+    scope = None
+    if deploying:
+        scope, refusal = deploy_gate(TARGET, dict(os.environ), a.all)
+        if refusal:
+            sys.exit(f"refusing to deploy: {refusal}")
+    elif a.all:
+        pass  # --plan-only/--verify-only --all only measures
 
     svcs = services()
     if not svcs:
@@ -236,6 +284,13 @@ def main() -> int:
         print(f"isolation: {f}", flush=True)
     if iso and deploying:
         sys.exit(f"refusing to deploy: {len(iso)} isolation finding(s) — the Render test environment reaches production data")
+    if scope is not None:
+        missing = sorted(set(scope) - {x["name"] for x in svcs})
+        if missing:
+            sys.exit(f"refusing to deploy: test-plan services not in the workspace: {missing}")
+        if a.only and not set(a.only.split(",")) <= set(scope):
+            sys.exit("refusing to deploy: --only names services outside the test-plan item")
+        svcs = [x for x in svcs if x["name"] in scope]
     if a.only:
         wanted = set(a.only.split(","))
         svcs = [s for s in svcs if s["name"] in wanted]

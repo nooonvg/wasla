@@ -41,15 +41,24 @@ on:
         description: "Commit to deploy (required — no implicit HEAD)"
         required: true
       purpose:
-        description: "Test-plan item this deploy serves (e.g. T1), see RENDER_TEST_ENVIRONMENT_PLAN.md"
+        description: "Approved test-plan item (infra/render/deploy-target.json test_plan_items) — FLEET only with full=true and its own approval"
         required: true
+        type: choice
+        options:
+          - T1
+          - T2
+          - FLEET
       confirm:
         description: "Type test-only to confirm this is a test deploy, not production"
         required: true
       full:
-        description: "Deploy every service regardless of the plan (true/false)"
+        description: "Whole fleet regardless of the plan — only with purpose FLEET (true/false)"
         required: false
+        type: choice
         default: "false"
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: read
@@ -77,6 +86,18 @@ jobs:
           if [ "${RENDER_DEPLOY_CONFIRM}" != "test-only" ] || [ -z "${RENDER_DEPLOY_PURPOSE// /}" ] || [ -z "${TARGET_SHA}" ]; then
             echo "::error::Render is a test environment only. Dispatch with sha, purpose (test-plan item) and confirm=test-only."
             exit 1
+          fi
+          # CLM-0635: the purpose is one approved item (render-sync.py re-checks approval
+          # against deploy-target.json); full=true never widens an item — FLEET only.
+          case "${RENDER_DEPLOY_PURPOSE}" in
+            T1|T2|FLEET) ;;
+            *) echo "::error::purpose ${RENDER_DEPLOY_PURPOSE} is not an item of the test plan"; exit 1 ;;
+          esac
+          if [ "${FULL_DEPLOY}" = "true" ] && [ "${RENDER_DEPLOY_PURPOSE}" != "FLEET" ]; then
+            echo "::error::full=true is only accepted with purpose FLEET"; exit 1
+          fi
+          if [ "${RENDER_DEPLOY_PURPOSE}" = "FLEET" ] && [ "${FULL_DEPLOY}" != "true" ]; then
+            echo "::error::purpose FLEET requires full=true"; exit 1
           fi
           echo "RENDER_DEPLOY_INTENT=test-only" >> "$GITHUB_ENV"
       - name: Require RENDER_API_KEY (fail-closed)
