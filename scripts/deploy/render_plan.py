@@ -16,10 +16,12 @@ The rule — live commit against target commit, never "the last push":
   #772 change even though #773 (the last push) touched docs only.
 
 Decisions:
-  current     live commit == target commit
-  equivalent  live commit is in history and `git diff live target -- <inputs>`
-              is empty: the build inputs are byte-identical, so a rebuild would
-              ship the same service
+  current             live commit == target commit
+  runtime-equivalent  live commit is in history and `git diff live target --
+              <runtime inputs>` is empty: everything the service process can
+              load or read is identical. This is NOT image-byte equivalence —
+              the shared image is `COPY . .`, so its bytes change with any file
+              in the build context (CLM-0628 decision; see runtime_reads.py)
   deploy      anything else, with a reason. Ambiguity always deploys: no live
               deploy, live commit not in history, inputs not derivable from the
               Render config, `--all`, or a non-empty input diff.
@@ -28,21 +30,31 @@ Where the inputs come from (one source of truth: Render's own config + the repo)
   static_site                build command `pnpm --filter <pkg> build` → <pkg>
   image, context "."         env var WASLA_SERVICE (read by key only) → <pkg>
   image, other context dir   that context dir + its Dockerfile
-  <pkg> → its workspace dir plus the transitive closure of its `workspace:`
+  <pkg> → its workspace dir plus the transitive closure of its workspace
   dependencies (all dependency kinds), read at the target commit, plus the
-  root files every install reads. Image builds add Dockerfile, .dockerignore
-  and scripts/container/.
+  root files every install reads, plus EVERY workspace package.json (pnpm
+  install links from all manifests and scripts/container/resolve-package.mjs
+  reads all of them to resolve WASLA_SERVICE), plus the declared runtime reads
+  (scripts/deploy/runtime-reads.json) of every file inside the closure. Image
+  builds add Dockerfile, .dockerignore and scripts/container/.
 
-Declared limit: a service that reads a repo file outside its dependency
-closure at runtime would be missed. No such read exists at the time of writing
-(evidence: CLM-0626 README §2); `--all` (workflow_dispatch input `full`) forces
-a fleet deploy.
+The runtime-read registry used must pass `runtime_reads.audit()` on the TARGET
+tree (the target's own registry, else the checkout's); otherwise every
+node-based service is `deploy` (fail closed). `--all` (workflow_dispatch input
+`full`) forces a fleet deploy.
 """
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
 import subprocess
+import tempfile
+
+import runtime_reads
+
+REGISTRY_PATH = "scripts/deploy/runtime-reads.json"
 
 ROOT_COMMON = ("package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "tsconfig.json", ".npmrc")
 IMAGE_COMMON = (".dockerignore", "scripts/container/")
@@ -94,15 +106,47 @@ def closure(repo: str, rev: str, pkg: str, pkgs: dict[str, str]) -> list[str]:
     return sorted(pkgs[n] + "/" for n in seen)
 
 
-def inputs_for(repo: str, rev: str, svc: dict, wasla_service: str | None, pkgs: dict[str, str]) -> tuple[list[str] | None, str]:
+def registry_for_target(repo: str, rev: str, fallback_text: str | None) -> tuple[dict | None, str]:
+    """Runtime-read registry proven to describe the target tree, or (None, why)."""
+    shown = git(repo, "show", f"{rev}:{REGISTRY_PATH}")
+    text, origin = (shown.stdout, "target") if shown.returncode == 0 else (fallback_text, "checkout")
+    try:
+        reg = runtime_reads.load_registry(text)
+    except (ValueError, json.JSONDecodeError) as e:
+        return None, f"runtime-read registry unusable ({origin}): {e}"
+    tmp = tempfile.mkdtemp()
+    try:
+        arch = subprocess.run(["git", "-C", repo, "archive", "--format=tar", rev], capture_output=True)
+        if arch.returncode != 0:
+            return None, "git archive of target failed"
+        subprocess.run(["tar", "-x", "-C", tmp], input=arch.stdout, check=True)
+        errs = runtime_reads.audit(tmp, reg)
+    finally:
+        shutil.rmtree(tmp)
+    if errs:
+        return None, f"runtime-read registry ({origin}) does not describe the target: {errs[0][:160]}"
+    return reg, f"runtime-read registry from {origin}, audited on target"
+
+
+def inputs_for(repo: str, rev: str, svc: dict, wasla_service: str | None, pkgs: dict[str, str],
+               registry: dict | None = None) -> tuple[list[str] | None, str]:
     """(input paths, how they were derived) — (None, reason) when not derivable."""
     stype = svc.get("type")
+    manifests = sorted(d + "/package.json" for d in pkgs.values())
+
+    def node_inputs(pkg: str) -> list[str] | None:
+        if registry is None:
+            return None
+        cl = closure(repo, rev, pkg, pkgs)
+        return cl + list(ROOT_COMMON) + manifests + runtime_reads.extra_inputs(registry, cl)
+
     det = svc.get("serviceDetails") or {}
     if stype == "static_site":
         m = re.findall(r"--filter\s+(\S+)", det.get("buildCommand") or "")
         if len(m) != 1 or m[0] not in pkgs:
             return None, "static site build command has no single known --filter package"
-        return closure(repo, rev, m[0], pkgs) + list(ROOT_COMMON), f"static_site --filter {m[0]}"
+        ins = node_inputs(m[0])
+        return (ins, f"static_site --filter {m[0]}") if ins is not None else (None, "no audited runtime-read registry")
     env = det.get("envSpecificDetails") or {}
     dockerfile, ctx = _norm(env.get("dockerfilePath")), _norm(env.get("dockerContext"))
     if not dockerfile:
@@ -110,7 +154,10 @@ def inputs_for(repo: str, rev: str, svc: dict, wasla_service: str | None, pkgs: 
     if ctx in ("", "."):
         if not wasla_service or wasla_service not in pkgs:
             return None, f"image built from the repo root but WASLA_SERVICE={wasla_service!r} is not a workspace package"
-        return closure(repo, rev, wasla_service, pkgs) + list(ROOT_COMMON) + [dockerfile, *IMAGE_COMMON], f"image WASLA_SERVICE={wasla_service}"
+        ins = node_inputs(wasla_service)
+        if ins is None:
+            return None, "no audited runtime-read registry"
+        return ins + [dockerfile, *IMAGE_COMMON], f"image WASLA_SERVICE={wasla_service}"
     return sorted({ctx + "/", dockerfile}), f"image context {ctx}"
 
 
@@ -131,4 +178,5 @@ def decide(repo: str, live: str | None, target: str, inputs: list[str] | None, f
     changed = [x for x in d.stdout.splitlines() if x]
     if changed:
         return {"decision": "deploy", "reason": f"{len(changed)} input file(s) changed since live {live[:8]}", "changed": changed[:20]}
-    return {"decision": "equivalent", "reason": f"inputs identical between live {live[:8]} and target"}
+    return {"decision": "runtime-equivalent",
+            "reason": f"runtime inputs identical between live {live[:8]} and target (image bytes not compared: COPY . .)"}

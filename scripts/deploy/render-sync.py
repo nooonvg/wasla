@@ -33,8 +33,9 @@ Deploy target (CLM-0501 · INC-0005):
 Selective deploy (CLM-0626 · RISK-0068):
   Only services whose build inputs differ between their *live* commit and the
   target are deployed; see scripts/deploy/render_plan.py for the rule. A
-  service skipped as `equivalent` passes only because `git diff live target --
-  <inputs>` is empty — the evidence file records the live commit and inputs.
+  service skipped as `runtime-equivalent` passes only because `git diff live
+  target -- <runtime inputs>` is empty (runtime-input, not image-byte,
+  equivalence — CLM-0628) — the evidence file records the live commit and inputs.
   `--all` restores the fleet deploy; `--plan-only` measures and deploys nothing.
 
 Usage:
@@ -164,21 +165,24 @@ def main() -> int:
         sys.exit(f"target {a.sha} is not a commit in this checkout (fetch-depth 0 required) — refusing to plan")
     target = full.stdout.strip()
     pkgs = render_plan.workspace_packages(repo, target)
+    reg_path = os.path.join(repo, render_plan.REGISTRY_PATH)
+    registry, reg_how = render_plan.registry_for_target(repo, target, open(reg_path, encoding="utf-8").read() if os.path.isfile(reg_path) else None)
+    print(f"plan: {reg_how}", flush=True)
     plan: dict[str, dict] = {}
     for s in svcs:
         live0 = latest_live(s["id"])
         live0_sha = (live0 or {}).get("commit", {}).get("id", "")
         env = (s.get("serviceDetails") or {}).get("envSpecificDetails") or {}
         ws = wasla_service(s["id"]) if s["type"] != "static_site" and render_plan._norm(env.get("dockerContext")) in ("", ".") else None
-        inputs, how = render_plan.inputs_for(repo, target, s, ws, pkgs)
+        inputs, how = render_plan.inputs_for(repo, target, s, ws, pkgs, registry)
         plan[s["id"]] = {"live_before": live0_sha, "inputs_from": how, "inputs": inputs,
                          **render_plan.decide(repo, live0_sha, target, inputs, force=a.all)}
-        print(f"plan {s['name']:24} {plan[s['id']]['decision']:10} live={live0_sha[:7] or '—':7} {plan[s['id']]['reason']}", flush=True)
+        print(f"plan {s['name']:24} {plan[s['id']]['decision']:18} live={live0_sha[:7] or '—':7} {plan[s['id']]['reason']}", flush=True)
     to_deploy = [s for s in svcs if plan[s["id"]]["decision"] == "deploy"]
     print(f"plan: deploy {len(to_deploy)}/{len(svcs)} (target {target[:8]})", flush=True)
 
     if a.plan_only:
-        report = {"target_commit": target, "verdict": "PLAN", "deployed": 0, "started_at": started,
+        report = {"target_commit": target, "verdict": "PLAN", "deployed": 0, "started_at": started, "registry": reg_how,
                   "services": [{"service": s["name"], "id": s["id"], **plan[s["id"]]} for s in svcs]}
         if a.out:
             with open(a.out, "w", encoding="utf-8") as f:
@@ -210,8 +214,8 @@ def main() -> int:
         live_sha = (live or {}).get("commit", {}).get("id", "")
         p = plan[s["id"]]
         on_target = bool(live_sha) and (live_sha.startswith(target) or target.startswith(live_sha))
-        # `equivalent` holds only while the live commit is the one the plan diffed.
-        equivalent = p["decision"] == "equivalent" and live_sha == p["live_before"]
+        # `runtime-equivalent` holds only while the live commit is the one the plan diffed.
+        equivalent = p["decision"] == "runtime-equivalent" and live_sha == p["live_before"]
         results.append({
             "service": s["name"],
             "id": s["id"],
@@ -231,6 +235,8 @@ def main() -> int:
     report = {
         "target_commit": target,
         "deployed": len(to_deploy) if not a.verify_only else 0,
+        "policy": "runtime-input equivalence (CLM-0628); image bytes not compared",
+        "registry": reg_how,
         "started_at": started,
         "finished_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "verdict": "PASS" if ok else "FAIL",
@@ -242,7 +248,7 @@ def main() -> int:
             f.write(text + "\n")
     for r in results:
         mark = "✓" if r["matches_target"] else "✗"
-        print(f"{mark} {r['service']:24} live={r['live_commit'][:7] or '—':7} {r['decision']:10} triggered={r['triggered_status']}")
+        print(f"{mark} {r['service']:24} live={r['live_commit'][:7] or '—':7} {r['decision']:18} triggered={r['triggered_status']}")
     print(f"verdict: {report['verdict']}")
     return 0 if ok else 1
 
