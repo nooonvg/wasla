@@ -1,3 +1,14 @@
+# 2026-10-19 — CLM-0627 — أوّلُ تشغيلٍ انتقائيٍّ على main: 1/24
+
+- **Work Item(s):** M6-18B (CLM-0627).
+- **Status:** Released عندَ فتحِ PR.
+- **Risk(s):** RISK-0068 → open (الاستعادةُ غيرُ مُثبَتةٍ).
+- **التغييرُ:** دليلُ أوّلِ تشغيلٍ · تحديثُ RISK-0068 بالإضافةِ.
+- **القياسُ:** main `787c2b9b`: WASLA CI [39197470531](https://github.com/skyosv10-art/wasla/actions/runs/39197470531) success · Render [39197470468](https://github.com/skyosv10-art/wasla/actions/runs/39197470468) خطّةُ 1/24 · نشرٌ واحدٌ `build_failed` (نفادُ الدقائقِ) · 23 equivalent · FAIL.
+- **Evidence:** run 39197470468 · artifact `docs/12-testing/ci-evidence/2026-10-19T130000Z-clm-0627-selective-deploy-first-run/raw/render-build-log-wasla-customer-app.txt`.
+- **Deployment:** وثائقُ ← خطّةٌ تعيدُ `wasla-customer-app` وحدَه وتفشلُ حتى الاستعادةِ.
+- **Next:** قرارُ المالكِ ثمَّ تشغيلٌ PASS على main لإغلاقِ نشرِ CLM-0622 وRISK-0068. [الدليل](../12-testing/ci-evidence/2026-10-19T130000Z-clm-0627-selective-deploy-first-run/README.md)
+
 # 2026-10-19 — CLM-0626 — نشرُ Render الانتقائيُّ: الحيُّ ← المستهدَفُ (سببُ تكرارِ RISK-0068)
 
 - **Work Item(s):** M6-18B (CLM-0626).
