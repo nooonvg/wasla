@@ -1,6 +1,6 @@
 # 2026-10-19 — CLM-0632 — Render للاختباراتِ فقط (قرارُ المالك): إيقافُ النشرِ التلقائيِّ وتجميدُ هدفٍ غيرِ معزولٍ
 
-- **Work Item(s):** M6-18B (CLM-0632).
+- **Work Item(s):** M6-18B (CLM-0632 · CLM-0633 — حجزٌ ثانٍ لـ`scripts/checks/validate-workflow-supply-chain.sh`: وصفُ `render-deploy.yml` في الجرد).
 - **Status:** Released · ADR-073 Accepted.
 - **Risk(s):** RISK-0069 → open · RISK-0068 → open · RISK-0066 → open.
 - **Evidence:** `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/README.md` · `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/raw/isolation-render-2026-10-19.json` · `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/raw/validate-render-deploy-target.txt` · `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/raw/validate-render-deploy-plan.txt`.
