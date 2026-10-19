@@ -1,3 +1,15 @@
+# 2026-10-19 — CLM-0632 — Render للاختباراتِ فقط (قرارُ المالك): إيقافُ النشرِ التلقائيِّ وتجميدُ هدفٍ غيرِ معزولٍ
+
+- **Work Item(s):** M6-18B (CLM-0632).
+- **Status:** Released · ADR-073 Accepted.
+- **Risk(s):** RISK-0069 → open · RISK-0068 → open · RISK-0066 → open.
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/README.md` · `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/raw/isolation-render-2026-10-19.json` · `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/raw/validate-render-deploy-target.txt` · `docs/12-testing/ci-evidence/2026-10-19T180000Z-clm-0632-render-test-only/raw/validate-render-deploy-plan.txt`.
+- **Change:** `render-deploy.yml` بلا `push` (يدويٌّ بـ`sha`/`purpose`/`confirm=test-only`) · `deploy-target.json` `frozen` + `environment=test` + `production_database_refs` · `render-sync.py` نيّةُ نشرٍ إلزاميّةٌ + فحصُ عزلٍ قبلَ أيِّ نشرٍ · 21/21 طفرةً.
+- **Finding:** `wasla-prod-db` يربطُ 17 خدمةً بمشروعِ Supabase المسمّى إنتاجًا بالدورِ `postgres` — البيئةُ غيرُ معزولةٍ (41 صفًّا، بلا بياناتِ مستخدمين).
+- **Deployment:** لا نشرَ · لا إنفاقَ · لا تغييرَ خطّةٍ أو حساب. CLM-0622 غيرُ منشورٍ.
+- **Docs:** [ADR-073](../15-decisions/ADR-073-render-test-environment-only.md) · [خطّةُ موارد الاختبار](../08-infrastructure/RENDER_TEST_ENVIRONMENT_PLAN.md) · [حالةُ المنتج](PRODUCT_STATUS_2026-10-19.md).
+- **Next:** قرارُ المالكِ في شروطِ العزلِ (ADR-073 D4) وبنودِ T1/T2؛ G-S9 مفتوحةٌ · M0-53 In Progress · M6-18B Blocked.
+
 # 2026-10-19 — CLM-0631 — دليلُ ما بعدَ دمجِ CLM-0630
 
 - **Work Item(s):** M6-18B (CLM-0631).
