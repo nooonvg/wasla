@@ -1,3 +1,23 @@
+# 2026-10-19 — CLM-0623 — إغلاقُ G-S9.14 بدليلِ main
+
+- **Work Item(s):** M0-53 (CLM-0623) — إغلاقُ G-S9.14 وحدَه (RQ-CMA-27 — اسمُ المسارِ).
+- **Status:** Released عندَ فتحِ PR (فرعُ CLM-0622 نفسُه — حجزٌ ثانٍ منفصلٌ) · G-S9 الأمُّ مفتوحةٌ · لا نسبةَ اكتمالٍ.
+- **Risk(s):** none — (سببُ none:) وثائقُ فقط؛ الحكمُ يُحيلُ إلى #771 وCI ناجحٍ على `56e5d733`؛ نصُّ «الحكمُ بعدَ CI» حُوِّلَ بالإضافةِ.
+- **التغييرُ:** `REQUIREMENTS_REGISTRY.md` — G-S9.14 مُغلقٌ مع إبقاءِ حجبِ الحدِّ صريحًا · سجلُّ الإغلاقِ.
+- **القياسُ:** WASLA CI [39184072763](https://github.com/skyosv10-art/wasla/actions/runs/39184072763) success · freshness [39184072751](https://github.com/skyosv10-art/wasla/actions/runs/39184072751) success · لا نشرَ (وثائقُ).
+- **Deployment:** وثائقُ فقط ← لا نشرَ.
+- **Next:** G-S9.2/G-S9.3 عقدٌ أوّلًا · G-S9.15 قرارُ نطاقٍ. [الدليل](../12-testing/ci-evidence/2026-10-19T090000Z-clm-0623-gs9-14-closure/README.md)
+
+# 2026-10-19 — CLM-0622 — تصحيحُ G-S9.1: طلبٌ واحدٌ · خطأٌ مرئيٌّ · label بعدَ التحريرِ
+
+- **Work Item(s):** M0-53 (CLM-0622) — تصحيحُ G-S9.1 (RQ-CMA-15) بالإضافةِ.
+- **Status:** Released عندَ فتحِ PR · **ملاحظةٌ تدقيقيّةٌ:** الشفرةُ أُعِدَّت محليًّا قبلَ كتابةِ سطرِ الحجزِ (قبلَ الدفعِ) — مسجَّلةٌ في الدليلِ §4.
+- **Risk(s):** none — (سببُ none:) سلوكُ شاشةٍ خلفَ حدٍّ مغلقٍ؛ لا عقدَ ولا حدَّ؛ أربعُ طفراتٍ مُلتقَطةٌ منها عكسيّةٌ.
+- **التغييرُ:** `SavedPlacePicker.tsx` (حارسُ المتجرِ الحيِّ · `role=alert` + إعادةُ محاولةٍ) · `RideOrder.tsx`/`DeliveryOrder.tsx` (مسحُ label المكانِ عندَ التحريرِ اليدويِّ فقط) · i18n `saved_places_load_error` ×3.
+- **القياسُ:** قبلَ: GET×2 · label باقٍ · خطأٌ صامتٌ ← بعدَ: vitest 101/101 · tsc 0 · 4/4 طفراتٍ.
+- **Deployment:** `apps/**` ← render-deploy بعدَ الدمجِ (حدٌّ مغلقٌ).
+- **Next:** الحكمُ بعدَ CI ونشرِ main · G-S9 الأمُّ مفتوحةٌ. [الدليل](../12-testing/ci-evidence/2026-10-19T080000Z-clm-0622-gs9-1-picker-corrections/README.md)
+
 # 2026-10-19 — CLM-0621 — G-S9.14: تصحيحُ تقادمِ CMS §8 (مسارُ marketplace)
 
 - **Work Item(s):** M0-53 (CLM-0621) — G-S9.14 وحدَه (RQ-CMA-27).
