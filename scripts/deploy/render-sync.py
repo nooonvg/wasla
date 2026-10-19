@@ -176,13 +176,14 @@ def main() -> int:
         ws = wasla_service(s["id"]) if s["type"] != "static_site" and render_plan._norm(env.get("dockerContext")) in ("", ".") else None
         inputs, how = render_plan.inputs_for(repo, target, s, ws, pkgs, registry)
         plan[s["id"]] = {"live_before": live0_sha, "inputs_from": how, "inputs": inputs,
-                         **render_plan.decide(repo, live0_sha, target, inputs, force=a.all)}
+                         **render_plan.decide(repo, live0_sha, target, inputs, force=a.all, why=how)}
         print(f"plan {s['name']:24} {plan[s['id']]['decision']:18} live={live0_sha[:7] or '—':7} {plan[s['id']]['reason']}", flush=True)
     to_deploy = [s for s in svcs if plan[s["id"]]["decision"] == "deploy"]
     print(f"plan: deploy {len(to_deploy)}/{len(svcs)} (target {target[:8]})", flush=True)
 
     if a.plan_only:
         report = {"target_commit": target, "verdict": "PLAN", "deployed": 0, "started_at": started, "registry": reg_how,
+                  "policy": "runtime-input equivalence (CLM-0628/CLM-0630); image bytes not compared",
                   "services": [{"service": s["name"], "id": s["id"], **plan[s["id"]]} for s in svcs]}
         if a.out:
             with open(a.out, "w", encoding="utf-8") as f:
@@ -235,7 +236,7 @@ def main() -> int:
     report = {
         "target_commit": target,
         "deployed": len(to_deploy) if not a.verify_only else 0,
-        "policy": "runtime-input equivalence (CLM-0628); image bytes not compared",
+        "policy": "runtime-input equivalence (CLM-0628/CLM-0630); image bytes not compared",
         "registry": reg_how,
         "started_at": started,
         "finished_at": dt.datetime.now(dt.timezone.utc).isoformat(),
