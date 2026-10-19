@@ -48,6 +48,30 @@ describe("DeliveryOrder screen", () => {
     expect(screen.getByTestId("d-dropoff-place-select")).toBeInTheDocument();
   });
 
+  it("shares one places request and drops the picker label on a manual edit (CLM-0622)", async () => {
+    const mockedGet = apiClient.get as ReturnType<typeof vi.fn>;
+    mockedGet.mockResolvedValue({
+      items: [
+        { place_id: "place-home", label: "المنزل", zone_id: "z-home", zone_path: null, created_at: "2026-10-18T00:00:00Z" },
+      ],
+      limit: 5,
+    });
+
+    render(<DeliveryOrder />);
+
+    const pickupSelect = (await screen.findByTestId("d-pickup-place-select")) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(Array.from(pickupSelect.options).some((o) => o.value === "place-home")).toBe(true);
+    });
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(pickupSelect, { target: { value: "place-home" } });
+    expect(useOrderFormStore.getState().pickupLabel).toBe("المنزل");
+    fireEvent.change(screen.getByTestId("d-pickup-zone-input"), { target: { value: "z-manual" } });
+    expect(useOrderFormStore.getState().pickupLabel).toBe("");
+    expect(useOrderFormStore.getState().pickupSource).toBe("manual_zone");
+  });
+
   it("submitting with a saved place selected sends source saved_place for that stop (G-S9.1)", async () => {
     const mockedGet = apiClient.get as ReturnType<typeof vi.fn>;
     mockedGet.mockResolvedValue({

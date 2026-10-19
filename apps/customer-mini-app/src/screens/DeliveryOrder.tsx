@@ -113,6 +113,8 @@ export function DeliveryOrder() {
           type="text"
           value={store.pickupZoneId}
           onChange={(e) => {
+            // CLM-0622: drop the picker-filled label on a manual zone edit.
+            if (pickupPlaceId) store.setPickupLabel("");
             store.setPickupZoneId(e.target.value);
             store.setPickupSource("manual_zone");
             setPickupPlaceId("");
@@ -155,6 +157,8 @@ export function DeliveryOrder() {
           type="text"
           value={store.dropoffZoneId}
           onChange={(e) => {
+            // CLM-0622: drop the picker-filled label on a manual zone edit.
+            if (dropoffPlaceId) store.setDropoffLabel("");
             store.setDropoffZoneId(e.target.value);
             store.setDropoffSource("manual_zone");
             setDropoffPlaceId("");

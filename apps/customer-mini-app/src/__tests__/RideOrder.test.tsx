@@ -125,6 +125,84 @@ describe("RideOrder screen", () => {
     });
   });
 
+  it("two pickers on one screen share a single places request (CLM-0622)", async () => {
+    mockedGet.mockResolvedValue(savedPlaces);
+
+    render(<RideOrder />);
+
+    const pickupSelect = (await screen.findByTestId("pickup-place-select")) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(Array.from(pickupSelect.options).some((o) => o.value === "place-home")).toBe(true);
+    });
+    const dropoffSelect = screen.getByTestId("dropoff-place-select") as HTMLSelectElement;
+    expect(Array.from(dropoffSelect.options).some((o) => o.value === "place-work")).toBe(true);
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+    expect(mockedGet).toHaveBeenCalledWith("/customers/WS-1234567890/places");
+  });
+
+  it("a failed places load is visible and retry loads the places (CLM-0622)", async () => {
+    mockedGet.mockRejectedValueOnce(new Error("network_error")).mockResolvedValueOnce(savedPlaces);
+
+    render(<RideOrder />);
+
+    const alert = await screen.findByTestId("pickup-place-select-error");
+    expect(alert).toHaveAttribute("role", "alert");
+    expect(alert).toHaveTextContent("تعذّر تحميل الأماكن المحفوظة");
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId("pickup-place-select-retry"));
+
+    const pickupSelect = screen.getByTestId("pickup-place-select") as HTMLSelectElement;
+    await waitFor(() => {
+      expect(Array.from(pickupSelect.options).some((o) => o.value === "place-home")).toBe(true);
+    });
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    expect(screen.queryByTestId("pickup-place-select-error")).not.toBeInTheDocument();
+  });
+
+  it("a manual zone edit after picking a place drops the picker-filled label (CLM-0622)", async () => {
+    mockedGet.mockResolvedValue(savedPlaces);
+    mockedPost.mockResolvedValue({} as never);
+
+    render(<RideOrder />);
+
+    const pickupSelect = (await screen.findByTestId("pickup-place-select")) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(Array.from(pickupSelect.options).some((o) => o.value === "place-home")).toBe(true);
+    });
+    fireEvent.change(pickupSelect, { target: { value: "place-home" } });
+    expect(useOrderFormStore.getState().pickupLabel).toBe("المنزل");
+
+    fireEvent.change(screen.getByTestId("pickup-zone-input"), { target: { value: "z-manual" } });
+    expect(useOrderFormStore.getState().pickupLabel).toBe("");
+
+    fireEvent.change(screen.getByTestId("dropoff-zone-input"), { target: { value: "z-2" } });
+    fireEvent.change(screen.getByTestId("price-mode-select"), { target: { value: "customer_offer" } });
+    fireEvent.change(screen.getByTestId("offered-price-input"), { target: { value: "25" } });
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockedPost).toHaveBeenCalled();
+    });
+    const body = mockedPost.mock.calls[0][1] as {
+      stops: Array<{ zone_id: string; source: string; label: string | null }>;
+    };
+    expect(body.stops[0]).toEqual(
+      expect.objectContaining({ zone_id: "z-manual", source: "manual_zone", label: null })
+    );
+  });
+
+  it("a manual zone edit without a picked place keeps the label the user typed (CLM-0622)", async () => {
+    mockedGet.mockResolvedValue(savedPlaces);
+
+    render(<RideOrder />);
+
+    useOrderFormStore.getState().setPickupLabel("بوابة المسجد");
+    fireEvent.change(screen.getByTestId("pickup-zone-input"), { target: { value: "z-manual" } });
+    expect(useOrderFormStore.getState().pickupLabel).toBe("بوابة المسجد");
+    expect(useOrderFormStore.getState().pickupSource).toBe("manual_zone");
+  });
+
   it("manually editing the zone after picking a place reverts the stop source to manual_zone (G-S9.1)", async () => {
     mockedGet.mockResolvedValue(savedPlaces);
     mockedPost.mockResolvedValue({} as never);

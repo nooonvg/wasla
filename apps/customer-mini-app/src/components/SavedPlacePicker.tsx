@@ -34,6 +34,9 @@ export function SavedPlacePicker({
 
   const loadPlaces = useCallback(async () => {
     if (!token || !customerId) return;
+    // CLM-0622: read the live store, not the render-time snapshot — both
+    // pickers mount in the same commit and must share one request.
+    if (usePlacesStore.getState().status === "loading") return;
     setStatus("loading");
     setError(null);
 
@@ -54,10 +57,11 @@ export function SavedPlacePicker({
     loadStartedRef.current = true;
     // Load once per mount; the shared store caches across screens.
     // Retry on a previous failure so the next mount can recover.
-    if (status === "idle" || status === "error") {
+    const current = usePlacesStore.getState().status;
+    if (current === "idle" || current === "error") {
       loadPlaces();
     }
-  }, [loadPlaces, status]);
+  }, [loadPlaces]);
 
   const handleChange = useCallback(
     (placeId: string) => {
@@ -88,6 +92,14 @@ export function SavedPlacePicker({
           </option>
         ))}
       </select>
+      {status === "error" && (
+        <div role="alert" data-testid={`${testId}-error`}>
+          <span>{t("ride_order.saved_places_load_error")}</span>
+          <button type="button" onClick={() => loadPlaces()} data-testid={`${testId}-retry`}>
+            {t("common.retry")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

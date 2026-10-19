@@ -38,20 +38,26 @@ export function RideOrder() {
 
   const handlePickupZoneChange = useCallback(
     (value: string) => {
+      // CLM-0622: a label filled by the picker belongs to that place;
+      // once the zone is edited by hand it no longer describes the stop.
+      if (pickupPlaceId) store.setPickupLabel("");
       store.setPickupZoneId(value);
       store.setPickupSource("manual_zone");
       setPickupPlaceId("");
     },
-    [store]
+    [store, pickupPlaceId]
   );
 
   const handleDropoffZoneChange = useCallback(
     (value: string) => {
+      // CLM-0622: a label filled by the picker belongs to that place;
+      // once the zone is edited by hand it no longer describes the stop.
+      if (dropoffPlaceId) store.setDropoffLabel("");
       store.setDropoffZoneId(value);
       store.setDropoffSource("manual_zone");
       setDropoffPlaceId("");
     },
-    [store]
+    [store, dropoffPlaceId]
   );
 
   const handlePreview = useCallback(async () => {
