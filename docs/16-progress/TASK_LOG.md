@@ -2,7 +2,7 @@
 
 - **Work Item(s):** M0-53 (CLM-0624).
 - **Status:** Released عندَ فتحِ PR · **حاجزٌ فعليٌّ بيدِ المالكِ (فوترةٌ)**.
-- **Risk(s):** RISK-0068 (جديدٌ، open) — تكرارٌ لـRISK-0063 على المساحةِ الجديدةِ.
+- **Risk(s):** RISK-0068 → open (جديدٌ — تكرارٌ لـRISK-0063 على المساحةِ الجديدةِ؛ RISK-0063 يبقى closed).
 - **القياسُ:** main `c386a98e`: WASLA CI [39186018083](https://github.com/skyosv10-art/wasla/actions/runs/39186018083) success · freshness success · Render [39186018063](https://github.com/skyosv10-art/wasla/actions/runs/39186018063) FAIL 24/24 `build_failed` `live=811341d` · سجلُّ البناءِ «run out of build pipeline minutes» · 897 نشرًا منذ 2026-10-01.
 - **التغييرُ:** RISK-0068 · ملاحظةُ G-S9.1 (CI ✓ · غيرُ منشورٍ) · الدليلُ مع raw (بلا أسرارٍ).
 - **Deployment:** وثائقُ فقط ← لا نشرَ (ولا يمكنُ).
