@@ -38,6 +38,15 @@ Selective deploy (CLM-0626 · RISK-0068):
   equivalence — CLM-0628) — the evidence file records the live commit and inputs.
   `--all` restores the fleet deploy; `--plan-only` measures and deploys nothing.
 
+Test environment only (CLM-0632 · owner decision 2026-10-19):
+  Render hosts tests, never production, and nothing spends money. A deploy needs
+  mode "deploy" + environment "test" + production_database_refs in the target
+  file, RENDER_DEPLOY_INTENT=test-only and a RENDER_DEPLOY_PURPOSE (an item of
+  docs/08-infrastructure/RENDER_TEST_ENVIRONMENT_PLAN.md), and an empty isolation
+  preflight: no env group whose name says prod is linked to a wasla- service, and
+  no DATABASE_URL-like key (read by key) points at a production project. The
+  workflow runs on workflow_dispatch only — no push trigger.
+
 Usage:
   RENDER_API_KEY=... python3 scripts/deploy/render-sync.py <sha> [--only a,b] \
       [--verify-only] [--plan-only] [--all] [--out path.json]
@@ -47,6 +56,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 import os
 import sys
 import time
@@ -68,6 +78,12 @@ def load_target() -> dict:
     owner = t.get("owner_id") or ""
     if not owner.startswith("tea-") or owner in (t.get("frozen_owners") or []):
         sys.exit(f"deploy-target.json: owner_id {owner!r} is missing, malformed or frozen — refusing to deploy")
+    # CLM-0632 (owner decision 2026-10-19): Render is a TEST environment only.
+    if t.get("environment") != "test":
+        sys.exit(f"deploy-target.json: environment must be 'test' (got {t.get('environment')!r}) — Render is not a production target")
+    refs = t.get("production_database_refs")
+    if not isinstance(refs, list) or not refs or not all(isinstance(r, str) and re.fullmatch(r"[a-z0-9]{20}", r) for r in refs):
+        sys.exit("deploy-target.json: production_database_refs must list the production Supabase project ref(s) — refusing to deploy without an isolation rule")
     return t
 
 
@@ -124,6 +140,62 @@ def wasla_service(sid: str) -> str | None:
         raise
 
 
+# CLM-0632 — isolation preflight. Every DATABASE_URL-like key the code reads (by key,
+# never the env-var list) plus the env groups linked to wasla- services. Values stay in
+# memory, are matched against the production project refs and are never printed or
+# written; a finding names only the service, group and key.
+DB_KEYS = ("DATABASE_URL", "CUSTOMER_DATABASE_URL", "BILLING_DATABASE_URL", "BILLING_DELIVERY_EVENTS_DATABASE_URL",
+           "DISPATCH_DATABASE_URL", "DRIVER_DATABASE_URL", "NEGOTIATION_DATABASE_URL", "ORDER_DATABASE_URL",
+           "PARTNERS_DATABASE_URL")
+PROD_NAME = re.compile(r"prod", re.I)
+
+
+def isolation_findings(groups: list[dict], service_db: dict, prod_refs: list[str]) -> list[str]:
+    """groups: [{name, linked: [service names], vars: {key: value}}]; service_db: {service: {key: value}}."""
+    out = []
+    for g in groups:
+        if not g.get("linked"):
+            continue
+        if PROD_NAME.search(g.get("name", "")):
+            out.append(f"env group {g['name']!r} (production-named) is linked to {sorted(g['linked'])}")
+        for k, v in sorted((g.get("vars") or {}).items()):
+            if k.endswith("DATABASE_URL") and any(r in (v or "") for r in prod_refs):
+                out.append(f"env group {g['name']!r} key {k} points at a production database (linked to {len(g['linked'])} services)")
+    for name, kv in sorted(service_db.items()):
+        for k, v in sorted(kv.items()):
+            if any(r in (v or "") for r in prod_refs):
+                out.append(f"service {name} key {k} points at a production database")
+    return out
+
+
+def env_by_key(sid: str, key: str) -> str | None:
+    try:
+        return (call("GET", f"/services/{sid}/env-vars/{key}") or {}).get("value")
+    except RuntimeError as e:
+        if "-> 404" in str(e):
+            return None
+        raise
+
+
+def collect_isolation(svcs: list[dict]) -> tuple[list[dict], dict]:
+    names = {s["id"]: s["name"] for s in svcs}
+    groups = []
+    for row in call("GET", f"/env-groups?ownerId={OWNER}&limit=100"):
+        g = row.get("envGroup", row)
+        linked = [names[l.get("id") or l.get("serviceId")] for l in g.get("serviceLinks") or [] if (l.get("id") or l.get("serviceId")) in names]
+        detail = call("GET", f"/env-groups/{g['id']}") if linked else {}
+        groups.append({"name": g.get("name", ""), "linked": linked,
+                       "vars": {e["key"]: e.get("value") for e in (detail or {}).get("envVars") or [] if e.get("key", "").endswith("DATABASE_URL")}})
+    service_db = {}
+    for s in svcs:
+        if s["type"] == "static_site":
+            continue
+        kv = {k: v for k in DB_KEYS if (v := env_by_key(s["id"], k))}
+        if kv:
+            service_db[s["name"]] = kv
+    return groups, service_db
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sha")
@@ -145,12 +217,25 @@ def main() -> int:
         print(f"::notice::Render deploy target is FROZEN since {TARGET.get('since')} — nothing deployed. {TARGET.get('reason', '')}")
         return 0
 
+    # CLM-0632: a deploy is a deliberate, manual test action — never implied by a push.
+    deploying = not (a.plan_only or a.verify_only)
+    if deploying and (os.environ.get("RENDER_DEPLOY_INTENT") != "test-only" or not os.environ.get("RENDER_DEPLOY_PURPOSE", "").strip()):
+        sys.exit("refusing to deploy: RENDER_DEPLOY_INTENT=test-only and a RENDER_DEPLOY_PURPOSE (test-plan item) are required — Render is a test environment, deployed only on purpose")
+
     svcs = services()
     if not svcs:
         sys.exit(f"no wasla- services visible for owner {OWNER} with this key — refusing to report a verdict")
     foreign = [s["name"] for s in svcs if s.get("ownerId") != OWNER]
     if foreign:
         sys.exit(f"services outside the declared owner {OWNER}: {foreign} — refusing to deploy")
+    # CLM-0632: the whole workspace must be isolated from production data, not only
+    # the services in this run — a test deploy next to a production-linked service is
+    # still a non-isolated environment.
+    iso = isolation_findings(*collect_isolation(svcs), TARGET["production_database_refs"])
+    for f in iso:
+        print(f"isolation: {f}", flush=True)
+    if iso and deploying:
+        sys.exit(f"refusing to deploy: {len(iso)} isolation finding(s) — the Render test environment reaches production data")
     if a.only:
         wanted = set(a.only.split(","))
         svcs = [s for s in svcs if s["name"] in wanted]
@@ -183,6 +268,7 @@ def main() -> int:
 
     if a.plan_only:
         report = {"target_commit": target, "verdict": "PLAN", "deployed": 0, "started_at": started, "registry": reg_how,
+                  "environment": "test", "isolation_findings": iso,
                   "policy": "runtime-input equivalence (CLM-0628/CLM-0630); image bytes not compared",
                   "services": [{"service": s["name"], "id": s["id"], **plan[s["id"]]} for s in svcs]}
         if a.out:
@@ -238,6 +324,8 @@ def main() -> int:
         "deployed": len(to_deploy) if not a.verify_only else 0,
         "policy": "runtime-input equivalence (CLM-0628/CLM-0630); image bytes not compared",
         "registry": reg_how,
+        "environment": "test",
+        "isolation_findings": iso,
         "started_at": started,
         "finished_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "verdict": "PASS" if ok else "FAIL",

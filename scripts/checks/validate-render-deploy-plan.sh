@@ -361,7 +361,11 @@ def repo_checks(sync_src, wf_src):
     if "/env-vars/WASLA_SERVICE" not in sync_src or re.search(r"/env-vars\?", sync_src):
         errs.append("render-sync.py must read WASLA_SERVICE by key, never the env-var list")
     if not re.search(r"fetch-depth:\s*0\b", wf_src): errs.append("render-deploy.yml must fetch full history (fetch-depth: 0)")
-    if "paths-ignore" in wf_src: errs.append("render-deploy.yml must run on every push to main (docs-only pushes converge too)")
+    # CLM-0632 (owner decision 2026-10-19): Render is a test environment — no push trigger;
+    # the plan runs on every deliberate dispatch instead (supersedes the CLM-0626 every-push rule).
+    m = re.search(r"^on:[ \t]*\n((?:[ \t][^\n]*\n|\n)*)", wf_src, re.M)
+    if m and set(re.findall(r"^  ([a-z_]+):", m.group(1), re.M)) & {"push", "schedule", "pull_request", "workflow_run"}:
+        errs.append("render-deploy.yml must not deploy on push/schedule/PR/workflow_run (Render is test-only — CLM-0632)")
     return errs
 
 
@@ -472,7 +476,7 @@ try:
         ("render-sync.json no longer states image bytes are not compared", sync.replace("image bytes not compared", "equivalent"), wf),
         ("plan-only render-sync.json drops the policy", sync.replace('"policy": "runtime-input equivalence', '"note": "runtime-input equivalence', 1), wf),
         ("workflow shallow clone", sync, re.sub(r"fetch-depth:\s*0", "fetch-depth: 1", wf)),
-        ("workflow ignores docs-only pushes", sync, wf.replace("    branches: [main]\n", '    branches: [main]\n    paths-ignore:\n      - "docs/**"\n', 1)),
+        ("workflow deploys on every push again", sync, wf.replace("on:\n  workflow_dispatch:", "on:\n  push:\n    branches: [main]\n  workflow_dispatch:", 1)),
     ]
     for desc, s2, w2 in WIRE_MUT:
         total += 1

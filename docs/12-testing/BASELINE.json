@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-19T02:06:13Z",
+  "generated_at": "2026-10-19T08:38:38Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "0623422d3cad7088621ea10f33da885b1126a216",
-    "branch": "stage-zero/clm-0624-render-minutes-gs9-1-deploy-blocked",
+    "commit": "27413ad0416de81d722f58bf44cdf34cb80db094",
+    "branch": "stage-zero/clm-0632-render-test-only",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3443
+    "tracked_files": 3474
   },
   "env": {
     "node": "v20.20.2",
@@ -30,7 +30,7 @@
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
-    "risks_not_closed": 24
+    "risks_not_closed": 25
   },
   "dynamic": {
     "measured": true,
@@ -41,6 +41,6 @@
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:3ab1bd7b0d6b2ee7315b2e093450181ca4832abd151a90319ea6f63e797bb4fc",
+  "fingerprint": "sha256:8fabe1fd102eaef1a3b4e71f3f6de44319c789f3e50640949031d9c28e140811",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
