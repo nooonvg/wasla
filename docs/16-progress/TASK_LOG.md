@@ -1,3 +1,12 @@
+# 2026-10-19 — CLM-0637 — دليلُ ما بعدَ دمجِ CLM-0635
+
+- **Work Item(s):** M6-18B (CLM-0637).
+- **Status:** Released · توثيقٌ فقط.
+- **Risk(s):** RISK-0069 → open.
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T210000Z-clm-0637-deploy-purpose-gate-merge-run/raw/runs-on-569785d8.json` · `docs/12-testing/ci-evidence/2026-10-19T210000Z-clm-0637-deploy-purpose-gate-merge-run/raw/render-deploy-latest-runs.json` · `docs/12-testing/ci-evidence/2026-10-19T210000Z-clm-0637-deploy-purpose-gate-merge-run/raw/render-latest-deploy-per-service.json` · CI 39238277986 success.
+- **Deployment:** لا تشغيلَ Render على الدمج؛ الهدفُ `frozen`.
+- **Next:** قرارُ المالكِ في T2 وفي شروطِ E1–E4. [الدليل](../12-testing/ci-evidence/2026-10-19T210000Z-clm-0637-deploy-purpose-gate-merge-run/README.md)
+
 # 2026-10-19 — CLM-0635 — بوّابةُ غرضِ النشرِ المعتمَد + شرطُ أدلّةِ العزل + إجراءُ T2 المحلّيّ (بلا نشر)
 
 - **Work Item(s):** M6-18B (CLM-0635 · CLM-0636 — حجزٌ ثانٍ لـ`infra/render/host-sources.json`: تصنيفُ `scripts/test-env/t2_local.py` حارسًا، بعدَ إخفاقِ فحصِ مصادرِ مضيفاتِ Render في CI ‏39233914743).
