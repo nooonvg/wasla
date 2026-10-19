@@ -1,3 +1,12 @@
+# 2026-10-19 — CLM-0634 — دليلُ ما بعدَ دمجِ CLM-0632
+
+- **Work Item(s):** M6-18B (CLM-0634).
+- **Status:** Released · توثيقٌ فقط.
+- **Risk(s):** RISK-0069 → open.
+- **Evidence:** artifact `docs/12-testing/ci-evidence/2026-10-19T190000Z-clm-0634-render-test-only-merge-run/raw/runs-on-46058120.json` · `docs/12-testing/ci-evidence/2026-10-19T190000Z-clm-0634-render-test-only-merge-run/raw/render-latest-deploy-per-service.json` · CI 39225527915 success.
+- **Deployment:** لا تشغيلَ Render على الدمجِ؛ آخرُ نشرٍ 07:25:22Z قبلَ التغيير؛ 24/24 على `811341de`.
+- **Next:** قرارُ المالكِ في شروطِ العزلِ (ADR-073 D4) وبنودِ T1/T2. [الدليل](../12-testing/ci-evidence/2026-10-19T190000Z-clm-0634-render-test-only-merge-run/README.md)
+
 # 2026-10-19 — CLM-0632 — Render للاختباراتِ فقط (قرارُ المالك): إيقافُ النشرِ التلقائيِّ وتجميدُ هدفٍ غيرِ معزولٍ
 
 - **Work Item(s):** M6-18B (CLM-0632 · CLM-0633 — حجزٌ ثانٍ لـ`scripts/checks/validate-workflow-supply-chain.sh`: وصفُ `render-deploy.yml` في الجرد).
