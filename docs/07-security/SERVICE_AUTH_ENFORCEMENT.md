@@ -919,7 +919,7 @@ axios-retry، request-promise، isomorphic-fetch، cross-fetch) يجبُ أن ت
 | الصلاحيّة | المسارُ الذي تفتحُه |
 |---|---|
 | `geography:hierarchy:read` | `GET /geo/countries` · `GET /geo/countries/{countryId}/regions` · `GET /geo/regions/{regionId}/cities` · `GET /geo/cities/{cityId}/districts` · `GET /geo/districts/{districtId}/zones` |
-| `geography:zone:read` | `GET /geo/zones/{zoneId}` |
+| `geography:zone:read` | `GET /geo/zones/{zoneId}` · `GET /geo/zones/search` (CLM-0645) |
 | `geography:location:read` | `GET /geo/users/{waslaPublicId}/location` · `GET /geo/users/{waslaPublicId}/location/history` |
 | `geography:location:write` | `PUT /geo/users/{waslaPublicId}/location` |
 
