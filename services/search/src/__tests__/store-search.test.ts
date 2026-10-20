@@ -19,7 +19,7 @@ import {
 } from "../domain/store-search.js";
 import {
   HttpMarketplaceCatalogReadPort,
-  marketplaceCatalogFromEnv,
+  composeMarketplaceCatalogReadPort,
   MarketplaceCatalogError,
   SEARCH_MARKETPLACE_SCOPES,
 } from "../infrastructure/http-marketplace-catalog.js";
@@ -190,8 +190,15 @@ describe("HttpMarketplaceCatalogReadPort — signed, names only", () => {
     await expect(port(200, [STORE_RESOURCE]).getStore("x")).rejects.toMatchObject({ reason: "marketplace_unreadable_body" });
   });
 
-  it("production composition: unwired without MARKETPLACE_SERVICE_URL; composed port otherwise", () => {
-    expect(marketplaceCatalogFromEnv({})).toBeNull();
+  it("production composition signs as `search` → audience `marketplace` with exactly the granted scopes", async () => {
+    const seen: Array<{ url: string; headers: Record<string, string> }> = [];
+    const port = composeMarketplaceCatalogReadPort({ baseUrl: "http://mk", keys: createTestKeyRegistry(), fetchImpl: fakeFetch(404, {}, seen) });
+    expect(await port.getStore("s")).toBeNull();
+    const principal = verifyServiceToken(seen[0]!.headers[SERVICE_AUTH_HEADER]!, {
+      audience: "marketplace", method: "GET", path: "/stores/s", keys: createTestKeyRegistry(), now: new Date(),
+    });
+    expect(principal.serviceName).toBe("search");
+    expect([...principal.scopes].sort()).toEqual([...SEARCH_MARKETPLACE_SCOPES].sort());
   });
 
   it("network failure → unreachable (throws, so the relay keeps the event pending)", async () => {

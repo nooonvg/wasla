@@ -22,7 +22,7 @@
  * and the projection is not mutated (retry-safety, ADR-025 §2.3).
  */
 
-import { createServiceRequestSigner, keyRegistryFromEnv, type ServiceRequestSigner } from "@wasla/service-auth";
+import { createServiceRequestSigner, type ServiceAuthKeyRegistry, type ServiceRequestSigner } from "@wasla/service-auth";
 
 import type { CatalogReadPort, CatalogStore, StoreCatalogReadPort } from "../ports.js";
 import type { CatalogProduct } from "../domain/consumed-events.js";
@@ -164,23 +164,23 @@ export class HttpMarketplaceCatalogReadPort implements CatalogReadPort, StoreCat
 /**
  * The production composition of this port: identity `search`, audience
  * `marketplace`, exactly `SEARCH_MARKETPLACE_SCOPES` (PRODUCTION_GRANTS[search]).
- * Keys come from the environment with no default — a relay without keys fails
- * at composition, not with a silent 401 later (ADR-020 · ADR-022).
- *
- * Returns `null` when `MARKETPLACE_SERVICE_URL` is absent: there is no relay
- * worker deployed yet (CLM-0649 records this — the relay runs in tests and in
- * `packages/search-e2e` only), so "unwired" is an explicit state, never a
- * fabricated catalog.
+ * The caller passes the base URL and the key registry it already loaded — this
+ * module reads no environment (the reader belongs to the relay worker's root,
+ * which does not exist yet: CLM-0649 records that the relay runs in tests and in
+ * `packages/search-e2e` only, so nothing is deployed).
  */
-export function marketplaceCatalogFromEnv(env: NodeJS.ProcessEnv): HttpMarketplaceCatalogReadPort | null {
-  const baseUrl = env.MARKETPLACE_SERVICE_URL;
-  if (!baseUrl) return null;
+export function composeMarketplaceCatalogReadPort(options: {
+  readonly baseUrl: string;
+  readonly keys: ServiceAuthKeyRegistry;
+  readonly fetchImpl?: typeof fetch;
+}): HttpMarketplaceCatalogReadPort {
   return new HttpMarketplaceCatalogReadPort({
-    baseUrl,
+    baseUrl: options.baseUrl,
+    ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
     signRequest: createServiceRequestSigner({
       serviceName: "search",
       audience: "marketplace",
-      keys: keyRegistryFromEnv(env),
+      keys: options.keys,
       scopes: SEARCH_MARKETPLACE_SCOPES,
     }),
   });
