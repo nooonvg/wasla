@@ -37,3 +37,5 @@
 ## حكمُ CI على main
 
 بعدَ الدمجِ — يُسجَّلُ بالأمرِ الفعليِّ في دليلِ ما بعدَ الدمجِ.
+
+**الحكمُ الفعليُّ (CLM-0644 · بالإضافةِ):** PR [#789](https://github.com/skyosv10-art/wasla/pull/789) دُمِجَ بالتزامِ `2ed2c77` بعدَ 42 فحصًا ناجحًا على رأسِ الفرعِ `651607b`. على main: **WASLA CI** (السيرُ [39370992513](https://github.com/skyosv10-art/wasla/actions/runs/39370992513)) **نجاحٌ — 41/41 مهمّةً** · **Roadmap freshness** (39370992775) **نجاحٌ** — [raw/main-ci-2ed2c77.json](raw/main-ci-2ed2c77.json) · [raw/main-roadmap-freshness-2ed2c77.json](raw/main-roadmap-freshness-2ed2c77.json). G-S9.18 مُغلَقٌ بهذا الحكمِ.
