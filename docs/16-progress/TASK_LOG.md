@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0643 — MyOrders: استجاباتُ التفاصيلِ المتأخّرةُ (متابعةُ مراجعةٍ · G-S9.18)
+
+- **Work Item(s):** M0-53 (G-S9.18 — على RQ-CMA-41/42).
+- **Units:** `apps/customer-mini-app/src/screens/MyOrders.tsx` · `src/__tests__/MyOrders.test.tsx` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T043000Z-clm-0643-myorders-stale-detail-race/`.
+- **Status:** Released (الحكمُ بعدَ CI على main).
+- **Change:** ملاحظةُ مراجعةٍ: `openDetail`/`refreshDetail` يكتبانِ نتيجةَ طلبٍ لم يعدْ محدَّدًا (A→B · إغلاقٌ قبلَ الاستجابةِ · تحديثٌ دوريٌّ بعدَ تغييرِ الاختيارِ). الإصلاحُ: `selectedIdRef` تزامنيٌّ (كان يتأخّرُ عرضًا) + `selectionGenRef` يرتفعُ بكلِّ فتحٍ/إغلاقٍ، ولا تُطبَّقُ نتيجةٌ أو خطأٌ أو إنهاءُ تحميلٍ إلا إن بقيَ الجيلُ والمعرّفُ هما الاختيارَ. +6 اختباراتٍ بوعودٍ مؤجَّلةٍ: 5 منها تفشلُ على شاشةِ main `a04b9ca` وتنجحُ بعدَ الإصلاحِ، والسادسةُ حارسُ انحدارٍ.
+- **Risk(s):** لا جديد. لا عقدَ ولا خدمةَ ولا حدَّ.
+- **Evidence:** [دليلُ CLM-0643](../12-testing/ci-evidence/2026-10-20T043000Z-clm-0643-myorders-stale-detail-race/README.md) · قبلَ 5✗/14✓ · بعدَ 19/19 · التطبيقُ 114/114 · typecheck ✓.
+- **Deployment:** لا شيء (`frozen` — ADR-073).
+- **Next:** G-S9.3 — عقدُ البحثِ أوّلًا (قياسُ geography).
+
 # 2026-10-20 — CLM-0642 — G-S9.2: اكتشافٌ مَقيسٌ — لا هندسةَ للمناطقِ وتوسيعُ البياناتِ مؤجَّلٌ بنصِّ ADR-006
 
 - **Work Item(s):** M0-53 (G-S9.2 · RQ-CMA-15 — تسجيلُ اكتشافٍ، لا تنفيذٌ).

@@ -354,3 +354,194 @@ describe("MyOrders screen", () => {
     }
   });
 });
+
+// CLM-0643 (review follow-up): a detail response — initial open or periodic
+// refresh — may only reach the UI if its order is still the one selected.
+describe("MyOrders detail — stale responses", () => {
+  const LIST = "/customers/WS-1234567890/order-requests?limit=5";
+  const DETAIL = (id: string) => `/customers/WS-1234567890/order-requests/${id}`;
+  const listBody = {
+    items: [
+      { id: "req-a", order_type: "ride", status: "submitted", vehicle_class: "sedan", created_at: "2026-09-22T00:00:00Z" },
+      { id: "req-b", order_type: "ride", status: "submitted", vehicle_class: "sedan", created_at: "2026-09-21T00:00:00Z" },
+    ],
+    limit: 5,
+  };
+  const detailBody = (id: string, status = "submitted") => ({
+    id,
+    wasla_public_id: "WS-1234567890",
+    status,
+    order_type: "ride",
+    vehicle_class: "sedan",
+    price_mode: "fixed",
+    created_at: "2026-09-22T00:00:00Z",
+    stops: [
+      { kind: "pickup", sequence: 1, zone_id: `${id}-from` },
+      { kind: "dropoff", sequence: 2, zone_id: `${id}-to` },
+    ],
+  });
+  function deferred<T>() {
+    let resolve!: (v: T) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  }
+
+  beforeEach(() => {
+    useSessionStore.setState({ token: "test-token", customerId: "WS-1234567890", expiresAt: Date.now() + 3600000 });
+    vi.clearAllMocks();
+  });
+
+  it("A→B: a late response for A does not replace B's details", async () => {
+    const a = deferred<unknown>();
+    mockedGet.mockImplementation((url: string) => {
+      if (url === LIST) return Promise.resolve(listBody);
+      if (url === DETAIL("req-a")) return a.promise;
+      if (url === DETAIL("req-b")) return Promise.resolve(detailBody("req-b"));
+      return Promise.reject(new Error(`unexpected ${url}`));
+    });
+    render(<MyOrders />);
+    await waitFor(() => expect(screen.getByTestId("order-req-a")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+    fireEvent.click(screen.getByTestId("order-detail-back"));
+    fireEvent.click(screen.getByTestId("order-detail-open-req-b"));
+    await waitFor(() => expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument());
+
+    a.resolve(detailBody("req-a", "accepted"));
+    await a.promise;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByTestId("order-detail-req-a")).toBeNull();
+    expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument();
+  });
+
+  it("A→B with B still loading: A's late response neither shows A nor ends B's loading", async () => {
+    const a = deferred<unknown>();
+    const b = deferred<unknown>();
+    mockedGet.mockImplementation((url: string) => {
+      if (url === LIST) return Promise.resolve(listBody);
+      if (url === DETAIL("req-a")) return a.promise;
+      if (url === DETAIL("req-b")) return b.promise;
+      return Promise.reject(new Error(`unexpected ${url}`));
+    });
+    render(<MyOrders />);
+    await waitFor(() => expect(screen.getByTestId("order-req-a")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+    fireEvent.click(screen.getByTestId("order-detail-back"));
+    fireEvent.click(screen.getByTestId("order-detail-open-req-b"));
+
+    a.resolve(detailBody("req-a"));
+    await a.promise;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByTestId("order-detail-req-a")).toBeNull();
+    expect(screen.getByTestId("order-detail-loading")).toBeInTheDocument();
+
+    b.resolve(detailBody("req-b"));
+    await waitFor(() => expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument());
+  });
+
+  it("A→B: a late 404 for A does not put an error on B", async () => {
+    const a = deferred<unknown>();
+    mockedGet.mockImplementation((url: string) => {
+      if (url === LIST) return Promise.resolve(listBody);
+      if (url === DETAIL("req-a")) return a.promise;
+      if (url === DETAIL("req-b")) return Promise.resolve(detailBody("req-b"));
+      return Promise.reject(new Error(`unexpected ${url}`));
+    });
+    render(<MyOrders />);
+    await waitFor(() => expect(screen.getByTestId("order-req-a")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+    fireEvent.click(screen.getByTestId("order-detail-back"));
+    fireEvent.click(screen.getByTestId("order-detail-open-req-b"));
+    await waitFor(() => expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument());
+
+    a.reject(new ApiError(404, "طلب العميل غير موجود"));
+    await a.promise.catch(() => undefined);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByTestId("order-detail-error")).toBeNull();
+    expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument();
+  });
+
+  it("closing before the response arrives: the late response neither reopens the view nor answers a later open", async () => {
+    const a1 = deferred<unknown>();
+    const a2 = deferred<unknown>();
+    let calls = 0;
+    mockedGet.mockImplementation((url: string) => {
+      if (url === LIST) return Promise.resolve(listBody);
+      if (url === DETAIL("req-a")) { calls += 1; return calls === 1 ? a1.promise : a2.promise; }
+      return Promise.reject(new Error(`unexpected ${url}`));
+    });
+    render(<MyOrders />);
+    await waitFor(() => expect(screen.getByTestId("order-req-a")).toBeInTheDocument());
+
+    // open A → close → re-open A while the first request is still in flight.
+    fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+    fireEvent.click(screen.getByTestId("order-detail-back"));
+    expect(screen.queryByTestId("order-detail")).toBeNull();
+    fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+
+    // The closed request answers late: it belongs to a selection that no longer exists.
+    a1.resolve(detailBody("req-a", "cancelled"));
+    await a1.promise;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByTestId("order-detail-req-a")).toBeNull();
+    expect(screen.getByTestId("order-detail-loading")).toBeInTheDocument();
+
+    a2.resolve(detailBody("req-a", "accepted"));
+    await waitFor(() => expect(screen.getByTestId("order-detail-status").textContent).toContain("مقبول"));
+  });
+
+  it("closing before the response arrives: the list stays and no detail view appears", async () => {
+    const a = deferred<unknown>();
+    mockedGet.mockImplementation((url: string) => {
+      if (url === LIST) return Promise.resolve(listBody);
+      if (url === DETAIL("req-a")) return a.promise;
+      return Promise.reject(new Error(`unexpected ${url}`));
+    });
+    render(<MyOrders />);
+    await waitFor(() => expect(screen.getByTestId("order-req-a")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+    fireEvent.click(screen.getByTestId("order-detail-back"));
+    a.resolve(detailBody("req-a"));
+    await a.promise;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByTestId("order-detail")).toBeNull();
+    expect(screen.getByTestId("orders-list")).toBeInTheDocument();
+  });
+
+  it("a periodic refresh for A that lands after switching to B does not replace B", async () => {
+    vi.useFakeTimers();
+    try {
+      const poll = deferred<unknown>();
+      let aCalls = 0;
+      mockedGet.mockImplementation((url: string) => {
+        if (url === LIST) return Promise.resolve(listBody);
+        if (url === DETAIL("req-a")) { aCalls += 1; return aCalls === 1 ? Promise.resolve(detailBody("req-a")) : poll.promise; }
+        if (url === DETAIL("req-b")) return Promise.resolve(detailBody("req-b"));
+        return Promise.reject(new Error(`unexpected ${url}`));
+      });
+      render(<MyOrders />);
+      await vi.advanceTimersByTimeAsync(0);
+      fireEvent.click(screen.getByTestId("order-detail-open-req-a"));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(screen.getByTestId("order-detail-req-a")).toBeInTheDocument();
+
+      await vi.advanceTimersByTimeAsync(STATUS_POLL_INTERVAL_MS); // poll for A in flight
+      expect(aCalls).toBe(2);
+      fireEvent.click(screen.getByTestId("order-detail-back"));
+      fireEvent.click(screen.getByTestId("order-detail-open-req-b"));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument();
+
+      poll.resolve(detailBody("req-a", "accepted"));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(screen.queryByTestId("order-detail-req-a")).toBeNull();
+      expect(screen.getByTestId("order-detail-req-b")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
