@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0646 — دليلُ ما بعدَ دمجِ CLM-0645 وCLM-0647: حكمُ CI الفعليُّ على main (G-S9.3)
+
+- **Work Item(s):** M0-53 (G-S9.3 — توثيقُ الحكمِ فقط).
+- **Units:** `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · دليلا CLM-0645 وCLM-0647 (README §حكم + خامٌ).
+- **Status:** Released.
+- **Change:** حكمُ CI بعدَ الدمجِ: #791 ← `16c1ec3` — **WASLA CI** 39377275818 **نجاحٌ 41/41**؛ #792 ← `f1f35c7` — **WASLA CI** 39383688618 **نجاحٌ 41/41**. وسيرا الفرعينِ الفاشلانِ (39374488496 أساسٌ يشيرُ إلى التزامٍ غيرِ مدفوعٍ بعدَ إعادةِ البناءِ؛ 39381064568 التزامٌ وسيطٌ قبلَ إعادةِ توليدِ الأساسِ) مُسجَّلانِ بأسبابِهما ومُصلَحانِ بجذرِهما. G-S9.3 مُغلَقٌ؛ فتحُ مدخلِ P قرارُ مالكٍ. تحديثٌ بالإضافةِ لا بالمحوِ. لا كودَ ولا نشرَ (`frozen` — ADR-073).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0645 §6](../12-testing/ci-evidence/2026-10-20T050000Z-clm-0645-gs9-3-zone-search-contract/README.md) · [دليلُ CLM-0647 §5](../12-testing/ci-evidence/2026-10-20T070000Z-clm-0647-gs9-3-zone-search-wiring/README.md).
+- **Deployment:** لا شيء.
+- **Next:** البندُ التالي القابلُ للتنفيذِ في G-S9 — «عقدٌ أوّلًا» (G-S9.7 · G-S9.6 · G-S9.8)؛ G-S9.9 يعتمدُ G-S9.2.
+
 # 2026-10-20 — CLM-0647 — G-S9.3 (ب): مدخلُ حدٍّ P مغلقٌ (ADR-075) + وصلُ نموذجِ الطلبِ بالبحثِ عن المنطقةِ
 
 - **Work Item(s):** M0-53 (G-S9.3 — على RQ-CMA-15).
