@@ -65,6 +65,14 @@ search وحدةٌ 174/174 · تكاملٌ 77/77 · contracts-search 22/22 · aut
 | **التكاملُ المُثبَتُ** | **داخلَ خدمةِ search فقط** (أحداثُ السوقِ ← الناقلُ ← الفهرسُ ← المسارُ بهويّةٍ حقيقيّةٍ على Postgres). مسارُ «التطبيقُ ← Channel Edge ← search بهويّةِ خدمةٍ» **غيرُ مُثبَتٍ**: عائقُ T1 قائمٌ، واختباراتُ الواجهةِ تحاكي `apiClient` فلا تُثبتُه. ولا تركيبَ إنتاجيًّا للناقلِ بعدُ |
 | **النشرُ** | لا شيءَ — Render مجمَّدٌ (ADR-073) · `deploy-target.json` لم يُمَسَّ · المدخلُ مغلقٌ · الإطلاقُ NO-GO · حاجزُ PR #730 كما هو |
 
-## 8. حكمُ CI
+## 8. حكمُ CI (بعدَ الاكتمالِ · CLM-0651)
 
-يُكتَبُ بعدَ الاكتمالِ (سجلُّ ما بعدَ الدمجِ).
+| السيرُ | الالتزامُ | الحكمُ | السببُ |
+|---|---|---|---|
+| WASLA CI [39402658627](https://github.com/skyosv10-art/wasla/actions/runs/39402658627) (PR) | `d2c3355` | إخفاقٌ | `governance-guard`/`verify`: الأساسُ قديمٌ (583/26) + صفُّ M0-41 غيرُ محدَّثٍ (CLM-0650) — عولِجا بالأساسِ والصفِّ |
+| WASLA CI [39406728829](https://github.com/skyosv10-art/wasla/actions/runs/39406728829) (PR) | `cd88f6d` | إخفاقٌ | الأساسُ لم يُلتزَمْ بعدُ (متوقَّعٌ) · و`admin-portal-e2e`: `packages.microsoft.com` ردَّ **403** عندَ تثبيتِ متطلّباتِ Playwright — عطلُ مصدرٍ خارجيٍّ لا شيفرةٌ؛ نجحَ الجوبُ نفسُه في السيرِ التالي وعلى main بلا تغييرٍ |
+| WASLA CI [39406893227](https://github.com/skyosv10-art/wasla/actions/runs/39406893227) (PR) | `2e8e133` | **ناجحٌ 41/41** | — |
+| **WASLA CI [39409451731](https://github.com/skyosv10-art/wasla/actions/runs/39409451731) (main)** | **`1e50fce`** (#795) | **ناجحٌ 41/41** | — |
+| Roadmap freshness [39409451631](https://github.com/skyosv10-art/wasla/actions/runs/39409451631) (main) | `1e50fce` | ناجحٌ | — |
+
+الخامُ: `raw/main-ci-1e50fce.json` · `raw/pr-795-ci.json`. **الحكمُ:** G-S9.7 **مدموجٌ بحكمِ CI على main**؛ التكاملُ عبرَ Channel Edge **غيرُ مُثبَتٍ** (T1)؛ **غيرُ منشورٍ**؛ مدخلُ P مغلقٌ؛ الإطلاقُ NO-GO.
