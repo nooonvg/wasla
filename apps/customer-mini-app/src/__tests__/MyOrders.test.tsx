@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MyOrders } from "../screens/MyOrders";
+import { MyOrders, STATUS_POLL_INTERVAL_MS } from "../screens/MyOrders";
 import { useSessionStore } from "../store/session";
 import "../i18n";
 
@@ -231,5 +231,126 @@ describe("MyOrders screen", () => {
     expect(screen.getByTestId("order-detail-error").textContent).toContain(
       "الطلب غير موجود",
     );
+  });
+
+  // G-S9.12 (CLM-0640): CMS §3.6 L88 — live status via polling.
+  it("polls the list every STATUS_POLL_INTERVAL_MS while the screen is open", async () => {
+    vi.useFakeTimers();
+    try {
+      mockedGet.mockResolvedValue({ items: [], limit: 5 });
+      render(<MyOrders />);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockedGet).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(STATUS_POLL_INTERVAL_MS);
+      expect(mockedGet).toHaveBeenCalledTimes(2);
+      expect(mockedGet).toHaveBeenLastCalledWith("/customers/WS-1234567890/order-requests?limit=5");
+
+      await vi.advanceTimersByTimeAsync(STATUS_POLL_INTERVAL_MS);
+      expect(mockedGet).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not poll while the tab is hidden", async () => {
+    vi.useFakeTimers();
+    const visibility = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    try {
+      mockedGet.mockResolvedValue({ items: [], limit: 5 });
+      render(<MyOrders />);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockedGet).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(STATUS_POLL_INTERVAL_MS * 2);
+      expect(mockedGet).toHaveBeenCalledTimes(1); // لا نداءَ في الخلفيةِ
+    } finally {
+      visibility.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it("refreshes the open detail view periodically", async () => {
+    vi.useFakeTimers();
+    try {
+      mockedGet.mockResolvedValueOnce({
+        items: [
+          { id: "req-1", order_type: "ride", status: "submitted", vehicle_class: "sedan", created_at: "2026-09-22T00:00:00Z" },
+        ],
+        limit: 5,
+      });
+      mockedGet.mockResolvedValueOnce({
+        id: "req-1",
+        wasla_public_id: "WS-1234567890",
+        status: "submitted",
+        order_type: "ride",
+        vehicle_class: "sedan",
+        price_mode: "fixed",
+        created_at: "2026-09-22T00:00:00Z",
+        stops: [
+          { kind: "pickup", sequence: 1, zone_id: "zone-a" },
+          { kind: "dropoff", sequence: 2, zone_id: "zone-b" },
+        ],
+      });
+      render(<MyOrders />);
+      await vi.advanceTimersByTimeAsync(0);
+      fireEvent.click(screen.getByTestId("order-detail-open-req-1"));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockedGet).toHaveBeenCalledTimes(2);
+
+      // نداءا الدورةِ: القائمةُ (نداءٌ 3) ثمّ التفاصيلُ المفتوحةُ (نداءٌ 4) بحالةٍ محدَّثةٍ.
+      mockedGet.mockResolvedValueOnce({
+        items: [
+          { id: "req-1", order_type: "ride", status: "accepted", vehicle_class: "sedan", created_at: "2026-09-22T00:00:00Z" },
+        ],
+        limit: 5,
+      });
+      mockedGet.mockResolvedValueOnce({
+        id: "req-1",
+        wasla_public_id: "WS-1234567890",
+        status: "accepted",
+        order_type: "ride",
+        vehicle_class: "sedan",
+        price_mode: "fixed",
+        created_at: "2026-09-22T00:00:00Z",
+        stops: [
+          { kind: "pickup", sequence: 1, zone_id: "zone-a" },
+          { kind: "dropoff", sequence: 2, zone_id: "zone-b" },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(STATUS_POLL_INTERVAL_MS);
+      // نداءانِ في الدورةِ: القائمةُ + التفاصيلُ المفتوحةُ.
+      expect(mockedGet).toHaveBeenCalledTimes(4);
+      expect(mockedGet).toHaveBeenNthCalledWith(3, "/customers/WS-1234567890/order-requests?limit=5");
+      expect(mockedGet).toHaveBeenNthCalledWith(4, "/customers/WS-1234567890/order-requests/req-1");
+      await vi.advanceTimersByTimeAsync(0);
+      expect(screen.getByTestId("order-detail-status").textContent).toContain("مقبول");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps the previous list when a poll fails (silent refresh)", async () => {
+    vi.useFakeTimers();
+    try {
+      mockedGet.mockResolvedValueOnce({
+        items: [
+          { id: "req-1", order_type: "ride", status: "submitted", vehicle_class: "sedan", created_at: "2026-09-22T00:00:00Z" },
+        ],
+        limit: 5,
+      });
+      render(<MyOrders />);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(screen.getByTestId("order-req-1")).toBeInTheDocument();
+
+      mockedGet.mockRejectedValueOnce(new ApiError(500, "تعذر الاتصال"));
+      await vi.advanceTimersByTimeAsync(STATUS_POLL_INTERVAL_MS);
+      await vi.advanceTimersByTimeAsync(0);
+      // القائمةُ السابقةُ باقيةٌ ولا خطأَ ظاهرًا.
+      expect(screen.getByTestId("order-req-1")).toBeInTheDocument();
+      expect(screen.queryByTestId("orders-error")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
