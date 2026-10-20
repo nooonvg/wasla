@@ -4,7 +4,7 @@
 >
 > **المحرِّك:** [`scripts/checks/lib/app_api_routes.py`](../../scripts/checks/lib/app_api_routes.py) · **المُشغِّل:** [`scripts/checks/validate-app-api-routes.sh`](../../scripts/checks/validate-app-api-routes.sh) · **حالاتُ الطفرة:** [`gov-cases-app-api-routes.sh`](../../scripts/checks/lib/gov-cases-app-api-routes.sh)
 >
-> **Last Updated:** 2026-10-20 · **Work Item:** `M3-08` + `M3-09` (البابُ 6) · **Claim:** `CLM-0313` · `CLM-0322` · `CLM-0613` · `CLM-0618` (نداءُ `GET /customers/:id/places` جديدٌ في `SavedPlacePicker`) · `CLM-0638` (نداءُ `GET /customers/:id/order-requests/:orderRequestId` جديدٌ في `MyOrders` — G-S9.11)
+> **Last Updated:** 2026-10-20 · **Work Item:** `M3-08` + `M3-09` (البابُ 6) · **Claim:** `CLM-0313` · `CLM-0322` · `CLM-0613` · `CLM-0618` (نداءُ `GET /customers/:id/places` جديدٌ في `SavedPlacePicker`) · `CLM-0638` (نداءُ `GET /customers/:id/order-requests/:orderRequestId` جديدٌ في `MyOrders` — G-S9.11) · `CLM-0640` (موقعا نداءً إضافيانِ للمسارَينِ نفسيهما في `MyOrders` — تحديثٌ دوريٌّ G-S9.12)
 
 ---
 
@@ -66,9 +66,9 @@
 ```
 APPS_SCANNED = 3
 SERVICE_ROUTES = 173
-APP_CALL_SITES = 78
+APP_CALL_SITES = 80
 DISTINCT_APP_CALLS = 70
-MATCHED_CALL_SITES = 78
+MATCHED_CALL_SITES = 80
 REGISTERED_GAPS = 0
 REWRITE_PREFIXES = 22
 ```

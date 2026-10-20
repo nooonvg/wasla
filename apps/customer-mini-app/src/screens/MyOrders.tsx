@@ -36,6 +36,14 @@ interface OrderRequestDetail extends OrderRequest {
 
 export const LAST_ORDERS_LIMIT = 5;
 
+/**
+ * G-S9.12 (CLM-0640): CMS §3.6 L88 «التحديثُ المباشرُ (Polling أو WebSocket لاحقًا)»
+ * — Polling is the implemented half; WebSocket is explicitly deferred by the spec.
+ * 30s: حالةُ الطلبِ تتغيّرُ ببطءٍ نسبيًّا؛ كلُّ تحديثٍ إعادةُ قراءةٍ للمسارَينِ القائمَينِ
+ * (G-S9.10/G-S9.11) بلا عقدٍ جديدٍ، فأثرُ النداءِ على الخدمةِ مُزدَرًى.
+ */
+export const STATUS_POLL_INTERVAL_MS = 30_000;
+
 export function MyOrders() {
   const { t } = useTranslation();
   const { token, customerId } = useSessionStore();
@@ -79,6 +87,55 @@ export function MyOrders() {
     loadedRef.current = true;
     loadOrders();
   }, [loadOrders]);
+
+  // G-S9.12 (CLM-0640): تحديثٌ صامتٌ دوريّ للحالةِ — لا يُومضُ مؤشّرَ التحميلِ ولا يمسحُ
+  // القائمةَ عندَ تعذّرِ النداءِ (العرضُ السابقُ يبقى)، ويتوقّفُ في الخلفيّةِ (document.hidden).
+  const selectedIdRef = useRef<string | null>(null);
+  selectedIdRef.current = selectedId;
+  const statusRef = useRef("");
+  statusRef.current = status;
+
+  const refreshOrders = useCallback(async (): Promise<void> => {
+    if (!token || !customerId) return;
+    try {
+      const params = new URLSearchParams();
+      const filterStatus = statusRef.current;
+      if (filterStatus) params.set("status", filterStatus);
+      params.set("limit", String(LAST_ORDERS_LIMIT));
+      const result = await apiClient.get<{ items: OrderRequest[] }>(
+        `/customers/${customerId}/order-requests?${params.toString()}`
+      );
+      setOrders(result.items);
+    } catch {
+      // صامتٌ: فشلُ التحديثِ الدوريّ لا يُفرِغُ القائمةَ ولا يُظهرُ خطأً (القائمةُ الأخيرةُ تبقى).
+    }
+  }, [token, customerId]);
+
+  const refreshDetail = useCallback(
+    async (orderRequestId: string): Promise<void> => {
+      if (!token || !customerId) return;
+      try {
+        const result = await apiClient.get<OrderRequestDetail>(
+          `/customers/${customerId}/order-requests/${orderRequestId}`
+        );
+        setDetail(result);
+      } catch {
+        // صامتٌ: تفاصيلُ آخرِ قراءةٍ ناجحةٍ تبقى.
+      }
+    },
+    [token, customerId]
+  );
+
+  useEffect(() => {
+    if (!token || !customerId) return;
+    const timer = window.setInterval(() => {
+      if (document.hidden) return;
+      void refreshOrders();
+      const current = selectedIdRef.current;
+      if (current !== null) void refreshDetail(current);
+    }, STATUS_POLL_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [token, customerId, refreshOrders, refreshDetail]);
 
   // CMS §3.6 L87 · L90: `GET /customers/{id}/order-requests/{orderRequestId}`.
   const openDetail = useCallback(
