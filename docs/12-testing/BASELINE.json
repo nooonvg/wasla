@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-19T08:38:38Z",
+  "generated_at": "2026-10-20T05:18:19Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "27413ad0416de81d722f58bf44cdf34cb80db094",
-    "branch": "stage-zero/clm-0632-render-test-only",
+    "commit": "fb2f3e29f4fdfe1a605d6d27904f211d6b50e97f",
+    "branch": "stage-zero/clm-0645-gs9-3-zone-search-contract",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3474
+    "tracked_files": 3517
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 578,
+    "test_files_tracked": 579,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-19T100000Z-clm-0624-render-minutes-exhausted/raw/verify-log-stale-baseline-only.txt",
-    "tests_passed": 6158,
-    "test_files_executed": 437,
+    "source": "docs/12-testing/ci-evidence/2026-10-20T050000Z-clm-0645-gs9-3-zone-search-contract/raw/verify-log-stale-baseline-only.txt",
+    "tests_passed": 6194,
+    "test_files_executed": 438,
     "governance_suite_cases": 688,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:8fabe1fd102eaef1a3b4e71f3f6de44319c789f3e50640949031d9c28e140811",
+  "fingerprint": "sha256:baec8a5ad1b5870050ed1597ae4932360e5378b7d3d7722cbade639e1b6012b3",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

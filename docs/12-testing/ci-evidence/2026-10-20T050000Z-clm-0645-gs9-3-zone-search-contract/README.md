@@ -39,6 +39,8 @@
 | طفراتٌ: نزعُ الهروبِ · نزعُ شرطِ النشاطِ | كلٌّ يُكشَفُ باختبارٍ واحدٍ | [raw/mutation-checks.txt](raw/mutation-checks.txt) |
 | `authz-policy` | **52/52** | [raw/authz-policy.txt](raw/authz-policy.txt) |
 
+**الأساسُ (M0-08):** ملفُّ اختبارٍ جديدٌ ← `test_files_tracked` 578 → 579؛ أُعيدَ التوليدُ بـ`scripts/baseline.sh --log` من [raw/verify-log-stale-baseline-only.txt](raw/verify-log-stale-baseline-only.txt) (`verify.sh` أخفقَ فقط على الأساسِ القديمِ وعلى STATE-SYNC المُصحَّحِ بعدَ بدئِه) · `tests_passed` 6158 → 6194.
+
 الأخضرُ المحلّيُّ ليسَ حكمًا: حكمُ CI (ساقُ `geography · test:integration` على Postgres الخاصِّ بـCI) بعدَ الدفعِ.
 
 ## 5) خارجَ هذه الشريحةِ — G-S9.3 (ب)
