@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0648 — G-S9.7: قياسُ عقدِ بحثِ المتاجرِ بالاسمِ — اكتشافٌ مَقيسٌ يستلزمُ قرارًا معماريًّا
+
+- **Work Item(s):** M0-53 (G-S9.7 — على RQ-CMA-29).
+- **Units:** `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T090000Z-clm-0648-gs9-7-store-search-measure/`.
+- **Status:** Released (قياسٌ فقط؛ G-S9.7 يبقى مفتوحًا).
+- **Change:** (0) تثبيتُ حكمِ الجولةِ السابقةِ: WASLA CI على `7166987` (39387049047) **اكتمل نجاحًا 41/41** وRoadmap freshness (39387049078) ناجحٌ — سُجِّلَ بعدَ الاكتمالِ. (1) القياسُ: `GET /stores` يرفضُ `?q=`/`?name=` (`MARKETPLACE_VALIDATION_FAILED`) وحارسُه `assertedStaff` ومدخلُه W محجوبٌ؛ ADR-016 §9 يمنعُ `?q=` في marketplace نصًّا؛ search بلا فهرسِ متاجرَ ولا عناوينِها (`search_marketplace_store_state` بلا عنوانٍ، ومنفذُ القراءةِ للمنتجاتِ فقط)؛ قاعدةُ إتاحةِ المتجرِ نفسِه غيرُ معرَّفةٍ (المعرَّفُ `isProductVisible` وحدَه). (2) الحكمُ: لا عقدَ يُعادُ استعمالُه، ولا عقدَ جديدَ دونَ قرارٍ ← توقّفٌ عندَ القياسِ بحسبِ تعليمةِ المالكِ؛ القرارُ المطلوبُ (ق1 مالكُ البحثِ · ق2 قاعدةُ الإتاحةِ · ق3 الإسقاطُ العامُّ · ق4 اللغةُ) وشروطُ E-20 لأيِّ فتحٍ مستقبليٍّ مكتوبةٌ. (3) الجاهزيّةُ: جدولُ مدموجٍ/مُثبَتٍ بالتكاملِ/منشورٍ؛ G-S9.3 مدموجٌ وغيرُ مُثبَتٍ عبرَ Channel Edge وغيرُ منشورٍ؛ T1 عائقٌ قائمٌ. لا شيفرةَ ولا عقدَ ولا مدخلَ حدٍّ.
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0648](../12-testing/ci-evidence/2026-10-20T090000Z-clm-0648-gs9-7-store-search-measure/README.md) · `raw/measurement.txt` · `raw/store-query-q-rejected.txt` · `raw/main-ci-7166987.json`.
+- **Deployment:** لا شيء (`frozen` — ADR-073 · `deploy-target.json` لم يُمَسَّ).
+- **Next:** قرارُ المالكِ المعماريُّ (ق1–ق4) لـG-S9.7، وهو يحكمُ G-S9.6 وG-S9.8 أيضًا.
+
 # 2026-10-20 — CLM-0646 — دليلُ ما بعدَ دمجِ CLM-0645 وCLM-0647: حكمُ CI الفعليُّ على main (G-S9.3)
 
 - **Work Item(s):** M0-53 (G-S9.3 — توثيقُ الحكمِ فقط).
