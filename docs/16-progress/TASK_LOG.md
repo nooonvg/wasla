@@ -1,3 +1,15 @@
+# 2026-10-20 — CLM-0651 — دليلُ ما بعدَ دمجِ CLM-0649: حكمُ CI الفعليُّ على main (G-S9.7)
+
+- **Work Item(s):** M0-53 (G-S9.7 — توثيقُ الحكمِ فقط).
+- **Kind:** state-correction — تسجيلُ حكمِ CI الفعليِّ بعدَ دمجِ #795 وإغلاقِ G-S9.7 في السجلِّ والدليلِ (§8) بدلَ «يُكتَبُ بعدَ الاكتمالِ».
+- **Units:** `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · دليلُ CLM-0649 (§8 + `raw/main-ci-1e50fce.json` + `raw/pr-795-ci.json`).
+- **Status:** Released.
+- **Change:** #795 ← `1e50fce` — **WASLA CI** 39409451731 **نجاحٌ 41/41** · Roadmap freshness 39409451631 نجاحٌ. سيرا الفرعِ الفاشلانِ مسجَّلانِ بأسبابِهما: `d2c3355` (أساسٌ قديمٌ + صفُّ M0-41) و`cd88f6d` (أساسٌ غيرُ مُلتزَمٍ + `admin-portal-e2e`: 403 من `packages.microsoft.com` عندَ تثبيتِ Playwright — خارجيٌّ، نجحَ لاحقًا بلا تغييرٍ).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0649 §8](../12-testing/ci-evidence/2026-10-20T150000Z-clm-0649-gs9-7-store-search/README.md).
+- **Deployment:** لا شيء.
+- **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
+
 # 2026-10-20 — CLM-0649 — G-S9.7: بحثُ المتاجرِ بالاسمِ في search — نموذجُ قراءةٍ مشتقٌّ بقرارِ المالكِ
 
 - **Work Item(s):** M0-53 (G-S9.7 — على RQ-CMA-29 · اكتشافا G-S9.19 وG-S9.20) · M0-41 (CLM-0650 على الفرعِ نفسِه: `gov-cases-app-port-wiring.sh` كانَ يحملُ `ROOT_WIRED_PORTS = 16`/`OPTIONAL_PORTS = 16` حرفاً فأسقطَتْه إضافةُ `storeSearchReadPort` (16→17)؛ صارَ يقرأُ المنشورَ — مصدرُ حقيقةٍ واحدٌ، والطفرتانِ ما زالتا تُسقِطانِ).
