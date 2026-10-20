@@ -161,6 +161,18 @@
       "production_open": false,
       "evidence_tests": [],
       "blocked_until": "حارس ربط ملكية مختبر — subject_public_id من الاستعلام بلا ربط"
+    },
+    {
+      "method": "GET",
+      "path": "/customers/:waslaPublicId/order-requests/:orderRequestId",
+      "service": "customers",
+      "class": "O",
+      "required_scopes": ["customers:order-request:read"],
+      "accepts_body": false,
+      "production_open": false,
+      "evidence_tests": [
+        { "file": "services/customers/src/__tests__/http/app.test.ts", "case": "returns one request and scopes it to its owner" }
+      ]
     }
   ]
 }

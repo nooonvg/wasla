@@ -46,7 +46,8 @@ export interface OrderRequestPreview {
 }
 
 export interface OrderRequestResult {
-  order_request_id: string;
+  /** G-S9.11 (CLM-0638): the submit DTO field is `id` per the published contract. */
+  id: string;
   status: "submitted" | "submission_failed";
   order_public_id?: string | null;
 }
