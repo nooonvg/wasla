@@ -25,6 +25,11 @@
 - `packages/channel-edge/allowlist/customer-mini-app.json` (مدخلٌ واحدٌ) · لقطةُ `route-enforcement.json` (إضافةٌ مؤرَّخةٌ).
 - [ADR-074](../../../15-decisions/ADR-074-edge-snapshot-gs9-11-addition.md) · [EDGE_ALLOWLIST.md](../../EDGE_ALLOWLIST.md) (تحديثٌ مؤرَّخٌ).
 
-## حكمُ CI على main
+## حكمُ CI على main (بعدَ الدمجِ)
 
-**بعدَ الدفعِ والدمجِ** — يُحدَّثُ هذا القسمُ بالأمرِ الفعليِّ (رقمُ التشغيلِ · SHA · الحكم). الأخضرُ المحليُّ ليسَ بديلًا عنه.
+- **PR #784** مدموجٌ (squash على main) — التزامُ الدمجِ `b65b2805` (2026-10-20T00:36:59Z) — [raw/pr-784-merged.json](raw/pr-784-merged.json).
+- **WASLA CI** على `b65b280` (السيرُ 39348695447): **نجاحٌ — 41/41 وظيفةً كلُّها success** (typecheck · test · verify · governance-guard · db-integration ×14 · exit-gate-e2e · …) — [raw/ci-main-verdict-b65b280.json](raw/ci-main-verdict-b65b280.json).
+- **Roadmap freshness** على `b65b280` (السيرُ 39348695716): **نجاحٌ** — [raw/ci-main-roadmap-freshness-b65b280.json](raw/ci-main-roadmap-freshness-b65b280.json).
+- لا نشرَ ولا تشغيلَ لـRender (الهدفُ `frozen` — ADR-073)؛ تشغيلاتُ النبضِ والنسخِ الاحتياطيِّ المجدولةُ مستمرةٌ على main كالمعتادِ.
+
+**الحُكمُ:** G-S9.11 / RQ-CMA-41 أُصلِحَ على main بدليلِ CI حيٍّ (b65b280)؛ G-S9 الأمُّ تبقى مفتوحةً حتى إغلاقِ بقيةِ البنودِ.

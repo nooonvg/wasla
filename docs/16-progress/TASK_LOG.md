@@ -2,7 +2,7 @@
 
 - **Work Item(s):** M0-53 (G-S9.11 · RQ-CMA-41).
 - **Units:** `apps/customer-mini-app/src/screens/MyOrders.tsx` · `src/store/order-form.ts` · `src/screens/RideOrder.tsx` · `src/screens/DeliveryOrder.tsx` · `src/i18n/index.ts` · `src/__tests__/MyOrders.test.tsx` · `src/__tests__/RideOrder.test.tsx` · `src/__tests__/DeliveryOrder.test.tsx` · `packages/channel-edge/allowlist/customer-mini-app.json` · `docs/12-testing/ci-evidence/2026-10-09T140000Z-clm-0518-human-auth-adr/route-enforcement.json` (إضافةٌ مؤرّخةٌ) · `docs/15-decisions/ADR-074-edge-snapshot-gs9-11-addition.md` · `docs/12-testing/EDGE_ALLOWLIST.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
-- **Status:** Released (الحكمُ النهائيُّ بعدَ CI على main — يُحدّثُ الدليلُ).
+- **Status:** Released · **الحكمُ بعدَ الدمجِ:** WASLA CI على main ‏`b65b280` (السيرُ 39348695447) **نجاحٌ 41/41** · Roadmap freshness نجاحٌ — [دليلُ ما بعدَ الدمجِ](../12-testing/ci-evidence/2026-10-20T003000Z-clm-0638-gs9-11-order-request-detail/README.md)§حكم.
 - **Change:**
   - النقرُ على طلبٍ يفتحُ «تفاصيلَ الحالةِ والمسارِ» (CMS §3.6 L87) عبرَ `GET /customers/{id}/order-requests/{orderRequestId}` — الحالةُ · المركبةُ · السعرُ · المسارُ (الالتقاط/التسليم) · زرُّ رجوعٍ · 404 ← «الطلبُ غيرُ موجود».
   - مدخلُ حدٍّ (O · `production_open=false`) بدليلِ ملكيةٍ حقيقيٍّ، وإضافةٌ مؤرّخةٌ إلى لقطةِ CLM-0518 بقرارٍ موثّقٍ في ADR-074 استنادًا إلى التفويضِ التنفيذيّ المكتوبِ (مقتبسٌ فيه).
