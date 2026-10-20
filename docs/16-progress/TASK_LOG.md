@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0639 — دليلُ ما بعدَ دمجِ CLM-0638: حكمُ CI الفعليُّ على main
+
+- **Work Item(s):** M0-53 (G-S9.11 · RQ-CMA-41 — توثيقُ الحكمِ فقط).
+- **Units:** `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T003000Z-clm-0638-gs9-11-order-request-detail/` (README §حكم + خامٌ).
+- **Status:** Released (فرعُ الأدلةِ — CI يجري على هذا الطلبِ نفسِهِ).
+- **Change:** توثيقُ حكمِ CI بعدَ دمجِ PR #784 (التزامُ الدمجِ `b65b280`): **WASLA CI** (السيرُ 39348695447) **نجاحٌ 41/41 وظيفةً** · **Roadmap freshness** (39348695716) **نجاحٌ** — خامٌ في دليلِ CLM-0638. تحديثُ الدليلِ والسجلاتِ من «الحكمُ بعدَ CI» إلى الحكمِ الفعليِّ (بالإضافةِ لا بالمحوِ). لا كودَ ولا نشرَ (الهدفُ `frozen` — ADR-073).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0638 §حكمُ CI على main](../12-testing/ci-evidence/2026-10-20T003000Z-clm-0638-gs9-11-order-request-detail/README.md).
+- **Deployment:** لا شيء.
+- **Next:** G-S9.12 (Polling) ثم بنودُ «عقدٌ أوّلًا» — قراراتُ المالكِ محفوظةٌ كما هي.
+
 # 2026-10-20 — CLM-0638 — G-S9.11: تفاصيلُ الحالةِ والمسارِ في MyOrders + مدخلُ الحدّ + قرارُ ADR-074
 
 - **Work Item(s):** M0-53 (G-S9.11 · RQ-CMA-41).
