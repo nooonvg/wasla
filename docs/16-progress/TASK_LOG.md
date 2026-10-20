@@ -1,8 +1,19 @@
+# 2026-10-20 — CLM-0641 — دليلُ ما بعدَ دمجِ CLM-0640: حكمُ CI الفعليُّ على main
+
+- **Work Item(s):** M0-53 (G-S9.12 · RQ-CMA-42 — توثيقُ الحكمِ فقط).
+- **Units:** `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/` (README §حكم + خامٌ).
+- **Status:** Released.
+- **Change:** توثيقُ حكمِ CI بعدَ دمجِ PR #786 (التزامُ الدمجِ `865f653`): **WASLA CI** (السيرُ 39359559810) **نجاحٌ** · **Roadmap freshness** (39359559752) **نجاحٌ** — خامٌ في دليلِ CLM-0640. تحديثُ الدليلِ والسجلاتِ من «الحكمُ بعدَ CI» إلى الحكمِ الفعليِّ (بالإضافةِ لا بالمحوِ). لا كودَ ولا نشرَ (`frozen` — ADR-073).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0640 §حكمُ CI على main](../12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/README.md).
+- **Deployment:** لا شيء.
+- **Next:** بنودُ «عقدٌ أوّلًا» (G-S9.2 · G-S9.3 · G-S9.6–9.9 · G-S9.13) — قراراتُ المالكِ محفوظةٌ.
+
 # 2026-10-20 — CLM-0640 — G-S9.12: التحديثُ المباشرُ للحالةِ (Polling) في MyOrders
 
 - **Work Item(s):** M0-53 (G-S9.12 · RQ-CMA-42).
 - **Units:** `apps/customer-mini-app/src/screens/MyOrders.tsx` · `src/__tests__/MyOrders.test.tsx` · `docs/12-testing/APP_API_ROUTES.md` (78→80 نداءً) · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/`.
-- **Status:** Released (الحكمُ بعدَ CI على main).
+- **Status:** Released · **الحكمُ بعدَ الدمجِ:** WASLA CI على main `865f653` (السيرُ 39359559810) **نجاحٌ** · Roadmap freshness نجاحٌ — [دليلُ ما بعدَ الدمجِ](../12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/README.md)§حكم.
 - **Change:** تحديثٌ دوريٌّ صامتٌ كلَّ 30 ثانيةٍ (`STATUS_POLL_INTERVAL_MS`) لقائمةِ الطلباتِ (بمرشّحِ الحالةِ الحاليِّ) وللتفاصيلِ المفتوحةِ — إعادةُ قراءةٍ للمسارَينِ القائمَينِ (G-S9.10/G-S9.11) بلا عقدٍ جديدٍ، لا وميضَ تحميلٍ ولا مسحٍ للعرضِ عندَ الفشلِ، وتوقّفٌ في الخلفيّةِ (`document.hidden`). WebSocket مؤجَّلٌ صراحةً بالمواصفةِ (L88).
 - **Risk(s):** لا جديد. لا عقدَ جديدَ ولا فتحَ إنتاجيّ.
 - **Evidence:** [دليلُ CLM-0640](../12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/README.md) · unit 108/108 · typecheck ✓ · عقدُ المسارِ 80/80 ✓.
