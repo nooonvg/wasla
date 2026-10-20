@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-20T06:33:27Z
-الالتزام: 957a1e9b4ccd433ec2b41f6b164b8e85bc670088  الفرع: stage-zero/clm-0647-gs9-3-zone-search-wiring  شجرةٌ نظيفةٌ
+التاريخ (UTC): 2026-10-20T10:13:57Z
+الالتزام: d2c335502c0a27867fc1bf3f70c96aab0a5bfe37  الفرع: stage-zero/clm-0649-gs9-7-store-search  شجرةٌ مُعدَّلةٌ (1 ملفّاً)
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.3
 القفل: pnpm-lock.yaml · 5126 سطراً · sha256 c9ade0782d20d86f…
 
@@ -9,18 +9,18 @@
   packages                   74
   packages_with_typecheck    70
   packages_with_test         74
-  test_files_tracked         580
+  test_files_tracked         583
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          28
-  risks_not_closed           25
+  risks_not_closed           26
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-20T070000Z-clm-0647-gs9-3-zone-search-wiring/raw/verify-log-stale-baseline-only.txt):
-  tests_passed               6204
-  test_files_executed        439
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-20T150000Z-clm-0649-gs9-7-store-search/raw/verify-log-d2c3355-baseline-board-only.txt):
+  tests_passed               6256
+  test_files_executed        441
   governance_suite_cases     688
   governance_suite_failed    1
   verify_overall             failed
 
-البصمة: sha256:6e02e7c0454e49302fc4a1c87ebe9fc86e037788b49d3ff4555e90d12a586239
+البصمة: sha256:dd592c49a2b2fcbb3257059f4ba860732c8f8bc56c6294e1d40dea2b07ca56b4
 المرجع: docs/12-testing/BASELINE_FORMAT.md

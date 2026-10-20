@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-20T06:33:27Z",
+  "generated_at": "2026-10-20T10:13:57Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "957a1e9b4ccd433ec2b41f6b164b8e85bc670088",
-    "branch": "stage-zero/clm-0647-gs9-3-zone-search-wiring",
-    "dirty": false,
-    "dirty_files": 0,
+    "commit": "d2c335502c0a27867fc1bf3f70c96aab0a5bfe37",
+    "branch": "stage-zero/clm-0649-gs9-7-store-search",
+    "dirty": true,
+    "dirty_files": 1,
     "dirty_reason": "",
-    "tracked_files": 3527
+    "tracked_files": 3557
   },
   "env": {
     "node": "v20.20.2",
@@ -26,21 +26,21 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 580,
+    "test_files_tracked": 583,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
-    "risks_not_closed": 25
+    "risks_not_closed": 26
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-20T070000Z-clm-0647-gs9-3-zone-search-wiring/raw/verify-log-stale-baseline-only.txt",
-    "tests_passed": 6204,
-    "test_files_executed": 439,
+    "source": "docs/12-testing/ci-evidence/2026-10-20T150000Z-clm-0649-gs9-7-store-search/raw/verify-log-d2c3355-baseline-board-only.txt",
+    "tests_passed": 6256,
+    "test_files_executed": 441,
     "governance_suite_cases": 688,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:6e02e7c0454e49302fc4a1c87ebe9fc86e037788b49d3ff4555e90d12a586239",
+  "fingerprint": "sha256:dd592c49a2b2fcbb3257059f4ba860732c8f8bc56c6294e1d40dea2b07ca56b4",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
