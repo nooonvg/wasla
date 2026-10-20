@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-20T10:13:57Z",
+  "generated_at": "2026-10-20T10:16:07Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "d2c335502c0a27867fc1bf3f70c96aab0a5bfe37",
+    "commit": "cd88f6d1d803d556325ca614ff8e57557c88b0c5",
     "branch": "stage-zero/clm-0649-gs9-7-store-search",
-    "dirty": true,
-    "dirty_files": 1,
+    "dirty": false,
+    "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3557
+    "tracked_files": 3558
   },
   "env": {
     "node": "v20.20.2",
