@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-20T05:31:36Z",
+  "generated_at": "2026-10-20T06:33:27Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "e84be1b5ee001537c31fc622adb1f576017c9d1a",
-    "branch": "stage-zero/clm-0645-gs9-3-zone-search-contract",
+    "commit": "957a1e9b4ccd433ec2b41f6b164b8e85bc670088",
+    "branch": "stage-zero/clm-0647-gs9-3-zone-search-wiring",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3519
+    "tracked_files": 3527
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 579,
+    "test_files_tracked": 580,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 28,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-20T050000Z-clm-0645-gs9-3-zone-search-contract/raw/verify-log-stale-baseline-only.txt",
-    "tests_passed": 6194,
-    "test_files_executed": 438,
+    "source": "docs/12-testing/ci-evidence/2026-10-20T070000Z-clm-0647-gs9-3-zone-search-wiring/raw/verify-log-stale-baseline-only.txt",
+    "tests_passed": 6204,
+    "test_files_executed": 439,
     "governance_suite_cases": 688,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:baec8a5ad1b5870050ed1597ae4932360e5378b7d3d7722cbade639e1b6012b3",
+  "fingerprint": "sha256:6e02e7c0454e49302fc4a1c87ebe9fc86e037788b49d3ff4555e90d12a586239",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

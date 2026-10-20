@@ -173,6 +173,19 @@
       "evidence_tests": [
         { "file": "services/customers/src/__tests__/http/app.test.ts", "case": "returns one request and scopes it to its owner" }
       ]
+    },
+    {
+      "method": "GET",
+      "path": "/geo/zones/search",
+      "service": "geography",
+      "class": "P",
+      "required_scopes": ["geography:zone:read"],
+      "accepts_body": false,
+      "production_open": false,
+      "evidence_tests": [
+        { "file": "services/geography/src/__tests__/zone-search.test.ts", "case": "returns only active zones — the validity rule customers applies to an order's zone_id" }
+      ],
+      "blocked_until": "فتحُ P قرارُ مالكٍ (ADR-069 §6 · ADR-075 D3)؛ الجوابُ مقصورٌ على النشطِ في الخدمةِ ولا معاملَ يوسّعُه"
     }
   ]
 }

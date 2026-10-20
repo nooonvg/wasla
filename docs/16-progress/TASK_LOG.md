@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0647 — G-S9.3 (ب): مدخلُ حدٍّ P مغلقٌ (ADR-075) + وصلُ نموذجِ الطلبِ بالبحثِ عن المنطقةِ
+
+- **Work Item(s):** M0-53 (G-S9.3 — على RQ-CMA-15).
+- **Units:** `apps/customer-mini-app/src/components/ZoneSearch.tsx` · `src/screens/RideOrder.tsx` · `src/i18n/index.ts` · `src/__tests__/ZoneSearch.test.tsx` · `packages/channel-edge/allowlist/customer-mini-app.json` · `docs/12-testing/ci-evidence/2026-10-09T140000Z-clm-0518-human-auth-adr/route-enforcement.json` · `docs/15-decisions/ADR-075-edge-snapshot-gs9-3-zone-search.md` · `docs/12-testing/EDGE_ALLOWLIST.md` · `docs/12-testing/APP_API_ROUTES.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T070000Z-clm-0647-gs9-3-zone-search-wiring/`.
+- **Status:** Released (الحكمُ بعدَ CI على main).
+- **Change:** تعليمةُ المالكِ (2026-10-20): «ويصل نموذج الطلب بالنتيجة» ← ADR-075: `GET /geo/zones/search` يُضافُ إلى اللقطةِ (68 → 69) بإضافةٍ مؤرَّخةٍ، ومدخلُ حدٍّ **P** للعميلِ `production_open=false` بـ`blocked_until` مكتوبٍ (الجوابُ مقصورٌ على النشطِ في الخدمةِ). `ZoneSearch` في نموذجِ المشوارِ للالتقاطِ والوصولِ: النتيجةُ تملأُ `zone_id` والتسميةَ و`source=text_search`؛ جوابٌ متأخّرٌ لا يستبدلُ الأحدثَ (درسُ G-S9.18). +10 اختباراتٍ؛ طفرةُ نزعِ حارسِ التسلسلِ مكشوفةٌ. **الأساسُ (M0-08):** ملفُّ اختبارٍ جديدٌ ← `test_files_tracked` 579 → 580، أُعيدَ توليدُه من سجلِّ `verify.sh` الملتزَمِ (أخفقَ فقط على الأساسِ القديمِ).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0647](../12-testing/ci-evidence/2026-10-20T070000Z-clm-0647-gs9-3-zone-search-wiring/README.md) · التطبيقُ 124/124 · الحارسانِ 28 و24 ✓.
+- **Deployment:** لا شيء (`frozen` — ADR-073 · لا فتحَ إنتاجيٌّ).
+- **Next:** حكمُ CI على main لـCLM-0645 و0647؛ ثم البندُ التالي القابلُ للتنفيذِ في G-S9.
+
 # 2026-10-20 — CLM-0645 — G-S9.3 (أ): عقدُ البحثِ عن منطقةٍ صالحةٍ في geography (العقدُ أوّلًا)
 
 - **Work Item(s):** M0-53 (G-S9.3 — على RQ-CMA-15).

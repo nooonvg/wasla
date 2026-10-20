@@ -4,6 +4,7 @@ import { useOrderFormStore, buildOrderRequest, validateOrderForm, type VehicleCl
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
 import { SavedPlacePicker } from "../components/SavedPlacePicker";
+import { ZoneSearch, type ZoneSearchResult } from "../components/ZoneSearch";
 
 const VEHICLE_CLASSES: VehicleClass[] = ["sedan", "suv", "van", "pickup", "motorcycle", "truck_small"];
 const PRICE_MODES: PriceMode[] = ["negotiable", "customer_offer"];
@@ -15,6 +16,9 @@ export function RideOrder() {
   const [formError, setFormError] = useState<string | null>(null);
   const [pickupPlaceId, setPickupPlaceId] = useState("");
   const [dropoffPlaceId, setDropoffPlaceId] = useState("");
+  // G-S9.3 (CLM-0647): the label was filled by a zone-search result.
+  const [pickupFromSearch, setPickupFromSearch] = useState(false);
+  const [dropoffFromSearch, setDropoffFromSearch] = useState(false);
 
   const handlePickupPlace = useCallback(
     (place: { place_id: string; label: string; zone_id: string }) => {
@@ -22,6 +26,7 @@ export function RideOrder() {
       store.setPickupLabel(place.label);
       store.setPickupSource("saved_place");
       setPickupPlaceId(place.place_id);
+      setPickupFromSearch(false);
     },
     [store]
   );
@@ -32,6 +37,32 @@ export function RideOrder() {
       store.setDropoffLabel(place.label);
       store.setDropoffSource("saved_place");
       setDropoffPlaceId(place.place_id);
+      setDropoffFromSearch(false);
+    },
+    [store]
+  );
+
+  // G-S9.3 (CLM-0647): a zone-search result fills the zone (an active zone —
+  // the same rule the order contract enforces), its name as the label, and
+  // source "text_search" (StopSource). A saved-place choice is cleared.
+  const handlePickupZoneSearch = useCallback(
+    (zone: ZoneSearchResult) => {
+      store.setPickupZoneId(zone.id);
+      store.setPickupLabel(zone.name);
+      store.setPickupSource("text_search");
+      setPickupPlaceId("");
+      setPickupFromSearch(true);
+    },
+    [store]
+  );
+
+  const handleDropoffZoneSearch = useCallback(
+    (zone: ZoneSearchResult) => {
+      store.setDropoffZoneId(zone.id);
+      store.setDropoffLabel(zone.name);
+      store.setDropoffSource("text_search");
+      setDropoffPlaceId("");
+      setDropoffFromSearch(true);
     },
     [store]
   );
@@ -40,24 +71,26 @@ export function RideOrder() {
     (value: string) => {
       // CLM-0622: a label filled by the picker belongs to that place;
       // once the zone is edited by hand it no longer describes the stop.
-      if (pickupPlaceId) store.setPickupLabel("");
+      if (pickupPlaceId || pickupFromSearch) store.setPickupLabel("");
       store.setPickupZoneId(value);
       store.setPickupSource("manual_zone");
       setPickupPlaceId("");
+      setPickupFromSearch(false);
     },
-    [store, pickupPlaceId]
+    [store, pickupPlaceId, pickupFromSearch]
   );
 
   const handleDropoffZoneChange = useCallback(
     (value: string) => {
       // CLM-0622: a label filled by the picker belongs to that place;
       // once the zone is edited by hand it no longer describes the stop.
-      if (dropoffPlaceId) store.setDropoffLabel("");
+      if (dropoffPlaceId || dropoffFromSearch) store.setDropoffLabel("");
       store.setDropoffZoneId(value);
       store.setDropoffSource("manual_zone");
       setDropoffPlaceId("");
+      setDropoffFromSearch(false);
     },
-    [store, dropoffPlaceId]
+    [store, dropoffPlaceId, dropoffFromSearch]
   );
 
   const handlePreview = useCallback(async () => {
@@ -128,6 +161,12 @@ export function RideOrder() {
         selectedPlaceId={pickupPlaceId}
         onSelect={handlePickupPlace}
       />
+      <ZoneSearch
+        id="pickup-zone-search"
+        label={t("ride_order.pickup_zone_search")}
+        testId="pickup-zone-search"
+        onSelect={handlePickupZoneSearch}
+      />
       <div className="form-group">
         <label htmlFor="pickup-zone">{t("ride_order.pickup_zone")}</label>
         <input
@@ -160,6 +199,12 @@ export function RideOrder() {
         testId="dropoff-place-select"
         selectedPlaceId={dropoffPlaceId}
         onSelect={handleDropoffPlace}
+      />
+      <ZoneSearch
+        id="dropoff-zone-search"
+        label={t("ride_order.dropoff_zone_search")}
+        testId="dropoff-zone-search"
+        onSelect={handleDropoffZoneSearch}
       />
       <div className="form-group">
         <label htmlFor="dropoff-zone">{t("ride_order.dropoff_zone")}</label>
