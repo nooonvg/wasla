@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0644 — دليلُ ما بعدَ دمجِ CLM-0643: حكمُ CI الفعليُّ على main
+
+- **Work Item(s):** M0-53 (G-S9.18 — توثيقُ الحكمِ فقط).
+- **Units:** `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T043000Z-clm-0643-myorders-stale-detail-race/` (README §حكم + خامٌ).
+- **Status:** Released.
+- **Change:** توثيقُ حكمِ CI بعدَ دمجِ PR #789 (التزامُ الدمجِ `2ed2c77`): **WASLA CI** (السيرُ 39370992513) **نجاحٌ 41/41** · **Roadmap freshness** (39370992775) **نجاحٌ** — خامٌ في دليلِ CLM-0643. G-S9.18 مُغلَقٌ. تحديثٌ بالإضافةِ لا بالمحوِ. لا كودَ ولا نشرَ (`frozen` — ADR-073).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0643 §حكمُ CI على main](../12-testing/ci-evidence/2026-10-20T043000Z-clm-0643-myorders-stale-detail-race/README.md).
+- **Deployment:** لا شيء.
+- **Next:** G-S9.3 (أ) — CLM-0645.
+
 # 2026-10-20 — CLM-0643 — MyOrders: استجاباتُ التفاصيلِ المتأخّرةُ (متابعةُ مراجعةٍ · G-S9.18)
 
 - **Work Item(s):** M0-53 (G-S9.18 — على RQ-CMA-41/42).
