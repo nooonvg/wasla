@@ -758,6 +758,15 @@ export const OPERATION_BINDINGS: readonly OperationBinding[] = [
   {
     audience: "geography",
     method: "GET",
+    path: "/geo/zones/search",
+    dimension: "owner",
+    strength: "none",
+    evidence: "services/geography/src/http/app.ts:scoped(GEO_SCOPES.zoneRead) searchZones(deps,",
+    note: "بياناتٌ مرجعيّةٌ عامّةٌ — لا مالكَ بطبيعتِها؛ المناطقُ النشطةُ فقط (CLM-0645 · G-S9.3).",
+  },
+  {
+    audience: "geography",
+    method: "GET",
     path: "/geo/zones/:zoneId",
     dimension: "owner",
     strength: "none",

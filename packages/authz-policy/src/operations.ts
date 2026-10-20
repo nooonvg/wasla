@@ -159,6 +159,7 @@ export const ENFORCED_OPERATIONS: readonly EnforcedOperation[] = [
   { audience: "geography", method: "GET", path: "/geo/regions/:regionId/cities", scopes: ["geography:hierarchy:read"] },
   { audience: "geography", method: "GET", path: "/geo/cities/:cityId/districts", scopes: ["geography:hierarchy:read"] },
   { audience: "geography", method: "GET", path: "/geo/districts/:districtId/zones", scopes: ["geography:hierarchy:read"] },
+  { audience: "geography", method: "GET", path: "/geo/zones/search", scopes: ["geography:zone:read"] },
   { audience: "geography", method: "GET", path: "/geo/zones/:zoneId", scopes: ["geography:zone:read"] },
   { audience: "geography", method: "GET", path: "/geo/users/:waslaPublicId/location", scopes: ["geography:location:read"] },
   { audience: "geography", method: "PUT", path: "/geo/users/:waslaPublicId/location", scopes: ["geography:location:write"] },
