@@ -287,7 +287,7 @@ export function RideOrder() {
       {store.submitStatus === "success" && store.submitResult && (
         <div className="success-message" data-testid="submit-success">
           <p>{t("ride_order.order_submitted")}</p>
-          <p>{t("ride_order.order_id")}: {store.submitResult.order_request_id}</p>
+          <p>{t("ride_order.order_id")}: {store.submitResult.id}</p>
           {store.submitResult.order_public_id && (
             <p>{t("ride_order.order_public_id")}: {store.submitResult.order_public_id}</p>
           )}

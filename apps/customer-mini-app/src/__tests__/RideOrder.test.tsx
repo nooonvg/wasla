@@ -287,7 +287,7 @@ describe("RideOrder screen", () => {
 
   it("calls submit API with Idempotency-Key header", async () => {
     const submitResponse = {
-      order_request_id: "req-123",
+      id: "req-123",
       status: "submitted",
       order_public_id: "ORD-001",
     };

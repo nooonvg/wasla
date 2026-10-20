@@ -605,6 +605,25 @@
    "guard": "scoped(ORDER_SCOPES.transitionWrite)",
    "klass": "N",
    "production_verdict": "blocked_until_owner_guard"
+  },
+  {
+   "app": "customer-mini-app",
+   "service": "customers",
+   "method": "GET",
+   "path": "/customers/:waslaPublicId/order-requests/:orderRequestId",
+   "guard": "ownerScoped(CUSTOMER_SCOPES.orderRequestRead)",
+   "klass": "O",
+   "production_verdict": "open",
+   "added_by": "CLM-0638 · ADR-074 (2026-10-20)"
+  }
+ ],
+ "additions": [
+  {
+   "clm": "CLM-0638",
+   "date": "2026-10-20",
+   "decision": "ADR-074",
+   "routes_added": ["/customers/:waslaPublicId/order-requests/:orderRequestId"],
+   "note": "إضافةٌ مؤرَّخةٌ لا تعديلٌ آليٌّ: القياسُ الأصليُّ (67 مسارًا عند a93fe5ec) محفوظٌ؛ أُضيف مسارُ تفاصيلِ الطلبِ الموجودُ في الشيفرةِ (services/customers/src/http/app.ts · ownerScoped(orderRequestRead) · O) لتنفيذِ G-S9.11."
   }
  ]
 }

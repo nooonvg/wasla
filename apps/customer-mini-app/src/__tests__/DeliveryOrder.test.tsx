@@ -171,7 +171,7 @@ describe("DeliveryOrder screen", () => {
 
   it("calls submit API with Idempotency-Key header", async () => {
     const submitResponse = {
-      order_request_id: "req-456",
+      id: "req-456",
       status: "submitted",
     };
     mockedPost.mockResolvedValueOnce(submitResponse);

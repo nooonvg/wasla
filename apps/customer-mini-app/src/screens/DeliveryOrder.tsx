@@ -326,7 +326,7 @@ export function DeliveryOrder() {
       {store.submitStatus === "success" && store.submitResult && (
         <div className="success-message" data-testid="d-submit-success">
           <p>{t("ride_order.order_submitted")}</p>
-          <p>{t("ride_order.order_id")}: {store.submitResult.order_request_id}</p>
+          <p>{t("ride_order.order_id")}: {store.submitResult.id}</p>
         </div>
       )}
       {store.submitStatus === "error" && store.submitError && (

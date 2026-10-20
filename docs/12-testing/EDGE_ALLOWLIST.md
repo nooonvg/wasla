@@ -88,9 +88,12 @@
 
 المقيس الحالي: 10 مسارات O تقبل جسمًا (كلها `POST`/`PUT`/`PATCH`)، و11 مسار O من نوع `GET`/`DELETE` لا تقبله.
 
+> **إضافة CLM-0638 (2026-10-20 · ADR-074):** أُضيف مدخلُ تفاصيلِ الطلبِ `GET /customers/:waslaPublicId/order-requests/:orderRequestId` (O · `production_open=false`) لتنفيذِ G-S9.11 — القائمةُ صارت **30 مدخلًا** (customer 14 · driver 16)، والمساراتُ من نوع `GET`/`DELETE` بلا جسمٍ **12**. مسارُ التفاصيلِ أُضيف إلى لقطةِ `route-enforcement.json` بإضافةٍ مؤرَّخةٍ (القياسُ الأصليُّ 67 مسارًا محفوظًا حرفيًّا) بقرارٍ موثَّقٍ في [ADR-074](../15-decisions/ADR-074-edge-snapshot-gs9-11-addition.md).
+
 ## 3. الحالة المقيسة
 
 - سطحان: `customer-mini-app` (13) · `driver-mini-app` (16) = 29 = حصيلة ADR-069 §2.8 (O 19 · P 2 · W 3 · N 5)، مع حذف `PUT /drivers/:waslaPublicId/availability` لأن التطبيق لا يناديه (R-02).
+- **تحديث CLM-0638 (2026-10-20):** 30 مدخلًا (customer 14 · driver 16) = 20 O · 2 P · 3 W · 5 N — زادَ مدخلُ G-S9.11 (O) وحده.
 - **كل المدخلات `production_open: false`.** لم يُفتح شيء ولم تُوسَّع القائمة.
 - تصحيح مقيس واحد عند التشديد: `GET /dispatch/jobs/:job_id/offers` كان يعلن `dispatch:job:read` والشفرة واللقطة كلاهما `DISPATCH_SCOPES.offerRead` = `dispatch:offer:read`. الحارس السابق لم يقارن الصلاحيات فمرّ؛ الباب `EA-SCOPE-CODE` كشفه، وصُحِّح المدخل إلى قيمة الشفرة.
 - 89 حالة في `scripts/checks/lib/gov-cases-edge-allowlist.sh` ضمن `scripts/checks/test-governance.sh` (بعد تدعيم الدلالات التنفيذية، CLM-0523):
