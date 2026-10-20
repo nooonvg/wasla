@@ -41,6 +41,8 @@
 
 **الأساسُ (M0-08):** ملفُّ اختبارٍ جديدٌ ← `test_files_tracked` 578 → 579؛ أُعيدَ التوليدُ بـ`scripts/baseline.sh --log` من [raw/verify-log-stale-baseline-only.txt](raw/verify-log-stale-baseline-only.txt) (`verify.sh` أخفقَ فقط على الأساسِ القديمِ وعلى STATE-SYNC المُصحَّحِ بعدَ بدئِه) · `tests_passed` 6158 → 6194.
 
+**إخفاقُ CI أوّلُ وسببُه الجذريُّ (السيرُ 39374488496 · `governance-guard`):** الفحصُ 11 البابُ 4 — `repo.commit` في الأساسِ كان `fb2f3e2`، التزامًا سبقَ إعادةَ البناءِ على main فلم يُدفَعْ قطُّ ولا يُحَلُّ في `origin` (RISK-0028). الإصلاحُ: إعادةُ التوليدِ على التزامٍ مدفوعٍ (`e84be1b`) لا تعطيلُ البابِ.
+
 الأخضرُ المحلّيُّ ليسَ حكمًا: حكمُ CI (ساقُ `geography · test:integration` على Postgres الخاصِّ بـCI) بعدَ الدفعِ.
 
 ## 5) خارجَ هذه الشريحةِ — G-S9.3 (ب)
