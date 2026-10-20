@@ -4,7 +4,7 @@
 - **Units:** `services/geography/` (العقد · errors.md · ports · in-memory · drizzle · use-case · http · اختبارات) · `packages/contracts/geography/src/api-types.ts` (مولَّد) · `packages/authz-policy/` · `docs/04-api/GEOGRAPHY_HTTP.md` · `docs/07-security/SERVICE_AUTH_ENFORCEMENT.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T050000Z-clm-0645-gs9-3-zone-search-contract/`.
 - **Status:** Released (الحكمُ بعدَ CI على main).
 - **Change:** قياسٌ: لا مسارَ بحثٍ في geography ولا search، وgeography المالكُ الوحيدُ لأسماءِ المناطقِ (ADR-006) ← عقدٌ جديدٌ `GET /geo/zones/search?q=&limit=&locale=`: المناطقُ النشطةُ فقط (معيارُ `requireActiveZone` في خدمةِ العملاءِ نفسُه) بمطابقةٍ جزئيّةٍ حرفيّةٍ لأيِّ اسمٍ مترجَمٍ، مرتّبةً بـ`code`/`id`، بشكلِ `ZoneDetail[]` القائمِ؛ `GEO_INVALID_SEARCH_QUERY` (400) رمزٌ مُضافٌ؛ صلاحيّةُ `geography:zone:read` القائمةُ؛ سجلُّ التفويضِ 169 → 170. لا مصدرَ بياناتٍ جديدٌ ولا مساسَ بقرارِ G-S9.2. البحثُ غيرُ مكشوفٍ للتطبيقِ بعدُ (لا مدخلَ حدٍّ) — ذلك (ب).
-- **Risk(s):** لا جديد.
+- **Risk(s):** RISK-0042 → open (لا يُغلَق ولا يتغيّر: +1 صفِّ ربطٍ `none` مسبَّبٍ بدليلٍ — `GET /geo/zones/search` بياناتٌ مرجعيّةٌ عامّةٌ لا مالكَ لها، كـ`GET /geo/zones/:zoneId`؛ الموجةُ 1: 18 → 19).
 - **Evidence:** [دليلُ CLM-0645](../12-testing/ci-evidence/2026-10-20T050000Z-clm-0645-gs9-3-zone-search-contract/README.md) · geography 85/85 · تكاملُ Postgres 26/26 · طفرتانِ مكشوفتانِ · authz-policy 52/52.
 - **Deployment:** لا شيء (`frozen` — ADR-073).
 - **Next:** G-S9.3 (ب) — مدخلُ حدٍّ P بقرارٍ موثَّقٍ + لقطةٌ + ربطُ نموذجِ الطلبِ (`source=text_search`).
