@@ -246,6 +246,8 @@ export const ENFORCED_OPERATIONS: readonly EnforcedOperation[] = [
   // الموجةُ الثانيةَ عشرةَ من `M1-04` (`CLM-0200`): حدُّ البحث صارَ يفرضُ الهويّةَ.
   { audience: "search", method: "GET", path: "/search/ready", scopes: ["search:ready:read"] },
   { audience: "search", method: "GET", path: "/search/products", scopes: ["search:products:read"] },
+  // G-S9.7 (`CLM-0649` · ADR-025 §6): بحثُ المتاجرِ بالاسمِ — صلاحيّةٌ مستقلّةٌ عن المنتجاتِ.
+  { audience: "search", method: "GET", path: "/search/stores", scopes: ["search:stores:read"] },
   // `G5` موجةُ 1 (`CLM-0247`): قياسُ المسمومِ في مُرحِّلِ البحثِ — مسارُ تشغيلٍ
   // بصلاحيّتِهِ الخاصّةِ، فقارئُ المنتجاتِ لا يقرأُ دفترَ الفقدِ.
   { audience: "search", method: "GET", path: "/search/relay/dead-letters", scopes: ["search:relay-dead-letters:read"] },

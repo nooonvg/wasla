@@ -72,6 +72,8 @@ import {
   runRelayBatch,
   type CatalogProduct,
   type CatalogReadPort,
+  type CatalogStore,
+  type StoreCatalogReadPort,
 } from "@wasla/search-service";
 import {
   createServiceRequestSigner,
@@ -174,8 +176,20 @@ const OUTBOX_DDL = marketplaceOutboxDdl();
  * ADR-025. فالمنفذُ هنا مُضاعِفٌ يُغذّى ببياناتِ الكتالوجِ نفسِها التي تُبذَرُ بها الأحداثُ،
  * **والحدُّ مُعلَنٌ في وثيقةِ البوّابةِ §الحدود** لا مطويٌّ.
  */
-class GateCatalog implements CatalogReadPort {
+class GateCatalog implements CatalogReadPort, StoreCatalogReadPort {
   private readonly data = new Map<string, CatalogProduct>();
+  /**
+   * أسماءُ المتاجرِ (G-S9.7 · CLM-0649 · ADR-025 §6.2): الناقلُ يجلبُها عندَ اعتمادِ المتجرِ من
+   * `GET /stores/{storeSlug}`. والمُضاعِفُ يعرفُ المتجرينِ المبذورينِ وحدَهما؛ ما سواهما 404.
+   */
+  private readonly stores = new Map<string, CatalogStore>([
+    [STORE_SLUG, { store_id: STORE_ID, store_slug: STORE_SLUG, title_ar: "إلكترونيات المدينة", title_en: "Madinah Electronics", title_ur: null }],
+    [PENDING_STORE_SLUG, { store_id: PENDING_STORE_ID, store_slug: PENDING_STORE_SLUG, title_ar: "مسودات الخبر", title_en: null, title_ur: null }],
+  ]);
+
+  async getStore(storeSlug: string): Promise<CatalogStore | null> {
+    return this.stores.get(storeSlug) ?? null;
+  }
 
   set(product: CatalogProduct): void {
     this.data.set(product.product_id, product);
@@ -503,6 +517,7 @@ export async function drainRelay(ctx: GateContext, maxBatches = 200): Promise<Dr
   const deps = {
     events: new PostgresMarketplaceEventSource(ctx.pool),
     catalog: ctx.catalog,
+    storeCatalog: ctx.catalog,
     store: ctx.store,
     config: DEFAULT_RELAY_CONFIG,
   };

@@ -42,7 +42,8 @@ describe("جردُ العملياتِ المفروضةِ", () => {
     // CLM-0519: +3 — identity session routes (issue/exchange/revoke). Total: 169.
     // CLM-0645 (G-S9.3): +1 — `GET /geo/zones/search` (scope `geography:zone:read`
     // already enforced, so the scope count below is unchanged). Total: 170.
-    expect(ENFORCED_OPERATIONS).toHaveLength(170);
+    // CLM-0649 (G-S9.7): +1 — `GET /search/stores` (new scope `search:stores:read`). Total: 171.
+    expect(ENFORCED_OPERATIONS).toHaveLength(171);
     expect(new Set(ENFORCED_OPERATIONS.map((o) => o.audience)).size).toBe(18);
   });
 
@@ -50,7 +51,8 @@ describe("جردُ العملياتِ المفروضةِ", () => {
     // ADR-060 · CLM-0440: +1 — `identity:assertion:issue` (was 124).
     // CLM-0444: +8 — partners scopes (was 125). Total: 133.
     // CLM-0519: +3 — identity session scopes (issue/exchange/revoke). Total: 136.
-    expect(allEnforcedScopes()).toHaveLength(136);
+    // CLM-0649 (G-S9.7): +1 — `search:stores:read` (independent of products). Total: 137.
+    expect(allEnforcedScopes()).toHaveLength(137);
     for (const op of ENFORCED_OPERATIONS) {
       expect(op.scopes.length).toBeGreaterThan(0);
     }
@@ -475,7 +477,8 @@ describe("حدُّ الدعوى في هذهِ الدفعةِ", () => {
         (wave3Audiences.has(b.audience) && b.path !== "/identity/assertions" && !(b.audience === "identity" && (b.path === "/identity/users/:waslaPublicId/links" || b.path === "/identity/users/:waslaPublicId" || b.path === "/identity/users/:waslaPublicId/recovery" || b.path === "/identity/users/:waslaPublicId/history")) && !(b.audience === "delivery" && (b.path === "/store-orders" || b.path === "/store-orders/:orderPublicId/cancellation" || b.path === "/store-orders/:orderPublicId" || b.path === "/store-orders/:orderPublicId/delivery-task")) && !(b.audience === "support" && (b.path === "/support/tickets" || b.path === "/support/tickets/:ticketId" || b.path === "/support/tickets/:ticketId/evidence")) && !(b.audience === "subscriptions" && b.path === "/referrals")) ||
         (b.audience === "orders" && wave3Orders.has(`${b.method} ${b.path}`)),
     );
-    expect(wave3).toHaveLength(37);
+    // CLM-0649 (G-S9.7): +1 — `GET /search/stores` `none` بدليلٍ وسببٍ (37 → 38).
+    expect(wave3).toHaveLength(38);
     for (const b of wave3) {
       expect(b.strength).toBe("none");
       expect(b.evidence).toMatch(/^[^:]+\.ts:\S+ \S+/);

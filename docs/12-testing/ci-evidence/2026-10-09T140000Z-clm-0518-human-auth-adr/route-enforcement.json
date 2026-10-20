@@ -625,6 +625,16 @@
    "klass": "P",
    "production_verdict": "conditional",
    "added_by": "CLM-0647 · ADR-075 (2026-10-20)"
+  },
+  {
+   "app": "customer-mini-app",
+   "service": "search",
+   "method": "GET",
+   "path": "/search/stores",
+   "guard": "internalScoped(SEARCH_SCOPES.storesRead)",
+   "klass": "P",
+   "production_verdict": "conditional",
+   "added_by": "CLM-0649 · ADR-076 (2026-10-20)"
   }
  ],
  "additions": [
@@ -641,6 +651,13 @@
    "decision": "ADR-075",
    "routes_added": ["/geo/zones/search"],
    "note": "إضافةٌ مؤرَّخةٌ لا تعديلٌ آليٌّ: القياسُ الأصليُّ (67) وإضافةُ ADR-074 محفوظانِ؛ أُضيفَ مسارُ البحثِ عن المناطقِ (services/geography/src/http/app.ts · scoped(zoneRead) · P · conditional) لوصلِ نموذجِ الطلبِ في G-S9.3؛ المدخلُ مغلقٌ."
+  },
+  {
+   "clm": "CLM-0649",
+   "date": "2026-10-20",
+   "decision": "ADR-076",
+   "routes_added": ["/search/stores"],
+   "note": "إضافةٌ مؤرَّخةٌ لا تعديلٌ آليٌّ: القياسُ الأصليُّ (67) وإضافتا ADR-074 وADR-075 محفوظةٌ؛ أُضيفَ مسارُ بحثِ المتاجرِ بالاسمِ (services/search/src/http/app.ts · internalScoped(storesRead) · P · conditional) لوصلِ شاشةِ السوقِ في G-S9.7؛ المدخلُ مغلقٌ."
   }
  ]
 }

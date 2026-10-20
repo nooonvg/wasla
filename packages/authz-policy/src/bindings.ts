@@ -1553,6 +1553,15 @@ export const OPERATION_BINDINGS: readonly OperationBinding[] = [
   {
     audience: "search",
     method: "GET",
+    path: "/search/stores",
+    dimension: "owner",
+    strength: "none",
+    evidence: "services/search/src/http/app.ts:internalScoped(SEARCH_SCOPES.storesRead) deps.storeSearchReadPort.searchStores(",
+    note: "`none`: أسماءُ متاجرَ معتمَدةٍ لها منتجٌ ظاهرٌ — إسقاطٌ عامٌّ بثلاثةِ حقولٍ بلا مالكٍ (CLM-0649 · G-S9.7 · ADR-025 §6).",
+  },
+  {
+    audience: "search",
+    method: "GET",
     path: "/search/relay/dead-letters",
     dimension: "owner",
     strength: "none",

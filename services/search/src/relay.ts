@@ -27,7 +27,9 @@
 import type {
   MarketplaceEventSource,
   CatalogReadPort,
+  CatalogStore,
   ProjectionStore,
+  StoreCatalogReadPort,
 } from "./ports.js";
 import type {
   MarketplaceOutboxRow,
@@ -56,6 +58,11 @@ export const DEFAULT_RELAY_CONFIG: RelayConfig = {
 export interface RelayDeps {
   readonly events: MarketplaceEventSource;
   readonly catalog: CatalogReadPort;
+  /**
+   * Store names (G-S9.7 · ADR-025 §6.2). Required — no silent default: a relay
+   * without it could not fill the store-name model and would hide that gap.
+   */
+  readonly storeCatalog: StoreCatalogReadPort;
   readonly store: ProjectionStore;
   readonly config?: Partial<RelayConfig>;
   readonly log?: (entry: RelayLogEntry) => void;
@@ -207,8 +214,24 @@ async function applyEvent(
     }
   }
 
+  // G-S9.7 (ADR-025 §6.2): a store that just became approved and has no
+  // store-name doc yet gets its names fetched BEFORE any mutation, exactly like
+  // the product catalog fetch above — a failed fetch leaves the event pending.
+  let storeForNewDoc: CatalogStore | null = null;
+  const approvedStore = result.storeStateUpsert;
+  if (approvedStore && approvedStore.store_state === "approved" && !(await deps.store.hasStoreDoc(approvedStore.store_id))) {
+    storeForNewDoc = await deps.storeCatalog.getStore(approvedStore.store_slug); // may throw — state not yet mutated
+    if (!storeForNewDoc) throw new Error(`catalog store not found: ${approvedStore.store_slug}`);
+    if (storeForNewDoc.store_id !== approvedStore.store_id || storeForNewDoc.store_slug !== approvedStore.store_slug) {
+      throw new Error(
+        `catalog store drift: event ${approvedStore.store_id}/${approvedStore.store_slug} ≠ resource ${storeForNewDoc.store_id}/${storeForNewDoc.store_slug}`,
+      );
+    }
+  }
+
   // Mutate projection state + index together (after the catalog fetch).
   if (result.storeStateUpsert) await deps.store.upsertStoreState(result.storeStateUpsert);
+  if (storeForNewDoc) await deps.store.upsertStoreDoc(storeForNewDoc);
   if (result.productStateUpsert) await deps.store.upsertProductState(result.productStateUpsert);
 
   const storeState = result.storeStateUpsert?.store_state ?? currentStore?.store_state ?? "draft";
