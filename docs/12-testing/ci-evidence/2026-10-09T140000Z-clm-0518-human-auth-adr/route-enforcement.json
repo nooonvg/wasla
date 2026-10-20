@@ -615,6 +615,16 @@
    "klass": "O",
    "production_verdict": "open",
    "added_by": "CLM-0638 · ADR-074 (2026-10-20)"
+  },
+  {
+   "app": "customer-mini-app",
+   "service": "geography",
+   "method": "GET",
+   "path": "/geo/zones/search",
+   "guard": "scoped(GEO_SCOPES.zoneRead)",
+   "klass": "P",
+   "production_verdict": "conditional",
+   "added_by": "CLM-0647 · ADR-075 (2026-10-20)"
   }
  ],
  "additions": [
@@ -624,6 +634,13 @@
    "decision": "ADR-074",
    "routes_added": ["/customers/:waslaPublicId/order-requests/:orderRequestId"],
    "note": "إضافةٌ مؤرَّخةٌ لا تعديلٌ آليٌّ: القياسُ الأصليُّ (67 مسارًا عند a93fe5ec) محفوظٌ؛ أُضيف مسارُ تفاصيلِ الطلبِ الموجودُ في الشيفرةِ (services/customers/src/http/app.ts · ownerScoped(orderRequestRead) · O) لتنفيذِ G-S9.11."
+  },
+  {
+   "clm": "CLM-0647",
+   "date": "2026-10-20",
+   "decision": "ADR-075",
+   "routes_added": ["/geo/zones/search"],
+   "note": "إضافةٌ مؤرَّخةٌ لا تعديلٌ آليٌّ: القياسُ الأصليُّ (67) وإضافةُ ADR-074 محفوظانِ؛ أُضيفَ مسارُ البحثِ عن المناطقِ (services/geography/src/http/app.ts · scoped(zoneRead) · P · conditional) لوصلِ نموذجِ الطلبِ في G-S9.3؛ المدخلُ مغلقٌ."
   }
  ]
 }
