@@ -30,6 +30,25 @@ export interface CatalogReadPort {
   getProduct(productId: string): Promise<CatalogProduct | null>;
 }
 
+/**
+ * Store names as marketplace owns them (G-S9.7 · ADR-025 §6.2) — fetched
+ * through the SIGNED read port (GET /stores/{storeSlug}) when a store is
+ * approved. Only what the store-name read model needs: no owner, no review
+ * history, no staff, no internal timestamps cross into search.
+ */
+export interface CatalogStore {
+  readonly store_id: string;
+  readonly store_slug: string;
+  readonly title_ar: string;
+  readonly title_en: string | null;
+  readonly title_ur: string | null;
+}
+
+export interface StoreCatalogReadPort {
+  /** Fetch a store's names; null when marketplace answers 404. */
+  getStore(storeSlug: string): Promise<CatalogStore | null>;
+}
+
 export interface ProjectionStore {
   getCheckpoint(consumerId: string): Promise<RelayCheckpoint | null>;
   writeCheckpoint(consumerId: string, checkpoint: RelayCheckpoint): Promise<void>;
@@ -45,6 +64,11 @@ export interface ProjectionStore {
   refreshProductStateColumns(productId: string, projection: ProductProjection): Promise<void>;
   updateStoreStateOnDocs(storeId: string, storeState: string): Promise<void>;
   archiveProductDoc(productId: string, archivedAt: string): Promise<void>;
+
+  // ── store-name read model (G-S9.7 · ADR-025 §6) ──
+  hasStoreDoc(storeId: string): Promise<boolean>;
+  /** Idempotent upsert; normalized name columns are computed by the store. */
+  upsertStoreDoc(store: CatalogStore): Promise<void>;
 
   /** Idempotency ledger: returns the consumed record if already seen. */
   getConsumed(outboxId: string): Promise<{ status: ConsumedStatus; attempt_count: number } | null>;
@@ -82,6 +106,36 @@ export interface SearchProductsQuery {
   readonly page: number;
   readonly pageSize: number;
   readonly sort: SearchSort;
+}
+
+export interface SearchStoresQuery {
+  /** Normalized + folded (normalizeStoreName). */
+  readonly q: string;
+  readonly locale: "ar" | "en" | "ur";
+  readonly page: number;
+  readonly pageSize: number;
+}
+
+export interface StoreSearchItem {
+  readonly store_slug: string;
+  readonly title: string;
+  readonly category_slug: string;
+}
+
+export interface StoreSearchPage {
+  readonly items: readonly StoreSearchItem[];
+  readonly page: number;
+  readonly page_size: number;
+  readonly total: number;
+}
+
+/**
+ * Store-name search over the derived model (G-S9.7). Eligibility — approved
+ * store with ≥1 product satisfying isProductVisible — is derived inside the
+ * query from consumed state; implementations must not read a stored flag.
+ */
+export interface SearchStoresReadPort {
+  searchStores(query: SearchStoresQuery): Promise<StoreSearchPage>;
 }
 
 export interface SearchProductsReadPort {

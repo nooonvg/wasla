@@ -9,9 +9,10 @@
 
 import { describe, expect, it } from "vitest";
 import { runRelayBatch, DEFAULT_RELAY_CONFIG, type RelayDeps, type RelayLogEntry } from "../relay.js";
-import type { MarketplaceEventSource, CatalogReadPort, ProjectionStore } from "../ports.js";
+import type { MarketplaceEventSource, CatalogReadPort, CatalogStore, ProjectionStore } from "../ports.js";
 import type { MarketplaceOutboxRow, RelayCheckpoint, ConsumedStatus, CatalogProduct } from "../domain/consumed-events.js";
 import type { StoreProjection, ProductProjection } from "../domain/projector.js";
+import { acmeStoreCatalog } from "./support/fake-store-catalog.js";
 
 // ── In-memory fakes ──────────────────────────────────────────────────
 
@@ -41,6 +42,13 @@ class FakeStore implements ProjectionStore {
   checkpoint: RelayCheckpoint | null = null;
   consumed = new Map<string, { status: ConsumedStatus; attempts: number; error?: string | null }>();
   stores = new Map<string, StoreProjection>();
+  storeDocs = new Map<string, CatalogStore>();
+  async hasStoreDoc(storeId: string) {
+    return this.storeDocs.has(storeId);
+  }
+  async upsertStoreDoc(store: CatalogStore) {
+    this.storeDocs.set(store.store_id, store);
+  }
   products = new Map<string, ProductProjection>();
   docs = new Map<string, { catalog: CatalogProduct; storeState: string; projection: ProductProjection }>();
   logs: RelayLogEntry[] = [];
@@ -77,7 +85,7 @@ class FakeStore implements ProjectionStore {
 }
 
 function deps(rows: MarketplaceOutboxRow[], catalog: FakeCatalog, store: FakeStore): RelayDeps {
-  return { events: new FakeEventSource(rows), catalog, store, config: { ...DEFAULT_RELAY_CONFIG, maxAttempts: 2 }, log: (e) => store.logs.push(e) };
+  return { events: new FakeEventSource(rows), catalog, storeCatalog: acmeStoreCatalog(), store, config: { ...DEFAULT_RELAY_CONFIG, maxAttempts: 2 }, log: (e) => store.logs.push(e) };
 }
 
 // ── Fixtures ─────────────────────────────────────────────────────────

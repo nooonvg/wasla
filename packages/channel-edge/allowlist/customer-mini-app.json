@@ -186,6 +186,19 @@
         { "file": "services/geography/src/__tests__/zone-search.test.ts", "case": "returns only active zones — the validity rule customers applies to an order's zone_id" }
       ],
       "blocked_until": "فتحُ P قرارُ مالكٍ (ADR-069 §6 · ADR-075 D3)؛ الجوابُ مقصورٌ على النشطِ في الخدمةِ ولا معاملَ يوسّعُه"
+    },
+    {
+      "method": "GET",
+      "path": "/search/stores",
+      "service": "search",
+      "class": "P",
+      "required_scopes": ["search:stores:read"],
+      "accepts_body": false,
+      "production_open": false,
+      "evidence_tests": [
+        { "file": "services/search/src/__tests__/store-search.test.ts", "case": "undeclared keys are rejected by name, never ignored" }
+      ],
+      "blocked_until": "فتحُ P قرارُ مالكٍ (ADR-069 §6 · ADR-025 §6.7 D3)؛ ويشترطُ قبلَه برهانَ E-20 الخاصَّ بالمتاجرِ (ADR-025 §6.5 · ADR-025 §6.7 D4): الحارسُ الحاليُّ لا يعبّرُ عن «متجرٌ معتمَدٌ له منتجٌ ظاهرٌ» دونَ كشفِ حقولِ الحالةِ، ولا يُوسَّعُ صامتًا"
     }
   ]
 }

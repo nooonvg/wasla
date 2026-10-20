@@ -42,6 +42,7 @@ import { runRelayBatch, DEFAULT_RELAY_CONFIG } from "../relay.js";
 import type { CatalogReadPort } from "../ports.js";
 import type { CatalogProduct } from "../domain/consumed-events.js";
 import type { Pool } from "pg";
+import { acmeStoreCatalog } from "./support/fake-store-catalog.js";
 
 const STORE_ID = "11111111-1111-1111-1111-111111111111";
 const PRODUCT_ID = "22222222-2222-2222-2222-222222222222";
@@ -209,12 +210,14 @@ describe.skipIf(!PG_ENABLED)(
       const depsA = {
         events: eventsA,
         catalog,
+        storeCatalog: acmeStoreCatalog(),
         store: storeA,
         config: DEFAULT_RELAY_CONFIG,
       };
       const depsB = {
         events: eventsB,
         catalog,
+        storeCatalog: acmeStoreCatalog(),
         store: storeB,
         config: DEFAULT_RELAY_CONFIG,
       };
@@ -261,6 +264,7 @@ describe.skipIf(!PG_ENABLED)(
       const deps = {
         events,
         catalog,
+        storeCatalog: acmeStoreCatalog(),
         store: s,
         config: DEFAULT_RELAY_CONFIG,
       };
@@ -292,6 +296,7 @@ describe.skipIf(!PG_ENABLED)(
       const deps2 = {
         events: events2,
         catalog,
+        storeCatalog: acmeStoreCatalog(),
         store: s2,
         config: DEFAULT_RELAY_CONFIG,
       };
@@ -328,6 +333,7 @@ describe.skipIf(!PG_ENABLED)(
       const deps = {
         events,
         catalog,
+        storeCatalog: acmeStoreCatalog(),
         store: s,
         config: DEFAULT_RELAY_CONFIG,
       };

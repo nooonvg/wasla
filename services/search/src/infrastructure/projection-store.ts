@@ -6,7 +6,8 @@
  */
 
 import type { Pool } from "pg";
-import type { ProjectionStore } from "../ports.js";
+import type { CatalogStore, ProjectionStore } from "../ports.js";
+import { normalizeStoreName } from "../domain/store-search.js";
 import type {
   MarketplaceOutboxRow,
   RelayCheckpoint,
@@ -189,11 +190,38 @@ export class PostgresProjectionStore implements ProjectionStore {
     );
   }
 
+  // ── store-name read model (G-S9.7 · ADR-025 §6) ──
+  async hasStoreDoc(storeId: string): Promise<boolean> {
+    const r = await this.pool.query(`SELECT 1 FROM search_store_index WHERE store_id = $1::uuid`, [storeId]);
+    return (r.rowCount ?? 0) > 0;
+  }
+
+  async upsertStoreDoc(store: CatalogStore): Promise<void> {
+    const norm = (v: string | null): string | null => (v === null ? null : normalizeStoreName(v));
+    await this.pool.query(
+      `INSERT INTO search_store_index
+         (store_id, store_slug, title_ar, title_en, title_ur, name_norm_ar, name_norm_en, name_norm_ur)
+       VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (store_id)
+       DO UPDATE SET store_slug = EXCLUDED.store_slug,
+                     title_ar = EXCLUDED.title_ar,
+                     title_en = EXCLUDED.title_en,
+                     title_ur = EXCLUDED.title_ur,
+                     name_norm_ar = EXCLUDED.name_norm_ar,
+                     name_norm_en = EXCLUDED.name_norm_en,
+                     name_norm_ur = EXCLUDED.name_norm_ur`,
+      [
+        store.store_id, store.store_slug, store.title_ar, store.title_en, store.title_ur,
+        normalizeStoreName(store.title_ar), norm(store.title_en), norm(store.title_ur),
+      ],
+    );
+  }
+
   async clearAll(): Promise<void> {
     await this.pool.query(
       `TRUNCATE search_relay_checkpoint, search_relay_consumed_events,
                  search_product_index, search_marketplace_product_state,
-                 search_marketplace_store_state, search_outbox RESTART IDENTITY CASCADE`,
+                 search_marketplace_store_state, search_store_index, search_outbox RESTART IDENTITY CASCADE`,
     );
   }
 
