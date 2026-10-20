@@ -1,3 +1,14 @@
+# 2026-10-20 — CLM-0641 — دليلُ ما بعدَ دمجِ CLM-0640: حكمُ CI الفعليُّ على main
+
+- **Work Item(s):** M0-53 (G-S9.12 · RQ-CMA-42 — توثيقُ الحكمِ فقط).
+- **Units:** `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/01-product/REQUIREMENTS_REGISTRY.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md` · `docs/12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/` (README §حكم + خامٌ).
+- **Status:** Released.
+- **Change:** توثيقُ حكمِ CI بعدَ دمجِ PR #786 (التزامُ الدمجِ `865f653`): **WASLA CI** (السيرُ 39359559810) **نجاحٌ** · **Roadmap freshness** (39359559752) **نجاحٌ** — خامٌ في دليلِ CLM-0640. تحديثُ الدليلِ والسجلاتِ من «الحكمُ بعدَ CI» إلى الحكمِ الفعليِّ (بالإضافةِ لا بالمحوِ). لا كودَ ولا نشرَ (`frozen` — ADR-073).
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** [دليلُ CLM-0640 §حكمُ CI على main](../12-testing/ci-evidence/2026-10-20T020000Z-clm-0640-gs9-12-orders-polling/README.md).
+- **Deployment:** لا شيء.
+- **Next:** بنودُ «عقدٌ أوّلًا» (G-S9.2 · G-S9.3 · G-S9.6–9.9 · G-S9.13) — قراراتُ المالكِ محفوظةٌ.
+
 # 2026-10-20 — CLM-0640 — G-S9.12: التحديثُ المباشرُ للحالةِ (Polling) في MyOrders
 
 - **Work Item(s):** M0-53 (G-S9.12 · RQ-CMA-42).
