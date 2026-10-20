@@ -57,7 +57,7 @@ GET /search/stores?q=...&locale=ar|en|ur&page=1&page_size=10
 - **المعاملاتُ:** `q` 2..64 محرفًا بعدَ القصِّ · `locale` ar/en/ur (ar افتراضيٌّ) · `page` 1..50 · `page_size` 1..20 (10). **أيُّ معاملٍ آخرَ ⇒ `400 SEARCH_UNKNOWN_PARAMETER`.**
 - **الجوابُ:** `{ items: [{ store_slug, title, category_slug }], page, page_size, total }` فقط؛ `title` بلغةِ `locale` أو العربيّةِ. المعالجُ يبني كلَّ عنصرٍ حقلًا حقلًا فلا يتسرّبُ ما يُرجعُه المنفذُ زيادةً.
 - **المطابقةُ والترتيبُ:** على كلِّ حقولِ الاسمِ بعدَ `normalizeStoreName` (التشكيلُ والتطويلُ · أ إ آ ٱ←ا · ى ی ئ←ي · ؤ←و · ة ہ ۃ←ه · ک←ك · خفضُ الحالةِ)؛ `%` و`_` و`\` حرفيّةٌ (`LIKE … ESCAPE '\'`)؛ تامٌّ ثم بادئةٌ ثم احتواءٌ ثم `store_slug` تصاعديًّا.
-- **الحارسُ:** `internalScoped(SEARCH_SCOPES.storesRead)` = `search:stores:read`. مدخلُ حدِّ العميلِ P **مغلقٌ** (ADR-076).
+- **الحارسُ:** `internalScoped(SEARCH_SCOPES.storesRead)` = `search:stores:read`. مدخلُ حدِّ العميلِ P **مغلقٌ** (ADR-025 §6.7).
 
 ---
 

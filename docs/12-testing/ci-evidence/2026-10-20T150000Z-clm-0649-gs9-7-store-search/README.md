@@ -1,6 +1,6 @@
 # CLM-0649 — G-S9.7: بحثُ المتاجرِ بالاسمِ في search (نموذجُ قراءةٍ مشتقٌّ)
 
-**التاريخ:** 2026-10-20 · **البندُ:** M0-53 → G-S9.7 (RQ-CMA-29) · **الفرعُ:** `stage-zero/clm-0649-gs9-7-store-search` · **القرارُ:** [ADR-025 §6](../../../15-decisions/ADR-025-marketplace-search-read-model.md) · [ADR-076](../../../15-decisions/ADR-076-edge-snapshot-gs9-7-store-search.md) · **القياسُ السابقُ:** [CLM-0648](../2026-10-20T090000Z-clm-0648-gs9-7-store-search-measure/README.md)
+**التاريخ:** 2026-10-20 · **البندُ:** M0-53 → G-S9.7 (RQ-CMA-29) · **الفرعُ:** `stage-zero/clm-0649-gs9-7-store-search` · **القرارُ:** [ADR-025 §6](../../../15-decisions/ADR-025-marketplace-search-read-model.md) · [ADR-025 §6.7](../../../15-decisions/ADR-025-marketplace-search-read-model.md) · **القياسُ السابقُ:** [CLM-0648](../2026-10-20T090000Z-clm-0648-gs9-7-store-search-measure/README.md)
 
 ## 0. حكمُ الجولةِ السابقةِ (بعدَ الاكتمالِ)
 
@@ -28,7 +28,7 @@
 | HTTP | `GET /search/stores` بـ`internalScoped(SEARCH_SCOPES.storesRead)`؛ الجوابُ يُبنى حقلًا حقلًا؛ بلا منفذٍ ⇒ 503 لا صفحةٌ فارغةٌ؛ الترجمةُ في معالجِ الأخطاءِ الواحدِ |
 | الصلاحيّاتُ | `ENFORCED_OPERATIONS` 170→171 · صلاحيّاتٌ 136→137 · ربطُ `none` بدليلٍ · `PRODUCTION_GRANTS[search]` |
 | الواجهةُ | `StoreSearch` في شاشةِ السوقِ (CMS §3.4) بحارسِ تسلسلٍ · i18n ar/en/ur |
-| الحدُّ | مدخلُ P مغلقٌ `production_open=false` + `blocked_until` · لقطةُ `route-enforcement.json` 69→70 بإضافةٍ مؤرَّخةٍ (ADR-076) |
+| الحدُّ | مدخلُ P مغلقٌ `production_open=false` + `blocked_until` · لقطةُ `route-enforcement.json` 69→70 بإضافةٍ مؤرَّخةٍ (ADR-025 §6.7) |
 
 ## 3. قاعدةُ الإتاحةِ — مُثبَتةٌ على PostgreSQL
 

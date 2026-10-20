@@ -19,6 +19,7 @@ import {
 } from "../domain/store-search.js";
 import {
   HttpMarketplaceCatalogReadPort,
+  marketplaceCatalogFromEnv,
   MarketplaceCatalogError,
   SEARCH_MARKETPLACE_SCOPES,
 } from "../infrastructure/http-marketplace-catalog.js";
@@ -187,6 +188,10 @@ describe("HttpMarketplaceCatalogReadPort — signed, names only", () => {
     await expect(port(500, {}).getStore("x")).rejects.toMatchObject({ reason: "marketplace_error_status" });
     await expect(port(200, { ...STORE_RESOURCE, title_ar: "" }).getStore("x")).rejects.toBeInstanceOf(MarketplaceCatalogError);
     await expect(port(200, [STORE_RESOURCE]).getStore("x")).rejects.toMatchObject({ reason: "marketplace_unreadable_body" });
+  });
+
+  it("production composition: unwired without MARKETPLACE_SERVICE_URL; composed port otherwise", () => {
+    expect(marketplaceCatalogFromEnv({})).toBeNull();
   });
 
   it("network failure → unreachable (throws, so the relay keeps the event pending)", async () => {

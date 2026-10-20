@@ -92,14 +92,14 @@
 
 > **إضافة CLM-0647 (2026-10-20 · ADR-075):** أُضيف مدخلُ البحثِ عن المناطقِ `GET /geo/zones/search` (P · geography · `geography:zone:read` · `production_open=false`) لوصلِ نموذجِ الطلبِ في G-S9.3 — الجوابُ مقصورٌ على المناطقِ النشطةِ في الخدمةِ نفسِها ولا معاملَ استعلامٍ يوسّعُه؛ ودليلُه `zone-search.test.ts`. أُضيفَ إلى اللقطةِ بإضافةٍ مؤرَّخةٍ.
 
-> **إضافة CLM-0649 (2026-10-20 · ADR-076):** أُضيف مدخلُ بحثِ المتاجرِ بالاسمِ `GET /search/stores` (P · search · `search:stores:read` · `production_open=false`) لوصلِ شاشةِ السوقِ في G-S9.7 — الجوابُ إسقاطٌ عامٌّ بثلاثةِ حقولٍ لمتجرٍ معتمَدٍ له منتجٌ ظاهرٌ، والخدمةُ ترفضُ كلَّ معاملٍ غيرِ معلَنٍ؛ ودليلُه `store-search.test.ts`. **برهانُ E-20 «المنشورُ فقط» بشكلِه الحاليِّ لا يعبّرُ عن قاعدةِ المتجرِ** دونَ كشفِ حقولِ الحالةِ، فلا يُوسَّعُ الحارسُ صامتًا؛ وشرطُ الفتحِ مكتوبٌ في ADR-076 D4.
+> **إضافة CLM-0649 (2026-10-20 · ADR-025 §6.7):** أُضيف مدخلُ بحثِ المتاجرِ بالاسمِ `GET /search/stores` (P · search · `search:stores:read` · `production_open=false`) لوصلِ شاشةِ السوقِ في G-S9.7 — الجوابُ إسقاطٌ عامٌّ بثلاثةِ حقولٍ لمتجرٍ معتمَدٍ له منتجٌ ظاهرٌ، والخدمةُ ترفضُ كلَّ معاملٍ غيرِ معلَنٍ؛ ودليلُه `store-search.test.ts`. **برهانُ E-20 «المنشورُ فقط» بشكلِه الحاليِّ لا يعبّرُ عن قاعدةِ المتجرِ** دونَ كشفِ حقولِ الحالةِ، فلا يُوسَّعُ الحارسُ صامتًا؛ وشرطُ الفتحِ مكتوبٌ في ADR-025 §6.7 D4.
 
 ## 3. الحالة المقيسة
 
 - سطحان: `customer-mini-app` (13) · `driver-mini-app` (16) = 29 = حصيلة ADR-069 §2.8 (O 19 · P 2 · W 3 · N 5)، مع حذف `PUT /drivers/:waslaPublicId/availability` لأن التطبيق لا يناديه (R-02).
 - **تحديث CLM-0638 (2026-10-20):** 30 مدخلًا (customer 14 · driver 16) = 20 O · 2 P · 3 W · 5 N — زادَ مدخلُ G-S9.11 (O) وحده.
 - **تحديث CLM-0647 (2026-10-20):** 31 مدخلًا (customer 15 · driver 16) = 20 O · 3 P · 3 W · 5 N — زادَ مدخلُ G-S9.3 `GET /geo/zones/search` (P · `production_open=false` · `blocked_until` مكتوبٌ) وحده، بقرارٍ موثَّقٍ في [ADR-075](../15-decisions/ADR-075-edge-snapshot-gs9-3-zone-search.md)؛ واللقطةُ صارت 69 مسارًا (67 الأصليّةُ + ADR-074 + ADR-075).
-- **تحديث CLM-0649 (2026-10-20):** 32 مدخلًا (customer 16 · driver 16) = 20 O · 4 P · 3 W · 5 N — زادَ مدخلُ G-S9.7 `GET /search/stores` (P · `production_open=false` · `blocked_until` مكتوبٌ) وحده، بقرارٍ موثَّقٍ في [ADR-076](../15-decisions/ADR-076-edge-snapshot-gs9-7-store-search.md)؛ واللقطةُ صارت 70 مسارًا (67 الأصليّةُ + ADR-074 + ADR-075 + ADR-076).
+- **تحديث CLM-0649 (2026-10-20):** 32 مدخلًا (customer 16 · driver 16) = 20 O · 4 P · 3 W · 5 N — زادَ مدخلُ G-S9.7 `GET /search/stores` (P · `production_open=false` · `blocked_until` مكتوبٌ) وحده، بقرارٍ موثَّقٍ في [ADR-025 §6.7](../15-decisions/ADR-025-marketplace-search-read-model.md)؛ واللقطةُ صارت 70 مسارًا (67 الأصليّةُ + ADR-074 + ADR-075 + ADR-025 §6.7).
 - **كل المدخلات `production_open: false`.** لم يُفتح شيء ولم تُوسَّع القائمة.
 - تصحيح مقيس واحد عند التشديد: `GET /dispatch/jobs/:job_id/offers` كان يعلن `dispatch:job:read` والشفرة واللقطة كلاهما `DISPATCH_SCOPES.offerRead` = `dispatch:offer:read`. الحارس السابق لم يقارن الصلاحيات فمرّ؛ الباب `EA-SCOPE-CODE` كشفه، وصُحِّح المدخل إلى قيمة الشفرة.
 - 89 حالة في `scripts/checks/lib/gov-cases-edge-allowlist.sh` ضمن `scripts/checks/test-governance.sh` (بعد تدعيم الدلالات التنفيذية، CLM-0523):

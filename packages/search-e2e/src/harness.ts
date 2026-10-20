@@ -68,6 +68,7 @@ import {
   PostgresSearchRequeueStore,
   SearchIndexHealthProbe,
   SearchIndexReader,
+  StoreSearchReader,
   buildSearchHttpApp,
   runRelayBatch,
   type CatalogProduct,
@@ -134,6 +135,7 @@ export const TABLES = [
   "search_marketplace_product_state",
   "search_marketplace_store_state",
   "search_product_index",
+  "search_store_index",
   "marketplace_outbox",
 ] as const;
 
@@ -260,6 +262,8 @@ export async function startGate(): Promise<GateContext> {
     deadLetterReadPort: new PostgresSearchDeadLetterStore(pool),
     relayRequeuePort: new PostgresSearchRequeueStore(pool),
     relayAcknowledgementPort: new PostgresSearchAcknowledgementStore(pool),
+    // G-S9.7 (CLM-0649): الجذرُ الإنتاجيُّ يُمرِّرُ بحثَ المتاجرِ، فالبوّابةُ تُمرِّرُه بالمحوّلِ نفسِه.
+    storeSearchReadPort: new StoreSearchReader(pool),
     // M1-04 · الموجةُ الثانيةَ عشرةَ (CLM-0200): حدُّ البحث يفرضُ هويّةَ الخدمةِ،
     // والبوّابةُ تُوقّعُ نداءاتِها بدلَ أن يُخفَّفَ الحدُّ لراحتِها.
     serviceIdentity: {

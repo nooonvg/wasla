@@ -1170,7 +1170,7 @@ axios-retry، request-promise، isomorphic-fetch، cross-fetch) يجبُ أن ت
 |---|---|---|
 | `GET /search/ready` | `search:ready:read` | — (عمليّةٌ داخليّةٌ) |
 | `GET /search/products` | `search:products:read` | — (عمليّةٌ داخليّةٌ) |
-| `GET /search/stores` | `search:stores:read` | — (عمليّةٌ داخليّةٌ · بحثُ المتاجرِ بالاسمِ G-S9.7 · CLM-0649 · ADR-025 §6 · صلاحيّةٌ مستقلّةٌ عن المنتجاتِ · مدخلُ حدٍّ P مغلقٌ ADR-076) |
+| `GET /search/stores` | `search:stores:read` | — (عمليّةٌ داخليّةٌ · بحثُ المتاجرِ بالاسمِ G-S9.7 · CLM-0649 · ADR-025 §6 · صلاحيّةٌ مستقلّةٌ عن المنتجاتِ · مدخلُ حدٍّ P مغلقٌ ADR-025 §6.7) |
 | `GET /search/relay/dead-letters` | `search:relay-dead-letters:read` | — (عمليّةٌ داخليّةٌ · مسارُ تشغيلٍ) |
 | `POST /search/relay/dead-letters/{ledger}/{outbox_id}/requeue` | `search:relay-dead-letters:requeue` | — (عمليّةٌ داخليّةٌ · مسارُ تشغيلٍ · نطاقٌ مستقلٌّ عن نطاقِ القراءةِ: قراءةُ مقياسٍ ليست تغييرَ حالةِ صفٍّ) |
 | `POST /search/relay/dead-letters/{ledger}/{outbox_id}/acknowledgement` | `search:relay-dead-letters:acknowledge` | — (عمليّةٌ داخليّةٌ · مسارُ تشغيلٍ · **صلاحيّةٌ رابعةٌ مستقلّةٌ**: الإقرارُ يُخرِجُ صفّاً من حكمِ التنبيهِ، وجمعُهُ بصلاحيّةِ الإعادةِ كانَ يُعطي لوحةَ إنقاذٍ قدرةَ إسكاتِ ما لا تُصلِحُهُ) |

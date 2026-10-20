@@ -634,7 +634,7 @@
    "guard": "internalScoped(SEARCH_SCOPES.storesRead)",
    "klass": "P",
    "production_verdict": "conditional",
-   "added_by": "CLM-0649 · ADR-076 (2026-10-20)"
+   "added_by": "CLM-0649 · ADR-025 §6.7 (2026-10-20)"
   }
  ],
  "additions": [
@@ -655,7 +655,7 @@
   {
    "clm": "CLM-0649",
    "date": "2026-10-20",
-   "decision": "ADR-076",
+   "decision": "ADR-025 §6.7",
    "routes_added": ["/search/stores"],
    "note": "إضافةٌ مؤرَّخةٌ لا تعديلٌ آليٌّ: القياسُ الأصليُّ (67) وإضافتا ADR-074 وADR-075 محفوظةٌ؛ أُضيفَ مسارُ بحثِ المتاجرِ بالاسمِ (services/search/src/http/app.ts · internalScoped(storesRead) · P · conditional) لوصلِ شاشةِ السوقِ في G-S9.7؛ المدخلُ مغلقٌ."
   }

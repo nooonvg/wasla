@@ -22,7 +22,7 @@
  * and the projection is not mutated (retry-safety, ADR-025 §2.3).
  */
 
-import type { ServiceRequestSigner } from "@wasla/service-auth";
+import { createServiceRequestSigner, keyRegistryFromEnv, type ServiceRequestSigner } from "@wasla/service-auth";
 
 import type { CatalogReadPort, CatalogStore, StoreCatalogReadPort } from "../ports.js";
 import type { CatalogProduct } from "../domain/consumed-events.js";
@@ -159,4 +159,29 @@ export class HttpMarketplaceCatalogReadPort implements CatalogReadPort, StoreCat
     }
     return parsed as Record<string, unknown>;
   }
+}
+
+/**
+ * The production composition of this port: identity `search`, audience
+ * `marketplace`, exactly `SEARCH_MARKETPLACE_SCOPES` (PRODUCTION_GRANTS[search]).
+ * Keys come from the environment with no default — a relay without keys fails
+ * at composition, not with a silent 401 later (ADR-020 · ADR-022).
+ *
+ * Returns `null` when `MARKETPLACE_SERVICE_URL` is absent: there is no relay
+ * worker deployed yet (CLM-0649 records this — the relay runs in tests and in
+ * `packages/search-e2e` only), so "unwired" is an explicit state, never a
+ * fabricated catalog.
+ */
+export function marketplaceCatalogFromEnv(env: NodeJS.ProcessEnv): HttpMarketplaceCatalogReadPort | null {
+  const baseUrl = env.MARKETPLACE_SERVICE_URL;
+  if (!baseUrl) return null;
+  return new HttpMarketplaceCatalogReadPort({
+    baseUrl,
+    signRequest: createServiceRequestSigner({
+      serviceName: "search",
+      audience: "marketplace",
+      keys: keyRegistryFromEnv(env),
+      scopes: SEARCH_MARKETPLACE_SCOPES,
+    }),
+  });
 }
