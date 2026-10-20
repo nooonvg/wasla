@@ -90,8 +90,17 @@ export function MyOrders() {
 
   // G-S9.12 (CLM-0640): تحديثٌ صامتٌ دوريّ للحالةِ — لا يُومضُ مؤشّرَ التحميلِ ولا يمسحُ
   // القائمةَ عندَ تعذّرِ النداءِ (العرضُ السابقُ يبقى)، ويتوقّفُ في الخلفيّةِ (document.hidden).
+  // CLM-0643 (review follow-up): the current selection, kept synchronously by
+  // openDetail/closeDetail — not mirrored at render time, which would lag one
+  // render behind a click. Each open/close bumps `selectionGenRef`; a detail
+  // response (initial open or periodic refresh) reaches the UI only if its
+  // generation AND its order id are still the current selection. This covers
+  // A→B, close-before-response, re-opening the same order (A→close→A), and a
+  // refresh that lands after the selection changed.
   const selectedIdRef = useRef<string | null>(null);
-  selectedIdRef.current = selectedId;
+  const selectionGenRef = useRef(0);
+  const isCurrent = (gen: number, orderRequestId: string): boolean =>
+    selectionGenRef.current === gen && selectedIdRef.current === orderRequestId;
   const statusRef = useRef("");
   statusRef.current = status;
 
@@ -114,10 +123,12 @@ export function MyOrders() {
   const refreshDetail = useCallback(
     async (orderRequestId: string): Promise<void> => {
       if (!token || !customerId) return;
+      const gen = selectionGenRef.current;
       try {
         const result = await apiClient.get<OrderRequestDetail>(
           `/customers/${customerId}/order-requests/${orderRequestId}`
         );
+        if (!isCurrent(gen, orderRequestId)) return; // stale: selection changed meanwhile
         setDetail(result);
       } catch {
         // صامتٌ: تفاصيلُ آخرِ قراءةٍ ناجحةٍ تبقى.
@@ -141,6 +152,9 @@ export function MyOrders() {
   const openDetail = useCallback(
     async (orderRequestId: string) => {
       if (!token || !customerId) return;
+      selectionGenRef.current += 1;
+      const gen = selectionGenRef.current;
+      selectedIdRef.current = orderRequestId;
       setSelectedId(orderRequestId);
       setDetail(null);
       setDetailError(null);
@@ -149,12 +163,14 @@ export function MyOrders() {
         const result = await apiClient.get<OrderRequestDetail>(
           `/customers/${customerId}/order-requests/${orderRequestId}`
         );
+        if (!isCurrent(gen, orderRequestId)) return; // stale: another selection owns the view
         setDetail(result);
+        setDetailLoading(false);
       } catch (e) {
+        if (!isCurrent(gen, orderRequestId)) return;
         // 404 → «الطلب غير موجود» (CUSTOMER_ORDER_REQUEST_NOT_FOUND)؛ غيره خطأُ تحميلٍ.
         const status = (e as { status?: number }).status;
         setDetailError(status === 404 ? "not_found" : "load_error");
-      } finally {
         setDetailLoading(false);
       }
     },
@@ -162,9 +178,12 @@ export function MyOrders() {
   );
 
   const closeDetail = useCallback(() => {
+    selectionGenRef.current += 1;
+    selectedIdRef.current = null;
     setSelectedId(null);
     setDetail(null);
     setDetailError(null);
+    setDetailLoading(false);
   }, []);
 
   const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
