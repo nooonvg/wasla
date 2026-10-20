@@ -26,6 +26,8 @@
 
 الأعدادُ المنشورةُ المحدَّثةُ: `APP_API_ROUTES.md` (`APP_CALL_SITES` 80 → 81 · `DISTINCT_APP_CALLS` 70 → 71 · `MATCHED_CALL_SITES` 80 → 81) · `EDGE_ALLOWLIST.md` (31 = 20 O · 3 P · 3 W · 5 N).
 
+**الأساسُ (M0-08):** ملفُّ اختبارٍ جديدٌ ← `test_files_tracked` 579 → 580؛ أُعيدَ التوليدُ بـ`scripts/baseline.sh --log` من [raw/verify-log-stale-baseline-only.txt](raw/verify-log-stale-baseline-only.txt) (`verify.sh` أخفقَ فقط على الأساسِ القديمِ) على التزامٍ مدفوعٍ (درسُ CLM-0645).
+
 ## 4) ما لا يتغيّرُ
 
 لا فتحَ إنتاجيٌّ (ADR-069 §6 · G-ENF) · Render مجمَّدٌ (ADR-073) · الحكمُ NO-GO · G-S9.2 كما هو (لا هندسةَ مناطقَ ولا مصدرَ بياناتٍ جديدٌ) · G-S9 الأمُّ مفتوحةٌ · M0-53 قيدَ التنفيذِ.
