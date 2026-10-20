@@ -36,10 +36,25 @@ OK: Work Item references في /home/user/workspace/wasla/docs/16-progress/TASK_L
 [32m✓[0m بنية الحجوزات النشطة صالحة (عنصر عمل موجود · مالك · فرع · نطاق · مهلة ≤ 14د).
 [32m✓[0m لا تناقضَ في السجلِّ: لا حجزَ نشطاً ولهُ إفراجٌ مُوثَّقٌ.
 [32m✓[0m لا تقاطع في النطاقات بين مالكين مختلفين.
-[32m✓[0m لا تغييرات ذات معنى تُوجب حجزاً.
+  الحجز المطابق: CLM-0640 (مُقفَلٌ في هذا النطاق) (الفرع stage-zero/clm-0640-gs9-12-orders-polling)
+[32m✓[0m كل الملفات المُعدّلة داخل النطاق المحجوز.
+
+[32m✓ فحص حجوزات العمل: نجح.[0m
 
 [2m──── 3) قاعدة التوثيق مع الدفع ────[0m
-OK: التغيير محصور في سجلات التقدم أو metadata غير ذات معنى.
+OK: لوحة التنفيذ سليمة (120 عنصر/عناصر).
+OK: Work Item references في /home/user/workspace/wasla/docs/16-progress/TASK_LOG.md تطابق IDs اللوحة.
+
+[1m=== فحص حجوزات العمل ===[0m
+  حجوزات نشطة: 0
+[32m✓[0m بنية الحجوزات النشطة صالحة (عنصر عمل موجود · مالك · فرع · نطاق · مهلة ≤ 14د).
+[32m✓[0m لا تناقضَ في السجلِّ: لا حجزَ نشطاً ولهُ إفراجٌ مُوثَّقٌ.
+[32m✓[0m لا تقاطع في النطاقات بين مالكين مختلفين.
+  الحجز المطابق: CLM-0640 (مُقفَلٌ في هذا النطاق) (الفرع stage-zero/clm-0640-gs9-12-orders-polling)
+[32m✓[0m كل الملفات المُعدّلة داخل النطاق المحجوز.
+
+[32m✓ فحص حجوزات العمل: نجح.[0m
+OK: سجل العمل ولوحة الإطلاق وحجز النطاق محدَّثة مع التغيير ذي المعنى.
 
 [2m──── 4) بياتُ الحجوزات (فرعٌ محذوفٌ وحجزٌ نشط) ────[0m
 [32m✓[0m لا حجوزاتٍ نشطةً في السجل — لا شيءَ يُحرَس.
@@ -325,11 +340,11 @@ OK: لا أنماط أسرار واضحة في الملفات المتتبعة (
   الفروعُ المُعلَنةُ كأدلّةٍ: 25
   الفروعُ ذاتُ الحجوزاتِ النشطةِ: 0
   الفروعُ ذاتُ الحجوزاتِ النشطةِ: 0
-  طلباتُ الدمجِ المفتوحةُ: 1
-  الفروعُ على المنصّةِ: 2
+  طلباتُ الدمجِ المفتوحةُ: 2
+  الفروعُ على المنصّةِ: 3
 
 
-  الفروعُ المُفحوصةُ: 1
+  الفروعُ المُفحوصةُ: 2
   البائتةُ: 0
   [32m✓[0m كلُّ الفروعِ مملوكةٌ أو مُعلَنةٌ — لا فروعَ بائتةَ
 
@@ -349,17 +364,10 @@ OK: لا أنماط أسرار واضحة في الملفات المتتبعة (
 ✓ أسماءُ الدليلِ: 5 رمزًا كلُّها موجودةٌ في الشفرة.
 
 [2m──── 26) STATE-SYNC — حالةُ المشروعِ متزامنةٌ مع التغيير (M0-52) ────[0m
-BLOCKED — project state synchronization required
-BLOCKED: state-only change without a declared, reasoned kind (no documentation catch-up PR).
-  required state updates:
-    docs/16-progress/TASK_LOG.md
-      - state-only change (ledgers only, no implementation). A separate catch-up PR is forbidden: state must travel with the change it describes.
-    if this is a genuine correction or an owner decision, declare it in the new TASK_LOG entry:
-      - **Kind:** state-correction — <what was wrong, measured, and which record it fixes>
-  branch: stage-zero/clm-0640-gs9-12-orders-polling
-  reason:
-    project state is stale
-  rule: docs/00-rules/STATE_SYNC_RULE.md
+PASS — project state synchronized
+  ledger: 4 file(s)
+  implementation: 2 file(s)
+  documentation: 9 file(s)
 
 [2m──── 27) الدمجُ يُغلِقُ الدورة — فرعٌ مدموجٌ باقٍ أو حجزٌ نشطٌ لعملٍ مدموج (M0-52) ────[0m
   [32m✓[0m no merged branch left behind without a documented reason.
@@ -398,11 +406,11 @@ BLOCKED: state-only change without a declared, reasoned kind (no documentation c
   [32m✓ نجح[0m   23) نضارةُ الفروعِ على المنصّةِ (M0-44)
   [32m✓ نجح[0m   24) عقدُ المسارِ بين التطبيقِ والخدمةِ (M3-08)
   [32m✓ نجح[0m   25) أسماءُ دليلِ التدويرِ تطابقُ الشفرة (M3-07)
+  [32m✓ نجح[0m   26) STATE-SYNC — حالةُ المشروعِ متزامنةٌ مع التغيير (M0-52)
   [32m✓ نجح[0m   27) الدمجُ يُغلِقُ الدورة (M0-52)
   [32m✓ نجح[0m   28) edge-allowlist-guard — قوائمُ سماحِ الحدِّ مطابقةٌ للشفرةِ والقرار (ADR-069 · CLM-0521)
   [33m⊘ تخطٍّ[0m  8) CI مانعٌ — جزئيٌّ: جزئيٌّ مُعلَنٌ: الأبوابُ الأربعةُ نجحت على **لقطةٍ مؤرَّخةٍ** (2026-09-28T06:48:00Z)، ولم تُسأل الواجهةُ حيّاً.
-  [31m✗ فشل[0m   26) STATE-SYNC — حالةُ المشروعِ متزامنةٌ مع التغيير (M0-52)
 
-[31m✗ الحوكمة: 1 فحص فاشل. الدفع مرفوض.[0m
-  اقرأ: docs/16-progress/README.md · docs/00-rules/WORK_CLAIM_RULE.md
+[32m✓ الحوكمة: كل الفحوص المُنفَّذة نجحت.[0m
+  [33mتنبيه: 1 فحص تُخطّي — النجاح جزئي لا كامل.[0m
 
