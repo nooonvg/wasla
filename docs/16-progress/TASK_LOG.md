@@ -10,6 +10,30 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0654 — SECURITY: vite ≥6.4.4 (ثلاثُ استشاراتٍ جديدة)
+
+- **Work Item(s):** M6-19C (supply-chain hardening).
+- **Units:** `package.json` (`pnpm.overrides.vite`) · `pnpm-lock.yaml` · `docs/12-testing/BASELINE.json` · `docs/12-testing/ci-evidence/2026-10-21T090000Z-clm-0654-vite-baseline/` · `docs/07-security/IMAGE_VULN_EXCEPTIONS.yaml` · `docs/07-security/RISK_REGISTER.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released (مدموجٌ مع CLM-0653 في PR #2).
+- **Change:** CI على PR #2 (CLM-0653، وثائقُ فقط) فشلَ في `governance-guard` بالفحص 9 (GHSA-698v-4r3x-3vcv · GHSA-r825-w8mm-5pxw · GHSA-587h-7wmj-h5pm في vite 6.4.3، غيرُ مُعلَنةٍ في SECURITY_RULES §11) وفي `image-supply-chain` (Trivy: CVE-2026-112942 HIGH). السببُ نشرُ الاستشاراتِ لا التغيير؛ فـ`main` نفسُه يحملُ vite 6.4.3. الإصلاحُ بالرفعِ: `^6.4.3` → `^6.4.4` و`pnpm install --lockfile-only` (pnpm 9.15.9) ⇒ vite 6.4.5.
+- **Risk(s):** RISK-0050 → open (يبقى مفتوحًا؛ أُضيفَ CVE-2026-111943 — Go stdlib داخلَ ثنائيِّ esbuild 0.25.12 — إلى `docs/07-security/IMAGE_VULN_EXCEPTIONS.yaml` بالمهلةِ نفسِها 2026-12-15، إذ لا إصدارَ esbuild مبنيٌّ بـGo ≥1.26.10).
+- **No-Test-Reason:** رفعُ إصدارٍ في القفلِ وحدَه لا يغيّرُ سلوكًا مكتوبًا؛ يُثبِتُه تشغيلُ المجموعةِ الكاملةِ (`scripts/verify.sh`) على القفلِ الجديدِ وأساسُ `BASELINE.json` المُعادُ توليدُه منه.
+- **Evidence:** `pnpm audit --json` محليًا بعدَ الرفع: moderate 2 (GHSA-82fw-gwwq-j7x9، مُعلَنةٌ حتى 2026-12-08) · high 0 · critical 0. وحكمُ CI على PR #2. وإعادةُ توليدِ `BASELINE.json` بقرارٍ مكتوبٍ (BASELINE_FORMAT §5): تغيَّرت بصمةُ القفلِ وحدَها (`c9ade078…` → `2cc13f48…`)، والعدَّاداتُ كلُّها كما هي (6256 اختبارًا · 441 ملفًّا · 688 حالةَ حوكمة) — السجلُّ الخامُ والجدولُ في `docs/12-testing/ci-evidence/2026-10-21T090000Z-clm-0654-vite-baseline/`.
+- **Deployment:** لا شيء.
+- **Next:** لا شيء.
+
+# 2026-10-21 — CLM-0653 — XR-0: خارطةُ منظومةِ وَصْلة المشتركة وقرارُ ADR-076
+
+- **Work Item(s):** M0-54 (جديد — Ecosystem alignment · XR-0).
+- **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` · `docs/ecosystem/check-ecosystem-sync.mjs` · `.github/workflows/ecosystem-sync.yml` · `scripts/checks/validate-workflow-supply-chain.sh` · `docs/15-decisions/ADR-076-move-sole-delivery-owner-market-retirement.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released (XR-0 مدموجٌ مع نظيرَيه في `nooonvg/wasla-core` و`nooonvg/ceezr` بالمراجعةِ نفسِها Revision 1؛ M0-54 يبقى In Progress حتى XR-1).
+- **Change:** (1) تعليمةُ المالكِ (2026-10-21) مقتبسةٌ في ADR-076 §Decision وفي §1 من الخارطةِ المشتركة. (2) الخارطةُ المشتركةُ Revision 1: الحقائقُ F-1..F-15 بمراتبِ إثبات، والقراراتُ D-XR-1..8، والمراحلُ XR-0..XR-7 بمسارٍ لكلِّ مستودعٍ وبوّابةِ خروج، وسجلُّ قراراتِ المالكِ المفتوحة. (3) ADR-076: MOVE مالكُ تنفيذِ النقلِ والتوصيلِ الوحيد؛ تجميدُ `services/{dispatch,drivers,matching,negotiations,orders,rides}` و`apps/driver-mini-app/` و`bots/driver-bot/` في XR-1 وحذفُها في XR-5 بعدَ رحلةِ XR-4.3؛ `store_order` يبقى. (4) M0-54 صفٌّ جديدٌ في اللوحة. (5) جدولُ المستودعاتِ في `ROADMAP.md` صُحِّحَ إلى `nooonvg/*` (الروابطُ التاريخيّةُ تبقى). (6) `ecosystem-sync.yml` مُعلَنٌ في جردِ `scripts/checks/validate-workflow-supply-chain.sh` (M0-31): بلا سرٍّ ولا كتابة.
+- **Risk(s):** none — لا خطرَ جديدٌ ولا تغييرَ حالةٍ في السجلّ؛ INC-0007 مفتوحةٌ ولا يمسُّها هذا التغيير.
+- **No-Test-Reason:** وثائقُ وسيرُ عملٍ مستقلٌّ لا يمسُّ شيفرةَ الخدمات؛ فحصُ التطابقِ نفسُه يُشغَّلُ في `ecosystem-sync.yml` (نجحَ على PR #2).
+- **Evidence:** `node docs/ecosystem/check-ecosystem-sync.mjs --offline` ناجح · نتيجةُ CI تُسجَّلُ بعدَ الدمج.
+- **Deployment:** لا شيء (لا Render ولا Telegram).
+- **Next:** XR-1.1 حارسُ التجميدِ بحجزٍ مستقلّ · `M5-13D` → Cancelled عندَ دمجِه · XR-3.4/3.5 منتجُ `market.order.created` ومستهلكُ `core.fulfillment.*`.
+
 # 2026-10-20 — CLM-0649 — G-S9.7: بحثُ المتاجرِ بالاسمِ في search — نموذجُ قراءةٍ مشتقٌّ بقرارِ المالكِ
 
 - **Work Item(s):** M0-53 (G-S9.7 — على RQ-CMA-29 · اكتشافا G-S9.19 وG-S9.20) · M0-41 (CLM-0650 على الفرعِ نفسِه: `gov-cases-app-port-wiring.sh` كانَ يحملُ `ROOT_WIRED_PORTS = 16`/`OPTIONAL_PORTS = 16` حرفاً فأسقطَتْه إضافةُ `storeSearchReadPort` (16→17)؛ صارَ يقرأُ المنشورَ — مصدرُ حقيقةٍ واحدٌ، والطفرتانِ ما زالتا تُسقِطانِ).
