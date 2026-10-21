@@ -1,15 +1,18 @@
 /**
- * `session-init.ts` — تهيئةُ الجلسةِ من `Telegram.WebApp.initData` (ADR-069 §2.1).
+ * `session-init.ts` — تهيئةُ الجلسةِ من إثباتِ المضيفِ (ADR-069 §2.1 · XR-8.2).
+ *
+ * **XR-8.2 (CLM-0657):** لا يقرأُ هذا الملفُّ أيَّ كائنٍ خاصٍّ بمنصّة؛ المضيفُ
+ * (تيليجرام أو المتصفّح) يأتي من `../host`، ومعه إثباتُه وطلبُه عندَ الحدّ.
  *
  * **لماذا ملفٌّ منفصلٌ لا تعديلٌ في `main.tsx`؟** التهيئةُ ليست ترتيبَ استيرادٍ
  * بل ترتيبَ تشغيلٍ — تُستدعى من `main.tsx` لا تُدرَجُ فيه. وهذا يسمحُ
  * للاختبارِ أن يستدعيَها بلا إقلاعِ التطبيقِ كاملًا.
  *
  * **لا تُخزَّنُ الجلسةُ في أيِّ تخزينٍ محليٍّ:** الرمزُ في الذاكرةِ وحدها
- * (ADR-044 §4 · ADR-019 §2.5)، وإعادةُ التحميلِ تُعيدُ التهيئةَ من `initData`.
+ * (ADR-044 §4 · ADR-019 §2.5)، وإعادةُ التحميلِ تُعيدُ التهيئةَ من المضيف.
  *
- * **لا يُستهلُّ التطبيقُ بلا جلسةٍ في الإنتاجِ:** يُرسلُ `initData` إلى الحدِّ
- * ويُستقبلُ رمزًا معتمًا، ولا يُقبلُ إلا من `WebApp` مُهيَّأٍ.
+ * **لا يُستهلُّ التطبيقُ بلا جلسةٍ في الإنتاجِ:** يُرسلُ إثباتَ المضيفِ إلى الحدِّ
+ * ويُستقبلُ رمزًا معتمًا، ولا يُقبلُ إلا من مضيفٍ له إثبات.
  *
  * **G-S8 (CLM-0610) — دورةُ الحياةِ:** نتيجةُ التهيئةِ حالةٌ في المخزنِ
  * (`initStatus`/`initError`) لا قيمةٌ تُهمَلُ، فالشاشةُ تعرضُ فشلًا بإعادةِ
@@ -20,18 +23,7 @@
  */
 
 import { useSessionStore, type SessionInitError } from "../store/session";
-
-/** `Telegram.WebApp` كما يراه الحدُّ — لا يُقرأُ إلا بعدَ `ready()`. */
-interface TelegramWebApp {
-  readonly initData: string;
-  ready(): void;
-}
-
-/** يُقرأُ `Telegram.WebApp` من النافذةِ لا من أيِّ مصدرٍ آخر. */
-function readWebApp(): TelegramWebApp | null {
-  const w = window as unknown as { Telegram?: { WebApp?: TelegramWebApp } };
-  return w.Telegram?.WebApp ?? null;
-}
+import { detectHost, sessionRequest } from "../host";
 
 /** ردُّ الحدِّ على `POST /edge/session` — لا يحملُ إلا ما يُخزَّنُ في الذاكرةِ. */
 interface EdgeSessionResponse {
@@ -48,7 +40,7 @@ interface EdgeError {
 }
 
 /**
- * تهيئةُ الجلسةِ من `Telegram.WebApp.initData` عبرَ حدِّ القناةِ.
+ * تهيئةُ الجلسةِ من إثباتِ المضيفِ عبرَ حدِّ القناةِ.
  *
  * **لا يُعيدُ الرمزَ ولا يُخزِّنُهُ في أيِّ مكانٍ غيرِ الذاكرةِ.** ويُرجعُ
  * `true` عندَ النجاحِ و`false` عندَ أيِّ فشلٍ (لا يرفعُ — ولا حتى خطأَ شبكةٍ)،
@@ -57,7 +49,7 @@ interface EdgeError {
  */
 let inflight: Promise<boolean> | null = null;
 
-export function initSessionFromTelegram(): Promise<boolean> {
+export function initSession(): Promise<boolean> {
   if (inflight) return inflight;
   inflight = runInit().finally(() => {
     inflight = null;
@@ -71,21 +63,23 @@ async function runInit(): Promise<boolean> {
     useSessionStore.getState().setInitState("failed", error);
     return false;
   };
-  const webApp = readWebApp();
-  if (!webApp || !webApp.initData) {
-    // لا يُستهلُّ التطبيقُ من خارجِ تلغرامَ — ولا يُختَرَعُ مصدرُ جلسةٍ ثانٍ؛
-    // الفشلُ ظاهرٌ بسببِه بدلَ تحميلٍ لا ينتهي.
+  const host = detectHost();
+  const credential = host.sessionCredential();
+  if (!credential) {
+    // مضيفٌ بلا إثباتٍ مبنيٍّ (المتصفّحُ اليوم، حتى XR-8.5) — لا يُختَرَعُ مصدرُ
+    // جلسةٍ ثانٍ؛ الفشلُ ظاهرٌ بسببِه بدلَ تحميلٍ لا ينتهي.
     return fail("not_in_telegram");
   }
   store.setInitState("initializing");
-  webApp.ready();
+  host.ready();
+  const request = sessionRequest(credential);
   const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}/edge/session`, {
+    response = await fetch(`${baseUrl}${request.path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ init_data: webApp.initData }),
+      body: JSON.stringify(request.body),
     });
   } catch {
     return fail("network");
@@ -113,7 +107,7 @@ async function runInit(): Promise<boolean> {
 /** إعادةُ محاولةٍ يدويّةٌ من شاشةِ الفشلِ — تُصفِّرُ ميزانيةَ الإعادةِ التلقائيّةِ. */
 export function retrySession(): Promise<boolean> {
   autoReinitAt = [];
-  return initSessionFromTelegram();
+  return initSession();
 }
 
 export interface SessionLifecycleOptions {
@@ -160,11 +154,11 @@ export function startSessionLifecycle(options: SessionLifecycleOptions = {}): ()
       return;
     }
     autoReinitAt.push(now);
-    void initSessionFromTelegram();
+    void initSession();
   });
 
   armExpiry(useSessionStore.getState().expiresAt);
-  void initSessionFromTelegram();
+  void initSession();
 
   return () => {
     unsubscribe();

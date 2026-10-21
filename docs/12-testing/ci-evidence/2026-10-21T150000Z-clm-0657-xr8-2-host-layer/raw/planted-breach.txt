@@ -1,0 +1,8 @@
+     → expected [ '../App.tsx' ] to deeply equal []
+   ✓ host boundary guard > a planted direct Telegram call outside src/host/ is caught 1ms
+   ✓ host boundary guard > the same call inside src/host/, or only in prose and strings, passes 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/__tests__/session-init.test.ts > host boundary guard > no production file outside src/host/ names a platform SDK
+AssertionError: expected [ '../App.tsx' ] to deeply equal []
++   "../App.tsx",
+      Tests  1 failed | 21 passed (22)

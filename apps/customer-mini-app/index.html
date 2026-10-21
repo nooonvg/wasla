@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
+    <!-- XR-8.2 (CLM-0657): سكربتُ تيليجرام الرسميُّ قبلَ أيِّ سكربتٍ آخر، كما تشترطُ
+         https://core.telegram.org/bots/webapps — بدونه لا يُعرَّفُ Telegram.WebApp
+         داخلَ تيليجرام فلا تُهيَّأُ الجلسة. خارجَ تيليجرام تبقى initData فارغةً فيُعامَلُ
+         المضيفُ متصفّحًا (src/host/). -->
+    <script src="https://telegram.org/js/telegram-web-app.js?64"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>وَصْلة</title>

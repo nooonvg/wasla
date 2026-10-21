@@ -1,16 +1,17 @@
 /**
  * G-S8 (CLM-0610): direct tests for `session-init.ts` — init outcomes, expiry
  * and 401 re-init, the loop budget, single-flight, manual retry, and logout.
- * `fetch` and `Telegram.WebApp` are stubbed; time is faked (no real waiting).
+ * `fetch` and the Telegram host object are stubbed; time is faked (no real waiting).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useSessionStore } from "../store/session";
 import {
-  initSessionFromTelegram,
+  initSession,
   retrySession,
   startSessionLifecycle,
   logoutSession,
 } from "../session/session-init";
+import { detectHost, sessionRequest } from "../host";
 
 const T0 = new Date("2026-10-18T06:00:00.000Z").getTime();
 
@@ -56,10 +57,10 @@ afterEach(() => {
   setTelegram(null);
 });
 
-describe("initSessionFromTelegram", () => {
+describe("initSession", () => {
   it("outside Telegram fails as not_in_telegram without any network call", async () => {
     setTelegram(null);
-    await expect(initSessionFromTelegram()).resolves.toBe(false);
+    await expect(initSession()).resolves.toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(useSessionStore.getState().initStatus).toBe("failed");
     expect(useSessionStore.getState().initError).toBe("not_in_telegram");
@@ -67,7 +68,7 @@ describe("initSessionFromTelegram", () => {
 
   it("posts init_data to /edge/session and stores the session in memory as ready", async () => {
     fetchMock.mockResolvedValueOnce(sessionResponse("tok-1", 3_600_000));
-    await expect(initSessionFromTelegram()).resolves.toBe(true);
+    await expect(initSession()).resolves.toBe(true);
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(String(url)).toMatch(/\/edge\/session$/);
     expect(init.method).toBe("POST");
@@ -84,14 +85,14 @@ describe("initSessionFromTelegram", () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ code: "INIT_DATA_INVALID", message: "x" }), { status: 401 }),
     );
-    await expect(initSessionFromTelegram()).resolves.toBe(false);
+    await expect(initSession()).resolves.toBe(false);
     expect(useSessionStore.getState().token).toBeNull();
     expect(useSessionStore.getState().initError).toBe("edge_rejected");
   });
 
   it("a network error fails as network instead of rejecting", async () => {
     fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
-    await expect(initSessionFromTelegram()).resolves.toBe(false);
+    await expect(initSession()).resolves.toBe(false);
     expect(useSessionStore.getState().initStatus).toBe("failed");
     expect(useSessionStore.getState().initError).toBe("network");
   });
@@ -100,14 +101,14 @@ describe("initSessionFromTelegram", () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ token: "t", wasla_public_id: "WS-1", expires_at: "nope", session_id: "s" }), { status: 200 }),
     );
-    await expect(initSessionFromTelegram()).resolves.toBe(false);
+    await expect(initSession()).resolves.toBe(false);
     expect(useSessionStore.getState().token).toBeNull();
     expect(useSessionStore.getState().initError).toBe("invalid_response");
   });
 
   it("concurrent calls share a single request", async () => {
     fetchMock.mockResolvedValueOnce(sessionResponse("tok-1", 3_600_000));
-    const [a, b] = await Promise.all([initSessionFromTelegram(), initSessionFromTelegram()]);
+    const [a, b] = await Promise.all([initSession(), initSession()]);
     expect(a).toBe(true);
     expect(b).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -184,3 +185,123 @@ describe("startSessionLifecycle", () => {
     expect(String(fetchMock.mock.calls[1]![0])).toMatch(/\/edge\/session\/logout$/);
   });
 });
+
+// ── XR-8.2 (CLM-0657): طبقةُ المضيف ─────────────────────────────────────────
+
+describe("host detection (src/host/)", () => {
+  it("Telegram with initData is the telegram host and yields its credential", () => {
+    const host = detectHost();
+    expect(host.kind).toBe("telegram");
+    expect(host.sessionCredential()).toEqual({
+      kind: "telegram_init_data",
+      value: "query_id=1&user=%7B%7D&hash=abc",
+    });
+  });
+
+  it("the official SDK outside Telegram (empty initData) is a browser, not Telegram", () => {
+    setTelegram("");
+    const host = detectHost();
+    expect(host.kind).toBe("browser");
+    expect(host.sessionCredential()).toBeNull();
+  });
+
+  it("no SDK at all is a browser with no credential", () => {
+    setTelegram(null);
+    expect(detectHost().kind).toBe("browser");
+    expect(detectHost().sessionCredential()).toBeNull();
+  });
+
+  it("ready() reaches Telegram only through the telegram host", async () => {
+    const ready = vi.fn();
+    (window as unknown as { Telegram: unknown }).Telegram = { WebApp: { initData: "a=1", ready } };
+    fetchMock.mockResolvedValueOnce(sessionResponse("tok-1", 3_600_000));
+    await expect(initSession()).resolves.toBe(true);
+    expect(ready).toHaveBeenCalledTimes(1);
+  });
+
+  it("a browser never calls the edge and never calls ready()", async () => {
+    setTelegram(null);
+    await expect(initSession()).resolves.toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("maps the Telegram credential to the edge contract unchanged", () => {
+    expect(sessionRequest({ kind: "telegram_init_data", value: "x=1" })).toEqual({
+      path: "/edge/session",
+      body: { init_data: "x=1" },
+    });
+  });
+});
+
+// يقرأُ كلَّ ملفّاتِ الإنتاجِ في src/ (بلا الاختباراتِ وبلا src/host/) بعدَ إزالةِ
+// التعليقاتِ والنصوصِ الحرفيّة — النثرُ والترجماتُ تذكرُ تيليجرام شرحًا لا استدعاءً —
+// ويفشلُ إن ظهر معرّفٌ خاصٌّ بمنصّة. الحدُّ المُعلَن: الوصولُ عبرَ نصٍّ محسوبٍ
+// (window["Tele" + "gram"]) لا يُرى؛ هذا حارسٌ للخطأ الشائعِ لا لقصدِ التحايل.
+const PLATFORM_IDENTIFIERS = /\b(Telegram|WebApp|initData|init_data|DiscordSDK|Capacitor)\b/;
+
+function stripCommentsAndStrings(src: string): string {
+  let out = "";
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i]!;
+    const n = src[i + 1];
+    if (c === "/" && n === "/") {
+      while (i < src.length && src[i] !== "\n") i++;
+    } else if (c === "/" && n === "*") {
+      i += 2;
+      while (i < src.length && !(src[i] === "*" && src[i + 1] === "/")) i++;
+      i += 2;
+    } else if (c === '"' || c === "'" || c === "`") {
+      i++;
+      while (i < src.length && src[i] !== c) i += src[i] === "\\" ? 2 : 1;
+      i++;
+      out += '""';
+    } else {
+      out += c;
+      i++;
+    }
+  }
+  return out;
+}
+
+function hostBoundaryViolations(files: Record<string, string>): string[] {
+  return Object.entries(files)
+    .filter(([path]) => !path.includes("/__tests__/") && !path.includes("/host/"))
+    .filter(([, src]) => PLATFORM_IDENTIFIERS.test(stripCommentsAndStrings(src)))
+    .map(([path]) => path);
+}
+
+describe("host boundary guard", () => {
+  const sources = import.meta.glob<string>("../**/*.{ts,tsx}", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  });
+
+  it("scans the real tree (the session module and src/host/ are present)", () => {
+    const paths = Object.keys(sources);
+    expect(paths.some((p) => p.endsWith("/session/session-init.ts"))).toBe(true);
+    expect(paths.some((p) => p.endsWith("/host/telegram.ts"))).toBe(true);
+  });
+
+  it("no production file outside src/host/ names a platform SDK", () => {
+    expect(hostBoundaryViolations(sources)).toEqual([]);
+  });
+
+  it("a planted direct Telegram call outside src/host/ is caught", () => {
+    const planted = {
+      "../screens/Planted.tsx": "const d = (window as any).Telegram.WebApp.initData; // planted",
+    };
+    expect(hostBoundaryViolations(planted)).toEqual(["../screens/Planted.tsx"]);
+  });
+
+  it("the same call inside src/host/, or only in prose and strings, passes", () => {
+    expect(
+      hostBoundaryViolations({
+        "../host/x.ts": "window.Telegram.WebApp.ready();",
+        "../i18n/x.ts": 'const m = "Open the app from Telegram"; /* Telegram.WebApp */',
+      }),
+    ).toEqual([]);
+  });
+});
+
