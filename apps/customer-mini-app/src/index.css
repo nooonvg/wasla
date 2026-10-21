@@ -95,3 +95,20 @@ video {
     font-size: 15px;
   }
 }
+
+/* XR-8.3a (CLM-0658): الحاسوبُ والشاشاتُ الواسعة — عمودٌ واحدٌ في الوسطِ بعرضٍ
+   مقروءٍ بدلَ تمدُّدِ القوائمِ على عرضِ الشاشةِ كلِّه. الجوالُ وتيليجرام لا يتغيّران. */
+@media (min-width: 768px) {
+  body {
+    background: #f5f6f8;
+  }
+
+  .app,
+  .app-loading {
+    max-width: 720px;
+    margin-inline: auto;
+    background: var(--wasla-bg);
+    box-shadow: 0 0 0 1px var(--wasla-border);
+  }
+}
+

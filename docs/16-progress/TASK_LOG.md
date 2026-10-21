@@ -10,6 +10,18 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0658 — XR-8.3a: تطبيق الزبون يُثبَّت من المتصفح ويُقرأ على الحاسوب
+
+- **Work Item(s):** M0-54 (XR-8.3، الجزء أ).
+- **Units:** `apps/customer-mini-app/public/manifest.webmanifest` (جديد) · `apps/customer-mini-app/public/icons/` (جديد: 192 · 512 · 180) · `apps/customer-mini-app/index.html` · `apps/customer-mini-app/src/index.css` · `apps/customer-mini-app/e2e/frontend-quality.spec.ts` · `docs/12-testing/ci-evidence/2026-10-21T160000Z-clm-0658-xr8-3a-web-manifest/` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released.
+- **Change:** manifest يستوفي معيار Chrome للتثبيت (الاسم، `start_url`، `display: standalone`، أيقونتان 192 و512، `lang: ar`، `dir: rtl`)؛ أيقونات مؤقتة حتى OD-XR-7؛ `theme-color`؛ وعمود واحد بعرض أقصاه 720px في الوسط من 768px فأعلى. لا عامل خدمة.
+- **Risk(s):** none — لا خطر يُفتح ولا يُغلق؛ ملفات ثابتة وCSS، ولا نداء شبكة جديد.
+- **Tests:** Playwright 39/39 (37 + 2) · خرق مزروع (حذف قاعدة الحاسوب) سقط · vitest 141/141.
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-21T160000Z-clm-0658-xr8-3a-web-manifest/`.
+- **Deployment:** لا شيء.
+- **Next:** XR-8.3 لا يُغلق قبل دخول المتصفح (XR-8.5 · B-45 في CORE). التالي هنا: صفحة «حسابي» ومبدّل التطبيقات (XR-8.9) بواجهة لا تحتاج CORE بعد.
+
 # 2026-10-21 — CLM-0657 — XR-8.2: طبقة المضيف في تطبيق الزبون، وسكربت تيليجرام الذي لم يكن محمَّلًا
 
 - **Work Item(s):** M0-54 (XR-8.2).

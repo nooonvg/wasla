@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
+    <meta charset="UTF-8" />
     <!-- XR-8.2 (CLM-0657): سكربتُ تيليجرام الرسميُّ قبلَ أيِّ سكربتٍ آخر، كما تشترطُ
          https://core.telegram.org/bots/webapps — بدونه لا يُعرَّفُ Telegram.WebApp
          داخلَ تيليجرام فلا تُهيَّأُ الجلسة. خارجَ تيليجرام تبقى initData فارغةً فيُعامَلُ
          المضيفُ متصفّحًا (src/host/). -->
     <script src="https://telegram.org/js/telegram-web-app.js?64"></script>
-    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>وَصْلة</title>
+    <!-- XR-8.3a (CLM-0658): قابليّةُ التثبيتِ من المتصفّح (manifest وأيقونات). الأيقونةُ
+         مؤقّتةٌ حتى قرارِ المالكِ في العلامة (OD-XR-7). -->
+    <meta name="theme-color" content="#0066cc" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   </head>
   <body>
     <div id="root"></div>
