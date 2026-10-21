@@ -14,7 +14,7 @@
 
 - **Work Item(s):** M0-54 (جديد — Ecosystem alignment · XR-0).
 - **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` · `docs/ecosystem/check-ecosystem-sync.mjs` · `.github/workflows/ecosystem-sync.yml` · `docs/15-decisions/ADR-076-move-sole-delivery-owner-market-retirement.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
-- **Status:** In Review (يُدمَجُ مع نظيرَيه في `nooonvg/wasla-core` و`nooonvg/ceezr` بالمراجعةِ نفسِها).
+- **Status:** Released (XR-0 مدموجٌ مع نظيرَيه في `nooonvg/wasla-core` و`nooonvg/ceezr` بالمراجعةِ نفسِها Revision 1؛ M0-54 يبقى In Progress حتى XR-1).
 - **Change:** (1) تعليمةُ المالكِ (2026-10-21) مقتبسةٌ في ADR-076 §Decision وفي §1 من الخارطةِ المشتركة. (2) الخارطةُ المشتركةُ Revision 1: الحقائقُ F-1..F-15 بمراتبِ إثبات، والقراراتُ D-XR-1..8، والمراحلُ XR-0..XR-7 بمسارٍ لكلِّ مستودعٍ وبوّابةِ خروج، وسجلُّ قراراتِ المالكِ المفتوحة. (3) ADR-076: MOVE مالكُ تنفيذِ النقلِ والتوصيلِ الوحيد؛ تجميدُ `services/{dispatch,drivers,matching,negotiations,orders,rides}` و`apps/driver-mini-app/` و`bots/driver-bot/` في XR-1 وحذفُها في XR-5 بعدَ رحلةِ XR-4.3؛ `store_order` يبقى. (4) M0-54 صفٌّ جديدٌ في اللوحة. (5) جدولُ المستودعاتِ في `ROADMAP.md` صُحِّحَ إلى `nooonvg/*` (الروابطُ التاريخيّةُ تبقى).
 - **Risk(s):** لا شيءَ جديدًا. INC-0007 مفتوحةٌ ولا يمسُّها هذا التغيير.
 - **Evidence:** `node docs/ecosystem/check-ecosystem-sync.mjs --offline` ناجح · نتيجةُ CI تُسجَّلُ بعدَ الدمج.
