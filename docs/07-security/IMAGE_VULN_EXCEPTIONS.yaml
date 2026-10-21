@@ -144,3 +144,12 @@ vulnerabilities:
     paths: *esbuild_paths
     statement: *esbuild_statement
     expired_at: 2026-12-15
+  # CLM-0654 (2026-10-21): الفئةُ نفسُها — CVE-2026-111943 (crypto/x509؛ إصلاحُها في Go
+  # 1.26.10/1.27.3) قاسَها الشوطُ 39566996125 (image-supply-chain) على PR #2 بعدَ تحديثِ
+  # قاعدةِ trivy. لا إصدارَ esbuild مبنيّاً بمكتبةٍ مصحّحةٍ: أحدثُها 0.28.2 (2026-08-08)
+  # = go1.26.5 — قيسَ بـ npm pack + strings في 2026-10-21. والثنائيُّ لا يعالجُ شهاداتٍ
+  # من الشبكة. الاستثناءُ من الحَجزِ لا من القياسِ، والمهلةُ تعضُّ معَ بقيةِ الفئةِ.
+  - id: CVE-2026-111943
+    paths: *esbuild_paths
+    statement: *esbuild_statement
+    expired_at: 2026-12-15
