@@ -1,0 +1,12 @@
+  ✓ self-test: modification in services/dispatch is rejected
+  ✓ self-test: addition in bots/driver-bot is rejected
+  ✓ self-test: frozen delivery leg file is rejected
+  ✓ self-test: rename into a frozen prefix is rejected
+  ✓ self-test: deletion in services/matching is allowed
+  ✓ self-test: XR-RETIRE commit may edit frozen paths
+  ✓ self-test: SECURITY commit may edit frozen paths
+  ✓ self-test: store_order code in services/delivery stays open
+  ✓ self-test: services/marketplace stays open
+  ✓ self-test: SECURITYX is not the SECURITY tag
+  ✓ self-test: SECURITY_RULES is not the SECURITY tag
+✓ xr-domain-freeze self-test: all cases

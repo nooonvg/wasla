@@ -1,0 +1,21 @@
+## planted breach 1: edit services/dispatch/src/__tests__/accept-offer.test.ts (no tag)
+  commit d535bc5:
+  ✗ [XR-FREEZE] M services/dispatch/src/__tests__/accept-offer.test.ts — frozen by ADR-076 (XR-1). Removal, or a commit tagged XR-RETIRE / SECURITY, only.
+✗ xr-domain-freeze: 1 change(s) in frozen MOVE/CORE domains
+✗ xr-domain-freeze: unapproved change in frozen MOVE/CORE domains (ADR-076 · XR-1)
+rc=1
+## 2: same edit tagged XR-RETIRE
+✓ xr-domain-freeze: 1 commit(s) checked · 12 frozen prefixes + 4 frozen files (ADR-076 · XR-1)
+rc=0
+## 3: deletion
+✓ xr-domain-freeze: 1 commit(s) checked · 12 frozen prefixes + 4 frozen files (ADR-076 · XR-1)
+rc=0
+## 4: tagged commit does not exempt another untagged commit
+  commit 75c5415:
+  ✗ [XR-FREEZE] M services/delivery/src/use-cases/delegate-to-dispatch.ts — frozen by ADR-076 (XR-1). Removal, or a commit tagged XR-RETIRE / SECURITY, only.
+✗ xr-domain-freeze: 1 change(s) in frozen MOVE/CORE domains
+✗ xr-domain-freeze: unapproved change in frozen MOVE/CORE domains (ADR-076 · XR-1)
+rc=1
+## 5: store_order area open
+✓ xr-domain-freeze: 1 commit(s) checked · 12 frozen prefixes + 4 frozen files (ADR-076 · XR-1)
+rc=0
