@@ -13,12 +13,12 @@
 # 2026-10-21 — CLM-0654 — SECURITY: vite ≥6.4.4 (ثلاثُ استشاراتٍ جديدة)
 
 - **Work Item(s):** M6-19C (supply-chain hardening).
-- **Units:** `package.json` (`pnpm.overrides.vite`) · `pnpm-lock.yaml` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Units:** `package.json` (`pnpm.overrides.vite`) · `pnpm-lock.yaml` · `docs/12-testing/BASELINE.json` · `docs/12-testing/ci-evidence/2026-10-21T090000Z-clm-0654-vite-baseline/` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
 - **Status:** Released (مدموجٌ مع CLM-0653 في PR #2).
 - **Change:** CI على PR #2 (CLM-0653، وثائقُ فقط) فشلَ في `governance-guard` بالفحص 9 (GHSA-698v-4r3x-3vcv · GHSA-r825-w8mm-5pxw · GHSA-587h-7wmj-h5pm في vite 6.4.3، غيرُ مُعلَنةٍ في SECURITY_RULES §11) وفي `image-supply-chain` (Trivy: CVE-2026-112942 HIGH). السببُ نشرُ الاستشاراتِ لا التغيير؛ فـ`main` نفسُه يحملُ vite 6.4.3. الإصلاحُ بالرفعِ: `^6.4.3` → `^6.4.4` و`pnpm install --lockfile-only` (pnpm 9.15.9) ⇒ vite 6.4.5.
 - **Risk(s):** لا شيءَ جديدًا.
 - **No-Test-Reason:** رفعُ إصدارٍ في القفلِ وحدَه لا يغيّرُ سلوكًا مكتوبًا؛ يُثبِتُه تشغيلُ المجموعةِ الكاملةِ (`scripts/verify.sh`) على القفلِ الجديدِ وأساسُ `BASELINE.json` المُعادُ توليدُه منه.
-- **Evidence:** `pnpm audit --json` محليًا بعدَ الرفع: moderate 2 (GHSA-82fw-gwwq-j7x9، مُعلَنةٌ حتى 2026-12-08) · high 0 · critical 0. وحكمُ CI على PR #2.
+- **Evidence:** `pnpm audit --json` محليًا بعدَ الرفع: moderate 2 (GHSA-82fw-gwwq-j7x9، مُعلَنةٌ حتى 2026-12-08) · high 0 · critical 0. وحكمُ CI على PR #2. وإعادةُ توليدِ `BASELINE.json` بقرارٍ مكتوبٍ (BASELINE_FORMAT §5): تغيَّرت بصمةُ القفلِ وحدَها (`c9ade078…` → `2cc13f48…`)، والعدَّاداتُ كلُّها كما هي (6256 اختبارًا · 441 ملفًّا · 688 حالةَ حوكمة) — السجلُّ الخامُ والجدولُ في `docs/12-testing/ci-evidence/2026-10-21T090000Z-clm-0654-vite-baseline/`.
 - **Deployment:** لا شيء.
 - **Next:** لا شيء.
 

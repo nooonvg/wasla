@@ -1,25 +1,25 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-20T10:16:07Z",
+  "generated_at": "2026-10-21T08:05:22Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "cd88f6d1d803d556325ca614ff8e57557c88b0c5",
-    "branch": "stage-zero/clm-0649-gs9-7-store-search",
+    "commit": "d5fddcd515a943f420c42544b20439f681f81de5",
+    "branch": "stage-zero/clm-0653-ecosystem-roadmap",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3558
+    "tracked_files": 3566
   },
   "env": {
     "node": "v20.20.2",
     "pnpm": "9.15.9",
     "os": "Linux",
     "arch": "x86_64",
-    "python": "3.14.3"
+    "python": "3.14.8"
   },
   "lock": {
     "path": "pnpm-lock.yaml",
-    "sha256": "c9ade0782d20d86f6fb3596c2b6b792657a94c403d2f1ea5ed3cf761bff6e5f4",
+    "sha256": "2cc13f48430499deadf102c08de3d857fc96745a3ec7f5b7a8c14b3ba7f26b58",
     "lines": 5126
   },
   "static": {
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-20T150000Z-clm-0649-gs9-7-store-search/raw/verify-log-d2c3355-baseline-board-only.txt",
+    "source": "docs/12-testing/ci-evidence/2026-10-21T090000Z-clm-0654-vite-baseline/raw/verify-log-30b3b73.txt",
     "tests_passed": 6256,
     "test_files_executed": 441,
     "governance_suite_cases": 688,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:dd592c49a2b2fcbb3257059f4ba860732c8f8bc56c6294e1d40dea2b07ca56b4",
+  "fingerprint": "sha256:cb89236386c30f05eb639b5be1f73019502952bde39af202cc716e16dd0c4170",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
