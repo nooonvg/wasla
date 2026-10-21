@@ -10,6 +10,17 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0653 — XR-0: خارطةُ منظومةِ وَصْلة المشتركة وقرارُ ADR-076
+
+- **Work Item(s):** M0-54 (جديد — Ecosystem alignment · XR-0).
+- **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` · `docs/ecosystem/check-ecosystem-sync.mjs` · `.github/workflows/ecosystem-sync.yml` · `docs/15-decisions/ADR-076-move-sole-delivery-owner-market-retirement.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** In Review (يُدمَجُ مع نظيرَيه في `nooonvg/wasla-core` و`nooonvg/ceezr` بالمراجعةِ نفسِها).
+- **Change:** (1) تعليمةُ المالكِ (2026-10-21) مقتبسةٌ في ADR-076 §Decision وفي §1 من الخارطةِ المشتركة. (2) الخارطةُ المشتركةُ Revision 1: الحقائقُ F-1..F-15 بمراتبِ إثبات، والقراراتُ D-XR-1..8، والمراحلُ XR-0..XR-7 بمسارٍ لكلِّ مستودعٍ وبوّابةِ خروج، وسجلُّ قراراتِ المالكِ المفتوحة. (3) ADR-076: MOVE مالكُ تنفيذِ النقلِ والتوصيلِ الوحيد؛ تجميدُ `services/{dispatch,drivers,matching,negotiations,orders,rides}` و`apps/driver-mini-app/` و`bots/driver-bot/` في XR-1 وحذفُها في XR-5 بعدَ رحلةِ XR-4.3؛ `store_order` يبقى. (4) M0-54 صفٌّ جديدٌ في اللوحة. (5) جدولُ المستودعاتِ في `ROADMAP.md` صُحِّحَ إلى `nooonvg/*` (الروابطُ التاريخيّةُ تبقى).
+- **Risk(s):** لا شيءَ جديدًا. INC-0007 مفتوحةٌ ولا يمسُّها هذا التغيير.
+- **Evidence:** `node docs/ecosystem/check-ecosystem-sync.mjs --offline` ناجح · نتيجةُ CI تُسجَّلُ بعدَ الدمج.
+- **Deployment:** لا شيء (لا Render ولا Telegram).
+- **Next:** XR-1.1 حارسُ التجميدِ بحجزٍ مستقلّ · `M5-13D` → Cancelled عندَ دمجِه · XR-3.4/3.5 منتجُ `market.order.created` ومستهلكُ `core.fulfillment.*`.
+
 # 2026-10-20 — CLM-0649 — G-S9.7: بحثُ المتاجرِ بالاسمِ في search — نموذجُ قراءةٍ مشتقٌّ بقرارِ المالكِ
 
 - **Work Item(s):** M0-53 (G-S9.7 — على RQ-CMA-29 · اكتشافا G-S9.19 وG-S9.20) · M0-41 (CLM-0650 على الفرعِ نفسِه: `gov-cases-app-port-wiring.sh` كانَ يحملُ `ROOT_WIRED_PORTS = 16`/`OPTIONAL_PORTS = 16` حرفاً فأسقطَتْه إضافةُ `storeSearchReadPort` (16→17)؛ صارَ يقرأُ المنشورَ — مصدرُ حقيقةٍ واحدٌ، والطفرتانِ ما زالتا تُسقِطانِ).
