@@ -59,6 +59,7 @@ docs/16-progress/MASTER_PROGRESS.md
 
 | Claim ID | Work Item | Owner | Branch | Scope Paths | Started | Expires | Status |
 | --- | --- | --- | --- | --- | --- | --- |
+| CLM-0660 | M0-54 | @nooonvg (agent:perplexity-computer) | stage-zero/clm-0660-ecosystem-revision-4 | docs/ecosystem/,docs/16-progress/,ROADMAP.md | 2026-10-21 | 2026-11-04 | Released | CLM-0660 — الخارطة المشتركة Revision 4: §9 يسجل عزل صلاحيات المنصة في CORE وجزء CORE من XR-8.9، وOD-XR-10. وثائق فقط. Delivered. |
 | CLM-0659 | M0-54 | @nooonvg (agent:perplexity-computer) | stage-zero/clm-0659-ecosystem-revision-3 | docs/ecosystem/,docs/16-progress/,ROADMAP.md | 2026-10-21 | 2026-11-04 | Released | CLM-0659 — الخارطة المشتركة Revision 3: §9 حالة التنفيذ المقيسة، وXR-3.2 مغلق في CORE. وثائق فقط. Delivered. |
 | CLM-0658 | M0-54 | @nooonvg (agent:perplexity-computer) | stage-zero/clm-0658-xr8-3a-web-manifest | apps/customer-mini-app/,docs/12-testing/ci-evidence/,docs/16-progress/,ROADMAP.md | 2026-10-21 | 2026-11-04 | Released | CLM-0658 — XR-8.3a: manifest وأيقونات (مؤقتة حتى OD-XR-7) وتخطيط الحاسوب في customer-mini-app. Delivered. |
 | CLM-0657 | M0-54 | @nooonvg (agent:perplexity-computer) | stage-zero/clm-0657-xr8-2-host-layer | apps/customer-mini-app/,docs/12-testing/ci-evidence/,docs/15-decisions/ADR-077-multichannel-one-account-three-apps.md,docs/16-progress/,ROADMAP.md | 2026-10-21 | 2026-11-04 | Released | CLM-0657 — XR-8.2: طبقة المضيف في customer-mini-app (src/host/) + سكربت تيليجرام الرسمي في index.html + حارس حدود المضيف. Delivered. |

@@ -10,6 +10,18 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0660 — الخارطة المشتركة Revision 4: جزء CORE من سلّم الأدوار
+
+- **Work Item(s):** M0-54 (XR-0.1 تزامن الخارطة؛ تسجيل جزء CORE من XR-8.9).
+- **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released.
+- **Change:** Revision 4 مطابقة بايتًا في `nooonvg/wasla-core` و`nooonvg/ceezr` (sha256 `64b99f2d…`): §9 يسجل B-46 (wasla-core PR #6: صلاحيات المنصة لـ`platform_admin` وحده)، وB-47 (PR #7: الصلاحية تُقرأ من عضوية المنظمة المسماة، و`GET /v1/sessions/current` ينشر `memberships`)، وجزء CORE من XR-8.9 (PR #8: `POST /v1/me/organizations`). قرار مالك جديد مفتوح OD-XR-10 (حد ثلاث منظمات ذاتية، مقترح).
+- **Risk(s):** none — وثائق فقط.
+- **Tests:** `check-ecosystem-sync.mjs --offline` OK (Revision 4) · `verify-governance.sh`.
+- **Evidence:** wasla-core PRs #6 (`942fbad`) و#7 (`c7f9259`) و#8 (`5e80477`) وCI الأخضر عليها؛ §9 من الخارطة.
+- **Deployment:** لا شيء.
+- **Next:** صفحة «حسابي» في `customer-mini-app` (XR-8.9 جزء MARKET) تقرأ `memberships` وتستدعي `POST /v1/me/organizations` حين يتصل MARKET بـCORE (XR-3.1).
+
 # 2026-10-21 — CLM-0659 — الخارطة المشتركة Revision 3: حالة التنفيذ المقيسة
 
 - **Work Item(s):** M0-54 (XR-0.1 تزامن الخارطة؛ تسجيل إغلاق XR-3.2).
