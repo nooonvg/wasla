@@ -10,6 +10,17 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0654 — SECURITY: vite ≥6.4.4 (ثلاثُ استشاراتٍ جديدة)
+
+- **Work Item(s):** M6-19C (supply-chain hardening).
+- **Units:** `package.json` (`pnpm.overrides.vite`) · `pnpm-lock.yaml` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released (مدموجٌ مع CLM-0653 في PR #2).
+- **Change:** CI على PR #2 (CLM-0653، وثائقُ فقط) فشلَ في `governance-guard` بالفحص 9 (GHSA-698v-4r3x-3vcv · GHSA-r825-w8mm-5pxw · GHSA-587h-7wmj-h5pm في vite 6.4.3، غيرُ مُعلَنةٍ في SECURITY_RULES §11) وفي `image-supply-chain` (Trivy: CVE-2026-112942 HIGH). السببُ نشرُ الاستشاراتِ لا التغيير؛ فـ`main` نفسُه يحملُ vite 6.4.3. الإصلاحُ بالرفعِ: `^6.4.3` → `^6.4.4` و`pnpm install --lockfile-only` (pnpm 9.15.9) ⇒ vite 6.4.5.
+- **Risk(s):** لا شيءَ جديدًا.
+- **Evidence:** `pnpm audit --json` محليًا بعدَ الرفع: moderate 2 (GHSA-82fw-gwwq-j7x9، مُعلَنةٌ حتى 2026-12-08) · high 0 · critical 0. وحكمُ CI على PR #2.
+- **Deployment:** لا شيء.
+- **Next:** لا شيء.
+
 # 2026-10-21 — CLM-0653 — XR-0: خارطةُ منظومةِ وَصْلة المشتركة وقرارُ ADR-076
 
 - **Work Item(s):** M0-54 (جديد — Ecosystem alignment · XR-0).
