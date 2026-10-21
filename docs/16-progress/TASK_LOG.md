@@ -10,6 +10,18 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0656 — الخارطة المشتركة Revision 2: XR-8 القنوات المتعددة والحساب الواحد (ADR-077)
+
+- **Work Item(s):** M0-54 (XR-8.1).
+- **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` · `docs/15-decisions/ADR-077-multichannel-one-account-three-apps.md` (جديد) · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released (يُدمج مع نظيريه في `nooonvg/wasla-core` و`nooonvg/ceezr` بالمراجعة نفسها Revision 2).
+- **Change:** (1) تعليمة المالك الثانية مقتبسة في §1 من الخارطة وفي ADR-077 §Decision. (2) Revision 2: الحقائق F-16..F-28، والقرارات D-XR-9..17، و§4-أ خريطة التطبيقات والأدوار والقنوات، والمرحلة XR-8 (8.1..8.11)، وقرارات المالك OD-XR-1..9، وسجل المراجعات §8؛ وتعديل XR-5.1 (`RideOrder` رابط عميق لا حذف) وXR-6.1 وXR-7.1. (3) ADR-077: حساب واحد بأدوار تُضاف، وثلاثة تطبيقات، وقاعدة شيفرة واحدة لكل تطبيق على تيليجرام وديسكورد والمتصفح وAndroid وiOS، ولا توسيع لـ`services/identity`.
+- **Risk(s):** none — وثائق فقط؛ لا خطر يُفتح ولا يُغلق، وINC-0007 مفتوحة ولا يمسها هذا التغيير.
+- **No-Test-Reason:** وثائق لا تمس شيفرة الخدمات؛ فحص التطابق يُشغَّل في `ecosystem-sync.yml`.
+- **Evidence:** `node docs/ecosystem/check-ecosystem-sync.mjs --offline` ناجح (Revision 2) · حكم CI على PR.
+- **Deployment:** لا شيء.
+- **Next:** XR-8.2 طبقة المضيف في `customer-mini-app` بحجز مستقل · XR-8.3 الويب/PWA · قرارات المالك OD-XR-1..9.
+
 # 2026-10-21 — CLM-0655 — XR-1: الفحصُ 29 يجمِّدُ مجالَ MOVE ومجالاتِ CORE المكرّرةَ (ADR-076)
 
 - **Work Item(s):** M0-54 (XR-1.1 · XR-1.2 · XR-1.3) · M5-13D (→ Cancelled).
