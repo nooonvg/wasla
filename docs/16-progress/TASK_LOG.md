@@ -10,6 +10,18 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0659 — الخارطة المشتركة Revision 3: حالة التنفيذ المقيسة
+
+- **Work Item(s):** M0-54 (XR-0.1 تزامن الخارطة؛ تسجيل إغلاق XR-3.2).
+- **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released.
+- **Change:** Revision 3 مطابقة بايتًا في `nooonvg/wasla-core` و`nooonvg/ceezr` (sha256 `a70313cc…`): قسم §9 لحالة كل بند مشترك بدليله المدموج، وXR-3.2 مغلق (wasla-core PR #3: الهجرة 0022 تحصر `session.issue` في قنوات اعتماد الخدمة)، وتعديل XR-4.2 وXR-8.5 و§4 بما يترتب عليه. لا قرار جديد.
+- **Risk(s):** none — وثائق فقط.
+- **Tests:** `check-ecosystem-sync.mjs --offline` OK (Revision 3) · `verify-governance.sh`.
+- **Evidence:** wasla-core PR #3 (`a46bdb5`) وCI الأخضر عليه؛ §9 من الخارطة.
+- **Deployment:** لا شيء.
+- **Next:** XR-8.9 صفحة «حسابي» ومبدّل التطبيقات بواجهة لا تحتاج CORE بعد؛ ومحوّلات الدخول في CORE (XR-8.5 · B-45) بانتظار OD-XR-4 لقائمة الطرق.
+
 # 2026-10-21 — CLM-0658 — XR-8.3a: تطبيق الزبون يُثبَّت من المتصفح ويُقرأ على الحاسوب
 
 - **Work Item(s):** M0-54 (XR-8.3، الجزء أ).
