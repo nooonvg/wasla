@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { seedSession } from "./helpers";
 
 // M3-06 frontend quality gate: locale override, offline banner, responsive layout.
 // Mobile viewport (375x667) and RTL Arabic default come from playwright.config.ts.
@@ -45,3 +46,52 @@ test.describe("Frontend quality (M3-06)", () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 });
+
+// XR-8.3a (CLM-0658): التطبيقُ نفسُه يُثبَّتُ من المتصفّحِ ويُقرأُ على الحاسوب.
+function pngSize(buf: Buffer): { width: number; height: number } {
+  // ترويسةُ PNG: 8 بايتاتِ توقيعٍ، ثمّ مقطعُ IHDR وفيه العرضُ والارتفاع (big-endian).
+  expect(buf.subarray(1, 4).toString("ascii")).toBe("PNG");
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+test.describe("Web install and desktop (XR-8.3a)", () => {
+  test("the page links a manifest that satisfies Chrome's install criteria", async ({ page, request }) => {
+    await page.goto("/");
+    const href = await page.locator('link[rel="manifest"]').getAttribute("href");
+    expect(href).toBe("/manifest.webmanifest");
+    const res = await request.get(href!);
+    expect(res.status()).toBe(200);
+    const m = await res.json();
+    expect(m.name).toBeTruthy();
+    expect(m.short_name).toBeTruthy();
+    expect(m.start_url).toBeTruthy();
+    expect(["standalone", "fullscreen", "minimal-ui", "window-controls-overlay"]).toContain(m.display);
+    expect(m.lang).toBe("ar");
+    expect(m.dir).toBe("rtl");
+    const sizes = (m.icons as { src: string; sizes: string; type: string }[]).map((i) => i.sizes);
+    expect(sizes).toEqual(expect.arrayContaining(["192x192", "512x512"]));
+    for (const icon of m.icons as { src: string; sizes: string; type: string }[]) {
+      const img = await request.get(new URL(icon.src, new URL(href!, "http://x")).pathname);
+      expect(img.status()).toBe(200);
+      expect(icon.type).toBe("image/png");
+      const [w, h] = icon.sizes.split("x").map(Number);
+      expect(pngSize(Buffer.from(await img.body()))).toEqual({ width: w, height: h });
+    }
+  });
+
+  test("on a 1280px desktop the app is one centred, readable column", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await seedSession(page);
+    await page.goto("/");
+    await expect(page.locator(".app")).toBeVisible();
+    const box = await page.locator(".app").boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeLessThanOrEqual(720);
+    expect(Math.abs(box!.x + box!.width / 2 - 640)).toBeLessThanOrEqual(1);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+});
+
