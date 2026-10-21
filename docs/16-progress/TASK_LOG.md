@@ -10,6 +10,18 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0655 — XR-1: الفحصُ 29 يجمِّدُ مجالَ MOVE ومجالاتِ CORE المكرّرةَ (ADR-076)
+
+- **Work Item(s):** M0-54 (XR-1.1 · XR-1.2 · XR-1.3) · M5-13D (→ Cancelled).
+- **Units:** `scripts/checks/validate-xr-domain-freeze.sh` (جديد) · `scripts/checks/lib/xr-frozen-paths.sh` (جديد) · `scripts/checks/lib/gov-cases-xr-domain-freeze.sh` (جديد) · `scripts/checks/verify-governance.sh` (الفحصُ 29) · `scripts/checks/test-governance.sh` · `docs/12-testing/BASELINE.json` · `docs/12-testing/ci-evidence/2026-10-21T120000Z-clm-0655-xr1-domain-freeze/` · `docs/15-decisions/ADR-076-move-sole-delivery-owner-market-retirement.md` · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released (M0-54 يبقى In Progress حتى XR-5).
+- **Change:** (1) حكمُ ما بعدَ دمجِ XR-0: `ecosystem-sync.yml` أخضرُ على `main` في الثلاثة، و`main` لـ`nooonvg/wasla-core` أخضرُ (CI 39572039891). (2) الفحصُ 29: كلُّ إيداعٍ في النطاقِ يُقاسُ وحدَه؛ التغييرُ في مسارٍ مجمَّدٍ يُرفَضُ إلا حذفًا أو في إيداعٍ موسومٍ `XR-RETIRE`/`SECURITY`؛ المرجعُ الذي لا يُحَلُّ في CI إخفاق. (3) القائمةُ من مصدرٍ واحدٍ: 12 بادئةً + 4 ملفّاتِ ساقِ `delivery_task → dispatch`؛ `store_order` مفتوح. (4) `M5-13D` → Cancelled بمرجعِ ADR-076 D5.
+- **Risk(s):** none — حارسٌ يمنعُ تغييرًا ولا يغيّرُ سلوكَ خدمةٍ؛ لا خطرَ يُفتَحُ ولا يُغلَق.
+- **Tests:** اختبارٌ ذاتيٌّ 11 حالةً داخلَ الحارس · 8 حالاتِ خرقٍ مزروعٍ في حزمةِ الحوكمة · وخرقٌ مزروعٌ على المستودعِ الحقيقيِّ (`raw/planted-breach.txt`).
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-21T120000Z-clm-0655-xr1-domain-freeze/`.
+- **Deployment:** لا شيء.
+- **Next:** XR-3 لـMARKET (إصدارُ `market.order.created` من `store_order`) بعدَ قراراتِ المالكِ في §5 من الخارطة.
+
 # 2026-10-21 — CLM-0654 — SECURITY: vite ≥6.4.4 (ثلاثُ استشاراتٍ جديدة)
 
 - **Work Item(s):** M6-19C (supply-chain hardening).

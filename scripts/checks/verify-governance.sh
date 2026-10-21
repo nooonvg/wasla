@@ -5,7 +5,8 @@
 #         4) بياتُ الحجوزات (M0-16) · 5) هدفُ طلبِ الدمج (M0-17) · 6) الأسرار ·
 #         7) عزلُ DDL في اختباراتِ التكامل (M0-03) · 8) CI مانعٌ لا مُجمِّل (M0-04) · …
 #         26) STATE-SYNC (M0-52) · 27) الدمجُ يُغلِقُ الدورة (M0-52) — docs/00-rules/STATE_SYNC_RULE.md ·
-#         28) edge-allowlist-guard (ADR-069 §2.8 · CLM-0521) — docs/12-testing/EDGE_ALLOWLIST.md.
+#         28) edge-allowlist-guard (ADR-069 §2.8 · CLM-0521) — docs/12-testing/EDGE_ALLOWLIST.md ·
+#         29) xr-domain-freeze (ADR-076 · XR-1 · M0-54) — docs/ecosystem/ECOSYSTEM_ROADMAP.md.
 #
 # وليست هذه البوّابةُ المدخلَ الأعلى بعدَ M0-04: `scripts/verify.sh` يُشغّلُها
 # ومعها بنيةُ المستودعِ والأنواعُ والاختباراتُ، ويكتبُ أرتفاكتاً (VERIFY_COMMAND.md).
@@ -556,6 +557,28 @@ if [[ -f scripts/checks/validate-edge-allowlist.sh ]]; then
     bash scripts/checks/validate-edge-allowlist.sh
 else
   FAILED+=("28) edge-allowlist-guard — السكربت غير موجود (fail-closed)")
+fi
+
+# ── 29) xr-domain-freeze: مجالُ MOVE ومجالاتُ CORE المكرّرةُ هنا مجمَّدةٌ (ADR-076 · XR-1 · M0-54)
+# الخارطةُ المشتركةُ (docs/ecosystem/ECOSYSTEM_ROADMAP.md §4 XR-1) تُخرِجُ تنفيذَ النقلِ والتوصيلِ
+# إلى nooonvg/ceezr والخدماتِ المكرّرةَ إلى nooonvg/wasla-core. فكلُّ إيداعٍ في النطاقِ يُقاسُ وحدَه:
+# تغييرٌ في مسارٍ مجمَّدٍ يُرفَضُ إلا إن كان حذفًا (XR-5) أو في إيداعٍ موسومٍ XR-RETIRE / SECURITY.
+# المساراتُ من مصدرٍ واحدٍ: scripts/checks/lib/xr-frozen-paths.sh.
+if (( IN_GIT )) && [[ "$LEDGER_ONLY" != "1" ]] && git rev-parse --verify "${OLD}^{commit}" >/dev/null 2>&1; then
+  run_check "29) xr-domain-freeze — مجالُ MOVE ومجالاتُ CORE مجمَّدةٌ (ADR-076 · XR-1)" \
+    bash scripts/checks/validate-xr-domain-freeze.sh "$OLD" "$NEW"
+elif [[ "${CI:-}" == "true" && "$LEDGER_ONLY" != "1" ]]; then
+  hdr "29) xr-domain-freeze"
+  printf '  %s✗%s BLOCKED — cannot resolve «%s» in CI (fail-closed)\n' "$RED" "$RST" "$OLD"
+  FAILED+=("29) xr-domain-freeze — نطاقٌ غيرُ قابلٍ للحلّ في CI")
+else
+  hdr "29) xr-domain-freeze"
+  if bash scripts/checks/validate-xr-domain-freeze.sh --self-test >/dev/null 2>&1; then
+    printf '  %s⊘ تخطٍّ:%s لا نطاق git — الاختبارُ الذاتيُّ نجح. نفّذ: git fetch origin main\n' "$YLW" "$RST"
+    SKIPPED+=("29) xr-domain-freeze — لا نطاق git")
+  else
+    FAILED+=("29) xr-domain-freeze — الاختبارُ الذاتيُّ أخفق")
+  fi
 fi
 
 # ── الخلاصة ──────────────────────────────────────────────────
