@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedSession } from "./helpers";
+import { seedSession, stubTelegramSdk } from "./helpers";
 
 // Security E2E tests: verify that the in-memory session model is secure.
 // ADR-044 Decision 4: Session token in memory only, no localStorage.
@@ -18,11 +18,7 @@ test.describe("Session security", () => {
   });
 
   test("a rejected edge session is shown with retry, and retry recovers the app", async ({ page }) => {
-    await page.addInitScript(() => {
-      (window as unknown as { Telegram: unknown }).Telegram = {
-        WebApp: { initData: "query_id=e2e&hash=abc", ready: () => undefined },
-      };
-    });
+    await stubTelegramSdk(page, "query_id=e2e&hash=abc");
     let calls = 0;
     await page.route("**/edge/session", (route) => {
       calls += 1;

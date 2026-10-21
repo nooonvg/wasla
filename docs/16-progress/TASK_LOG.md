@@ -10,6 +10,18 @@
 - **Deployment:** لا شيء.
 - **Next:** فتحُ مدخلِ P لبحثِ المتاجرِ قرارُ مالكٍ (برهانُ E-20 للمتاجرِ + T1) · G-S9.19 (باقيه · RISK-0027) وG-S9.20 بحجزٍ مستقلٍّ · البندُ التالي القابلُ للتنفيذِ في G-S9 (G-S9.6 · G-S9.8).
 
+# 2026-10-21 — CLM-0657 — XR-8.2: طبقة المضيف في تطبيق الزبون، وسكربت تيليجرام الذي لم يكن محمَّلًا
+
+- **Work Item(s):** M0-54 (XR-8.2).
+- **Units:** `apps/customer-mini-app/src/host/` (جديد: `types.ts` · `telegram.ts` · `browser.ts` · `index.ts`) · `apps/customer-mini-app/src/session/session-init.ts` · `apps/customer-mini-app/index.html` · `apps/customer-mini-app/src/__tests__/session-init.test.ts` · `apps/customer-mini-app/e2e/helpers.ts` · `apps/customer-mini-app/e2e/auth-session.spec.ts` · `apps/customer-mini-app/src/{App.tsx,main.tsx,store/session.ts}` (تعليقات) · `docs/12-testing/ci-evidence/2026-10-21T150000Z-clm-0657-xr8-2-host-layer/` · `docs/15-decisions/ADR-077-multichannel-one-account-three-apps.md` (إضافة مؤرخة) · `docs/16-progress/TASK_LOG.md` · `docs/16-progress/WORK_CLAIMS.md` · `docs/16-progress/LAUNCH_EXECUTION_BOARD.md` · `ROADMAP.md`.
+- **Status:** Released.
+- **Change:** (1) اكتشاف مقيس: لا يوجد سكربت `telegram-web-app.js` في المستودع ولا في تاريخه، ووثيقة تيليجرام تشترطه في `<head>`؛ فداخل تيليجرام لا يُعرَّف `Telegram.WebApp` وتفشل الجلسة دائمًا (استنتاج من الوثيقة والشيفرة؛ لم يُقس في تيليجرام حي). أُضيف السكربت. (2) `src/host/`: المضيف (تيليجرام أو متصفح) وإثباته وطلبه عند الحد؛ `session-init.ts` لا يقرأ أي كائن منصة، وعقد الحد لم يتغير. (3) حارس حدود المضيف في اختبار الوحدة، مُثبَت بخرق مزروع. (4) اختبار E2E للجلسة المرفوضة صار يخدم بديل السكربت بدل حقن الكائن.
+- **Risk(s):** none — لا خطر يُفتح ولا يُغلق. سكربت `telegram.org` اعتماد طرف ثالث يشترطه تيليجرام لكل Mini App، ولا يمكن تثبيت بصمته (SRI) لأن تيليجرام يحدّثه في مكانه؛ مسجَّل في الدليل.
+- **Tests:** `vitest` 141/141 (131 + 10) · خرق مزروع سقط · Playwright 37/37 · السكربت الحقيقي خارج تيليجرام: `initData` فارغة ⇒ مضيف متصفح.
+- **Evidence:** `docs/12-testing/ci-evidence/2026-10-21T150000Z-clm-0657-xr8-2-host-layer/`.
+- **Deployment:** لا شيء.
+- **Next:** XR-8.3 الويب/PWA (manifest وservice worker وتصميم متجاوب) · دخول الويب ينتظر XR-8.5 في CORE (B-45).
+
 # 2026-10-21 — CLM-0656 — الخارطة المشتركة Revision 2: XR-8 القنوات المتعددة والحساب الواحد (ADR-077)
 
 - **Work Item(s):** M0-54 (XR-8.1).

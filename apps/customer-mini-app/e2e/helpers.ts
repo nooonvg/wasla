@@ -52,3 +52,20 @@ export async function gotoRoute(page: Page, route: string): Promise<void> {
   // Wait for the app to render (not loading state)
   await page.waitForSelector(".app", { timeout: 10_000 });
 }
+
+/**
+ * XR-8.2 (CLM-0657): يخدمُ بدلَ سكربتِ تيليجرام الرسميِّ (المحمَّلِ في `<head>`)
+ * سكربتًا يعرّفُ `Telegram.WebApp` بـ`initData` المعطاة — كما يفعلُ السكربتُ
+ * الحقيقيُّ داخلَ تيليجرام. حقنُ الكائنِ بـ`addInitScript` لم يعد يكفي: السكربتُ
+ * الحقيقيُّ يُحمَّلُ بعدَه ويستبدلُه بـ`initData` فارغة.
+ */
+export async function stubTelegramSdk(page: Page, initData: string): Promise<void> {
+  await page.route("https://telegram.org/js/telegram-web-app.js*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: `window.Telegram = { WebApp: { initData: ${JSON.stringify(initData)}, ready: function () {} } };`,
+    }),
+  );
+}
+

@@ -14,7 +14,8 @@ import { Reputation } from "./screens/Reputation";
 import { Profile } from "./screens/Profile";
 
 // ADR-044 Decision 2: Hash-based routing (no router framework).
-// Telegram WebView does not support history API reliably.
+// Telegram WebView does not support history API reliably; hash routing also
+// works unchanged in a browser and the other hosts (XR-8.2).
 
 type Route =
   | "home"
@@ -55,7 +56,7 @@ export function App() {
   }, []);
 
   // ADR-044 Decision 4: Session token in memory only. Unauthenticated users
-  // see a loading state until the session is initialized from Telegram initData.
+  // see a loading state until the session is initialized from the host (src/host/).
   // G-S8 (CLM-0610): a failed init is shown with a retry — never an endless
   // loading screen. Loading is shown only while an init is (or may be) running.
   if (!isAuthenticated() && initStatus === "failed") {

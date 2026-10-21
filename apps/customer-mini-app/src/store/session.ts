@@ -3,7 +3,7 @@ import { create } from "zustand";
 // ADR-044 Decision 4: Session token in memory only, no localStorage.
 // Per ADR-019 §2.5, the session token is never persisted to localStorage,
 // sessionStorage, or cookies. On page refresh, the app re-initiates the
-// session from Telegram initData.
+// session from the host credential (src/host/ · XR-8.2).
 
 /**
  * G-S8 (CLM-0610): the init outcome is state, not a silent boolean — the app

@@ -1,5 +1,7 @@
 # WASLA MARKET — Roadmap
 
+CLM-0657 (2026-10-21): XR-8.2 — طبقة المضيف في `apps/customer-mini-app/src/host/` (تيليجرام والمتصفح؛ لا ملف خارجها يقرأ كائن منصة، ويحرس ذلك اختبار بخرق مزروع)، وأُضيف سكربت تيليجرام الرسمي إلى `index.html` بعد قياس أنه لم يكن محمَّلًا قط؛ vitest 141/141 وPlaywright 37/37. التالي XR-8.3 الويب/PWA.
+
 CLM-0656 (2026-10-21): XR-8.1 — الخارطة المشتركة Revision 2 (مطابقة بايتًا في `nooonvg/wasla-core` و`nooonvg/ceezr`) + [ADR-077](docs/15-decisions/ADR-077-multichannel-one-account-three-apps.md): حساب واحد بأدوار تُضاف (زبون، صاحب متجر، سائق، شريك)، وثلاثة تطبيقات («وصلة» للزبون، «وصلة أعمال»، «وصلة كابتن» في MOVE) على تيليجرام وديسكورد والمتصفح وAndroid وiOS؛ التالي هنا XR-8.2 طبقة المضيف ثم XR-8.3 الويب/PWA. وثائق فقط.
 
 CLM-0655 (2026-10-21): XR-1 — الفحصُ 29 `validate-xr-domain-freeze.sh` يجمِّدُ مجالَ MOVE (`services/{dispatch,drivers,matching,negotiations,orders,rides}` · `apps/driver-mini-app` · `bots/driver-bot`) ومجالاتِ CORE المكرّرةَ (`identity` · `subscriptions` · `billing` · `reputation`) وساقَ `delivery_task → dispatch`، و`store_order` مفتوحٌ؛ `M5-13D` → Cancelled ([ADR-076](docs/15-decisions/ADR-076-move-sole-delivery-owner-market-retirement.md) §Implementation). راجع `docs/16-progress/TASK_LOG.md` (CLM-0655).
