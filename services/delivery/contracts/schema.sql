@@ -633,6 +633,50 @@ CREATE INDEX IF NOT EXISTS ix_core_fulfillment_inbox_retryable
     ON core_fulfillment_inbox (updated_at)
     WHERE consumed_status IN ('pending', 'error');
 
+-- ─────────────────────────────────────────────────────────────
+-- 16) core_egress_outbox — صندوقُ صادرِ أحداثِ CORE (XR-3.4 · F-38): الحدثُ
+--     يُحضَّرُ **كاملًا** بمغلّفِ CORE عندَ الوضعِ ويُلتزَمُ في معاملةِ الوضعِ
+--     نفسِها — فلا نافذةَ بينَ الطلبِ والحدثِ. مستقلٌّ عن `delivery_outbox`
+--     عمدًا: المُحوِّلُ يعيدُ استخدامَ `event_id` المحليِّ (حدثٌ واحدٌ لا
+--     حدثانِ) والجدولُ القائمُ يرفضُ التكرارَ بصمتٍ (UNIQUE + DO NOTHING) —
+--     صفُّ CORE هناكَ كانَ سيختفي لا أن يُنشَر. والنشرُ (النقلُ إلى بيئةِ
+--     CORE) مرحلةٌ لاحقةٌ (XR-4.3): `published_at` شاهدٌ على أنَّ الصفَّ لم
+--     يُنشَرْ بعدُ.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS core_egress_outbox (
+    event_id       UUID        PRIMARY KEY,
+    event_type     TEXT        NOT NULL CHECK (char_length(event_type) BETWEEN 3 AND 96),
+    version        INTEGER     NOT NULL CHECK (version >= 1),
+    producer       TEXT        NOT NULL,
+    occurred_at    TIMESTAMPTZ NOT NULL,
+    correlation_id TEXT        NOT NULL,
+    causation_id   TEXT,
+    entity_type    TEXT        NOT NULL,
+    entity_id      TEXT        NOT NULL,
+    payload        JSONB       NOT NULL,
+    published_at   TIMESTAMPTZ,
+    attempts       INTEGER     NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+    last_error     TEXT,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_core_egress_outbox_unpublished
+    ON core_egress_outbox (event_id)
+    WHERE published_at IS NULL;
+
+-- ─────────────────────────────────────────────────────────────
+-- 17) core_egress_blocked — القرارُ المحجوزُ المتينُ (F-38 · XR-3.4): طلبٌ
+--     وُضعَ ولا منظمةَ CORE لمتجرِهِ بعدُ — يُسجَّلُ في معاملةِ الوضعِ نفسِها
+--     لا أن يُفقدَ بصمتٍ؛ فالربطُ المتحقَّقُ منهُ (XR-6.1) يجدُ هنا ما يُلحِقُهُ
+--     لاحقًا. «محجوزٌ» نتيجةٌ موثَّقةٌ لا نجاحَ إصدارٍ.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS core_egress_blocked (
+    order_id        UUID        PRIMARY KEY,
+    order_public_id TEXT        NOT NULL CHECK (order_public_id ~ '^WS-[0-9]{10}$'),
+    reason          TEXT        NOT NULL CHECK (char_length(reason) BETWEEN 3 AND 96),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- <<< RISK-0012 commit_sequence (delivery_outbox)
 
 COMMIT;

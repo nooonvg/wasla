@@ -72,6 +72,7 @@ import type { DeliveryDomainEvent } from "../domain/events.js";
 import type { DeliveryTask, StoreOrder, StoreOrderItem } from "../domain/model.js";
 import { toStoreOrderResponse } from "../http/mappers.js";
 import type {
+  CoreEgressWrite,
   IdempotencyKeySweepBatch,
   IdempotencyKeySweepPort,
   CancelOrderOutcome,
@@ -276,6 +277,9 @@ export class StoreOrderStore
       );
 
       await appendOutbox(client, write.events, write.traceId);
+      // صادرُ CORE في المعاملةِ نفسِها (XR-3.4): فشلُ كتابتِهِ يُرجعُ الوضعَ
+      // كلَّهُ — لا طلبَ بلا حدثٍ ولا حدثَ بلا طلبٍ.
+      await appendCoreEgress(client, write.coreEgress);
       await storeIdempotencyKey(
         client,
         write.idempotency,
@@ -924,6 +928,50 @@ async function appendOutbox(
       ],
     );
   }
+}
+
+/**
+ * Append the CORE egress decision in the placement transaction (XR-3.4):
+ * the ready-made CORE event goes to `core_egress_outbox` (a SEPARATE table —
+ * the converter reuses the local event's `event_id` and `delivery_outbox`
+ * would silently swallow the duplicate), and the blocked decision goes to
+ * `core_egress_blocked` — a documented durable outcome, never a silent skip.
+ * Either way it commits with the placement or not at all.
+ */
+async function appendCoreEgress(
+  client: PoolClient,
+  egress: CoreEgressWrite | undefined,
+): Promise<void> {
+  if (egress === undefined) return;
+  if (egress.kind === "core-event") {
+    const event = egress.event;
+    await client.query(
+      `INSERT INTO core_egress_outbox (
+         event_id, event_type, version, producer, occurred_at,
+         correlation_id, causation_id, entity_type, entity_id, payload
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       ON CONFLICT (event_id) DO NOTHING`,
+      [
+        event.event_id,
+        event.event_type,
+        event.version,
+        event.producer,
+        event.occurred_at,
+        event.correlation_id,
+        event.causation_id,
+        event.entity_type,
+        event.entity_id,
+        JSON.stringify(event.payload),
+      ],
+    );
+    return;
+  }
+  await client.query(
+    `INSERT INTO core_egress_blocked (order_id, order_public_id, reason)
+     VALUES ($1,$2,$3)
+     ON CONFLICT (order_id) DO NOTHING`,
+    [egress.orderId, egress.orderPublicId, egress.reason],
+  );
 }
 
 /* ── row → domain ─────────────────────────────────────────────────────── */

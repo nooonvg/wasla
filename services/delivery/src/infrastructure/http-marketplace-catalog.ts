@@ -124,7 +124,7 @@ export class HttpMarketplaceCatalogPort implements StoreOrderCatalogPort {
 
   async getStoreBySlug(
     storeSlug: StoreSlug,
-  ): Promise<{ storeId: string; orderable: boolean } | null> {
+  ): Promise<{ storeId: string; orderable: boolean; organizationId: string | null } | null> {
     const path = storePath(storeSlug);
     const body = await this.getJson<StoreResource>(path, "store_slug");
     if (body === null) return null;
@@ -146,7 +146,13 @@ export class HttpMarketplaceCatalogPort implements StoreOrderCatalogPort {
      * وإن انفكّا يوماً فالجوابُ «لا يستقبلُ طلباتٍ» لا طلبٌ بمرجعٍ زائلٍ.
      */
     const orderable = body.state === "approved" && body.is_slug_locked === true;
-    return { storeId: body.store_id, orderable };
+    // منظمةُ CORE للمتجرِ منَ العقدِ (F-38): `null` حتى يتوافرَ الربطُ
+    // المتحقَّقُ منهِ (XR-6.1) — لا اختلاقَ ولا فشلَ قراءةٍ.
+    const organizationId =
+      typeof body.organization_id === "string" && body.organization_id.length > 0
+        ? body.organization_id
+        : null;
+    return { storeId: body.store_id, orderable, organizationId };
   }
 
   async getProductSnapshots(

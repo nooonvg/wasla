@@ -450,6 +450,11 @@ export interface components {
             store_id: string;
             store_slug: components["schemas"]["StoreSlug"];
             owner_public_id: components["schemas"]["WaslaPublicId"];
+            /**
+             * Format: uuid
+             * @description منظمة CORE صاحبة المتجر — من الربط المتحقق منه (XR-6.1)، أو null حتى يتوافر (لا يقبلها مسار الإنشاء).
+             */
+            organization_id: string | null;
             title_ar: string;
             title_en?: string | null;
             title_ur?: string | null;

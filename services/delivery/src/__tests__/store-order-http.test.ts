@@ -391,7 +391,7 @@ describe("delivery HTTP — placement", () => {
 
   it("409s an unorderable store (DELIVERY_INELIGIBLE), 400s an unknown one", async () => {
     const closed = buildApp({
-      catalog: new FakeCatalog({ storeId: "cccccccc-0000-4000-8000-000000000003", orderable: false }),
+      catalog: new FakeCatalog({ storeId: "cccccccc-0000-4000-8000-000000000003", orderable: false, organizationId: null }),
     });
     const payload = {
       customer_ref: CUSTOMER_REF,
