@@ -15,10 +15,14 @@
  *   لأنَّ الحالةَ تتغيّرُ: حدثٌ وصلَ قبلَ أوانِهِ قد يصيرُ قابلًا للتطبيقِ
  *   بعدَهُ، فتسجيلُهُ نهائيًّا كانَ سيُفقِدُهُ إلى الأبدِ. والسمُّ وحدَهُ
  *   نهائيٌّ — حمولةٌ فاسدةٌ لا تُصلِحُها إعادةٌ.
- * - **نافذةُ الانهيارِ مغلقةٌ بالمُكافأةِ لا بالوعدِ:** لو انهارَ التنفيذُ بعدَ
- *   نجاحِ الانتقالِ وقبلَ إيصالِهِ، فإعادةُ الإرسالِ تجدُ الطلبَ في الحالةِ
- *   المستهدفةِ أصلًا فتُسجِّلُ `applied` (تطابقُ الحالةِ = أثرٌ وقعَ) — لا
- *   أن تُعلنَهُ خارجَ الترتيبِ إلى الأبدِ.
+ * - **نافذةُ الانهيارِ مغلقةٌ بإيصالٍ لا بوعدٍ (تكميلُ المراجعةِ 8):** كلُّ
+ *   انتقالٍ يُطبَّقُ بإيصالِ تماثُلٍ **مرتبطٍ بالحدثِ** (مفتاحُهُ من
+ *   `event_id`، وبصمتُهُ حتميةٌ منَ الحدثِ والطلبِ لا من نتيجةِ الإسقاطِ
+ *   المتغيّرةِ) يُلتزَمُ معَ الانتقالِ نفسِهِ — والإيصالُ يُفحصُ **قبلَ
+ *   الإسقاطِ**، فإعادةُ الإرسالِ بعدَ انهيارٍ (حتى لو تقدّمتِ الأحداثُ بعدهُ
+ *   وغيّرتِ الحالةَ) تجدُ الإيصالَ فتُسجِّلُ `applied`. وكشفُ «الحالةُ
+ *   المستهدفةُ قائمةٌ» يبقى حديقةً ثانيةً (حدثٌ قديمٌ والحالةُ بلغتْ هدفَهُ
+ *   بلا إيصالٍ).
  * - **السمُّ مسمّى:** حمولةٌ تخالفُ العقدَ = `poisoned` (نهائيٌّ، يُرى لا يُبلَع).
  * - **الإثباتُ بوّابةٌ لا ديكور:** إغلاقٌ بالتسليمِ بلا إثباتِ تسليمٍ =
  *   `proof_missing` (مسمّى، قابلٌ للإعادةِ — الإثباتُ يأتي معَ الرحلةِ في
@@ -42,7 +46,11 @@ import {
   projectCoreFulfillmentEvent,
   proofSatisfied,
 } from "../domain/core-fulfillment-projection.js";
+import { createHash } from "node:crypto";
+
 import { DeliveryError } from "../domain/errors.js";
+import { deriveRequestFingerprint } from "../domain/idempotency.js";
+import type { IdempotencyIntent } from "../ports.js";
 import { fulfillmentTransition, type FulfillmentTransitionDeps } from "./fulfillment-transition.js";
 
 /** نتيجةُ استهلاكِ حدثٍ واحدٍ — كلُّ احتمالٍ مسمّى. */
@@ -72,11 +80,46 @@ export interface ConsumeCoreFulfillmentDeps {
  * غيابُهُ معَ `→ delivered` يجوابُ `proof_missing` مسمّى — قابلًا للإعادةِ لا
  * نهائيًّا، لأنَّ الإثباتَ قد يصلُ معَ إعادةِ إرسالٍ لاحقةٍ منَ الرحلةِ.
  */
+/** نمطُ UUID كما يفهمُهُ PostgreSQL — الحارسُ قبلَ أيِّ لمسٍ للقاعدةِ. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * مفتاحٌ بديلٌ حتميٌّ لحدثٍ لا يملكُ `event_id` صالحًا: القاعدةَ لا تقبلُ إلا
+ * UUID، فالسمُّ يُسجَّلُ تحتَ بديلٍ مشتقٍّ منَ النصِّ الخامِ نفسِهِ — إعادةُ
+ * الإرسالِ تعيدُ إنتاجَ المفتاحِ نفسِهِ فلا يتضاعفُ السمُّ ولا يختفي.
+ */
+function surrogateEventKey(rawEventId: string, rawEventType: string): string {
+  const hex = createHash("sha256")
+    .update(`core-fulfillment-poison\u0000${rawEventId}\u0000${rawEventType}`)
+    .digest("hex")
+    .slice(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
+
 export async function consumeCoreFulfillmentEvent(
   deps: ConsumeCoreFulfillmentDeps,
   envelope: CoreEnvelopeInput,
   proof: ProofOfDelivery | null = null,
 ): Promise<CoreFulfillmentConsumeResult> {
+  // 0) حارسُ السمِّ قبلَ أيِّ لمسٍ للقاعدةِ: مفتاحُ حدثٍ ليسَ UUID سيُفجّرُ
+  //    استعلامَ القاعدةِ قبلَ أن يصلَ التصنيفُ — فالسمُّ هنا يُسجَّلُ سمًّا
+  //    (بمفتاحٍ بديلٍ حتميٍّ) لا استثناءً غيرَ معالَجٍ. والنوعُ يُقصُّ إلى حدِّ
+  //    عقدِ الصندوقِ (96) حتى لا يُفجّرَ CHECKُ الطولِ تسجيلَهُ.
+  const rawEventId = String(envelope.event_id ?? "");
+  if (!UUID_RE.test(rawEventId)) {
+    const rawType = String(envelope.event_type ?? "unknown").slice(0, 96);
+    const surrogate = surrogateEventKey(rawEventId, rawType);
+    await deps.inbox.recordTerminal({
+      eventId: surrogate,
+      eventType: rawType,
+      orderReference: null,
+      consumedStatus: "poisoned",
+      lastError: "invalid_event_id:not_a_uuid",
+    });
+    return { kind: "poisoned", error: "invalid_event_id:not_a_uuid" };
+  }
+
   // 1) الإغلاقُ المفردُ: حدثٌ حُسِمَ نهائيًّا لا يُعالَجُ مرّةً ثانيةً.
   //    الحيُّ (pending/error) يُعادُ معالجتُهُ — لا فقدَ.
   const existing = await deps.inbox.find(envelope.event_id);
@@ -93,7 +136,7 @@ export async function consumeCoreFulfillmentEvent(
       error instanceof CoreFulfillmentPayloadError ? error.message : "classification_failed";
     await deps.inbox.recordTerminal({
       eventId: envelope.event_id,
-      eventType: String(envelope.event_type ?? "unknown"),
+      eventType: String(envelope.event_type ?? "unknown").slice(0, 96),
       orderReference: null,
       consumedStatus: "poisoned",
       lastError: message,
@@ -109,7 +152,40 @@ export async function consumeCoreFulfillmentEvent(
     return { kind: "order_not_found" };
   }
 
-  // 4) الإسقاطُ: قرارٌ نقيٌّ منَ الآلةِ القائمةِ.
+  // 4) الإيصالُ المرتبطُ بالحدثِ **قبلَ الإسقاطِ**: بصمتُهُ حتميةٌ منَ الحدثِ
+  //    والطلبِ لا من نتيجةِ الإسقاطِ (المتغيّرةِ بتغيّرِ الحالةِ) — فلو
+  //    التزمَ الانتقالُ أثرَهُ ثمّ انهارَ التنفيذُ قبلَ إيصالِ الصندوقِ،
+  //    وتقدّمتِ الأحداثُ بعدهُ وغيّرتِ الحالةَ، فإعادةُ الإرسالِ تجدُ الإيصالَ
+  //    هنا فتُسجِّلُ applied — لا أن يُعلنَها الإسقاطُ خارجَ الترتيبِ أبدًا.
+  const intent: IdempotencyIntent = {
+    key: `core-fulfillment:${envelope.event_id}:v1`,
+    route: "POST /store-orders/{orderPublicId}/fulfillment-transition",
+    fingerprint: deriveRequestFingerprint(
+      "POST /store-orders/{orderPublicId}/fulfillment-transition",
+      order.publicId,
+      { event_type: event.kind },
+    ),
+    responseStatus: 200,
+    buildResponseBody: () => ({ kind: "applied", event_type: event.kind }),
+  };
+  const receipt = await deps.orders.findIdempotentResponse(intent.key);
+  if (receipt !== null) {
+    if (receipt.fingerprint !== intent.fingerprint) {
+      // مفتاحُ الحدثِ نادرًا ما يُعادُ استعمالُهُ — وإن وقعَ فالرفضُ مسمّى.
+      await deps.inbox.recordRetryable(envelope.event_id, "receipt_fingerprint_mismatch");
+      return { kind: "error", error: "receipt_fingerprint_mismatch" };
+    }
+    await deps.inbox.recordTerminal({
+      eventId: envelope.event_id,
+      eventType: event.kind,
+      orderReference: event.payload.order_reference,
+      consumedStatus: "applied",
+      lastError: null,
+    });
+    return { kind: "applied", order };
+  }
+
+  // 5) الإسقاطُ: قرارٌ نقيٌّ منَ الآلةِ القائمةِ.
   const decision = projectCoreFulfillmentEvent(event, order.fulfillmentState);
 
   if (decision.kind === "observed") {
@@ -160,7 +236,9 @@ export async function consumeCoreFulfillmentEvent(
     return { kind: "proof_missing" };
   }
 
-  // 6) التطبيقُ: بمسارِ الانتقالِ الواحدِ القائمِ — لا مسارِ كتابةٍ ثانٍ.
+  // 7) التطبيقُ: بمسارِ الانتقالِ الواحدِ القائمِ — لا مسارِ كتابةٍ ثانٍ —
+  //    وبالإيصالِ المرتبطِ بالحدثِ نفسِهِ (يُلتزمُ معَ الانتقالِ، وفُحصَ قبلَ
+  //    الإسقاطِ أعلاه).
   try {
     const result = await fulfillmentTransition(
       deps.transition,
@@ -168,6 +246,7 @@ export async function consumeCoreFulfillmentEvent(
       decision.to,
       decision.requiresProof ? proof : null,
       envelope.correlation_id,
+      intent,
     );
     if (result.kind === "applied" || result.kind === "replayed") {
       await deps.inbox.recordTerminal({
