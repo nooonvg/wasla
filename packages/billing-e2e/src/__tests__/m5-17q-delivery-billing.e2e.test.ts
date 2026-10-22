@@ -82,8 +82,13 @@ type ReservationPort = NonNullable<DeliveryHttpDeps["reservationPort"]>;
 
 /** الكتالوجُ قبلَ المنتِج: متجرٌ واحدٌ وسعرانِ ثابتان. */
 class StaticCatalog implements StoreOrderCatalogPort {
-  async getStoreBySlug(): Promise<{ storeId: string; orderable: boolean }> {
-    return { storeId: STORE_ID, orderable: true };
+  async getStoreBySlug(): Promise<{
+    storeId: string;
+    orderable: boolean;
+    organizationId: string | null;
+  }> {
+    // لا منظمةَ في هذا الاختبارِ (F-38): الحدثُ يبقى محجوزًا لا مُختلَقًا.
+    return { storeId: STORE_ID, orderable: true, organizationId: null };
   }
   async getProductSnapshots(_storeId: string, ids: readonly string[]): Promise<readonly CatalogProductSnapshot[]> {
     return ids
