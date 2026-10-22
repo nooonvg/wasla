@@ -428,7 +428,10 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
   });
 
   it("الترجعُ طريقُ خروجٍ لا مِحرقةُ بياناتٍ: الصفوفُ تنجو بعدَ التراجعِ خطوةً", async () => {
+    // آخرُ ترحيلينِ (0007 ثمّ 0006): التراجعُ يُختبرُ خطوةً خطوةً لا قفزةً —
+    // فكلُّ down.sql يعرفُ حدَّهُ وحدَهُ.
     const last = upgrades[upgrades.length - 1];
+    const beforeLast = upgrades[upgrades.length - 2];
     await applySqlFile(db, last.down);
 
     const keys = await db.query(
@@ -450,15 +453,28 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
     expect(poisoned.rows[0].n).toBe(1);
     expect(poisonedInventory.rows[0].n).toBe(1);
 
+    // 0007 (XR-3.5): تراجعُهُ يحذفُ صندوقَ إغلاقِ التنفيذِ وحدَهُ —
+    // وcommit_sequence (ملكُ 0006) يبقى بعدَهُ: لكلِّ down.sql حدُّهُ.
+    const inboxTable = await db.query(
+      `SELECT 1 FROM information_schema.tables WHERE table_name = 'core_fulfillment_inbox'`,
+    );
+    expect(inboxTable.rowCount).toBe(0);
+    const seqStillThere = await db.query(
+      `SELECT 1 FROM information_schema.columns WHERE table_name = 'delivery_outbox' AND column_name = 'commit_sequence'`,
+    );
+    expect(seqStillThere.rowCount).toBe(1);
+
     // RISK-0012: the rollback of 0006 removes the column and keeps the outbox rows.
     const outboxAfter = await db.query(`SELECT count(*)::int AS n FROM delivery_outbox`);
     expect(outboxAfter.rows[0].n).toBe(2);
+    await applySqlFile(db, beforeLast.down);
     const seqCol = await db.query(
       `SELECT 1 FROM information_schema.columns WHERE table_name = 'delivery_outbox' AND column_name = 'commit_sequence'`,
     );
     expect(seqCol.rowCount).toBe(0);
 
     // وإعادةُ التطبيقِ بعدَ التراجعِ تمرُّ أيضاً على القاعدةِ المأهولةِ.
+    await applySqlFile(db, beforeLast.up);
     await applySqlFile(db, last.up);
     const after = await db.query("SELECT count(*)::int AS n FROM delivery_idempotency_keys");
     expect(after.rows[0].n).toBe(1);

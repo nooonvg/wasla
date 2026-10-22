@@ -123,10 +123,15 @@ export async function consumeCoreFulfillmentEvent(
     return { kind: "observed", note: decision.note };
   }
 
-  if (decision.kind === "transition" && order.fulfillmentState === decision.to) {
+  if (
+    (decision.kind === "transition" || decision.kind === "out_of_order") &&
+    order.fulfillmentState === decision.to
+  ) {
     // نافذةُ الانهيارِ: الانتقالُ وقعَ في محاولةٍ سابقةٍ وانتهارَ التنفيذُ قبلَ
     // إيصالِ الصندوقِ — الحالةُ المستهدفةُ قائمةٌ فالأثرُ وقعَ، والإيصالُ
-    // يُكتبُ الآنَ. لا يُعلنُ «خارجَ الترتيبِ» أبدًا لما وقعَ فعلًا.
+    // يُكتبُ الآنَ. ولا يُعلنُ «خارجَ الترتيبِ» أبدًا لما وقعَ فعلًا — حتى
+    // حينَ يُسقِطُهُ الإسقاطُ خارجَ الترتيبِ (من الحالةِ نفسِها إلى نفسِها) فذلكَ
+    // عينُ «الأثرُ قائمٌ».
     await deps.inbox.recordTerminal({
       eventId: envelope.event_id,
       eventType: event.kind,
