@@ -11249,3 +11249,40 @@ Tests: dispatch 271/271 (+8 in `user-assertion-ownership.test.ts`: off ×2, enfo
   - `infra/render/host-sources.json` classification; `infra/render/deploy-target.json` gains `legacy_owner`.
   - `scripts/checks/validate-render-host-sources.sh` (baseline + 7 mutations) in `scripts/verify.sh`, plus a `VERIFY_COMMAND.md` row.
 - **Not changed:** both Render workspaces, Telegram, DNS, Supabase, `deploy-target.json` mode, `RENDER_API_KEY`.
+## CLM-0661 — 2026-10-22 — stage-zero: خارطة المنظومة المشتركة Revision 5 (تفويض المالك الكامل)
+- **Work Item(s):** M0-54
+- **Status:** Merged (PR [#9](https://github.com/nooonvg/wasla/pull/9), docs only)
+
+- الميزة: المالك أعلن في رسالة خاصة (2026-10-22) تفويضه الكامل لدراسة السوق وخلق الهدف وهيكلة المشروع دون طلب إذن. نصها مسجل حرفيًا في الخارطة المشتركة §1 (التعليمة الثالثة).
+- ما أُنجز: دراسة سوق ثانوية موثقة (`docs/ecosystem/MARKET_STUDY_2026-10-22.md`: CST 2025 للقنوات، Mordor/Ken/IMARC/Redseer لأحجام السوق، مقارنات مزودي الدفع المرخصين من ساما)، وقياس مباشر لحجم مجالات MOVE وCORE المكررة في `services/` على رأس `478bb52` (F-36). الخارطة المشتركة صارت Revision 5: حقائق F-29..F-36، الهدف D-XR-18، قرارات D-XR-19..26، ومرحلة XR-9 (ترتيب تنفيذي بستة بنود ومستويات قبول).
+- ما يخص MARKET من قراراتها: D-XR-19 (الويب/PWA أولًا في كل واجهة جديدة — أولوية XR-8.3 على XR-8.7/8.8)، D-XR-21 (بدء التقديم على Moyasar ثم Tap لحل F12-11)، D-XR-23 (حذف مجال MOVE المجمد هنا فور اخضرار XR-4.3 مع تحقق لكل قدرة — `services/customers` يُحذف منها جزء نشر المشوار فقط)، D-XR-24 (سقف 5 ملفات وثائق لكل دورة، الحوكمة والبوابات كما هي)، D-XR-25/26 (الأولويات وتأجيل القنوات حتى 1,000 طلب حي).
+- التحقق: ملفات الوثائق متطابقة بايتًا مع المستودعين الآخرين (فحص `check-ecosystem-sync.mjs` المحلي)، ولا تغيير في الشيفرة ولا في الاختبارات ولا في النشر. لا بند داخلي أُغلق هنا.
+- لم يُنجز: إصلاح فشل النسخ الاحتياطي اليومي وفحص `ecosystem-sync` المجدول (مرتبان في XR-9.1 للدورة القادمة).
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0661 — ecosystem Revision 5: goal, market study, XR-9". عناوين القيم: Product progress (2026-10-22) — docs/ecosystem: Revision 5 (goal, market study, XR-9) — merged to main.
+## CLM-0662 — 2026-10-22 — stage-zero: تمديد مراجعة RISK-0052 (M0-07)
+
+- **Work Item(s):** M0-07
+- **Status:** Merged (PR [#9](https://github.com/nooonvg/wasla/pull/9), docs only)
+- **Risk(s):** RISK-0052 → mitigating (review extended to 2026-11-21, written decision CLM-0662) · RISK-0070 → mitigating (new moderate GHSA-qxg6-89mg-rqv8 in @vitest/mocker, dev-only, accepted until 2026-12-08 in CLM-0663)
+- الميزة: فحص الحوكمة 10 رفض الدفع لأن مراجعة RISK-0052 انقضت (2026-10-21 < 2026-10-22) وحالها `mitigating`.
+- ما أُنجز: تمديد تاريخ المراجعة إلى 2026-11-21 بقرار مكتوب ضمن تفويض المالك الكامل (الخارطة المشتركة Revision 5 §1)، مع قياس عند المراجعة: شرط الإغلاق لم يتحقق (لا `timeout-minutes` على مجموعة التزامن CI ولا حارس وجود الحكم)، ومسار الإغلاق المقترح كما هو. الحالة بقيت `mitigating`.
+- التحقق: تغيير سطر واحد في `docs/07-security/RISK_REGISTER.md`. لا شيفرة ولا اختبارات.
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0662 — RISK-0052 review extension". عناوين القيم: Product progress (2026-10-22) — docs: RISK-0052 review extended to 2026-11-21 (written decision) — merged to main.
+## CLM-0663 — 2026-10-22 — stage-zero: استثناء أمني موقّت لثغرة @vitest/mocker الجديدة (M0-06)
+
+- **Work Item(s):** M0-06
+- **Status:** Merged (PR [#9](https://github.com/nooonvg/wasla/pull/9), docs only)
+- **Risk(s):** RISK-0070 → mitigating (GHSA-qxg6-89mg-rqv8, @vitest/mocker <4.1.12, dev-only, accepted until 2026-12-08)
+- الميزة: فحص الحوكمة 9 رفض الدفع لأن استشارة GHSA-qxg6-89mg-rqv8 (moderate) في @vitest/mocker غير معلنة في SECURITY_RULES §11 — وهذا يعطل أي دفع في المستودع وليس خاصًا بهذا الـPR.
+- ما أُنجز: استثناء موقّت حتى 2026-12-08 بنفس مسار أختها GHSA-82fw-gwwq-j7x9 (أداة تطوير لا تُشحن، لا عارض متصفح في CI، قفزة الترقية الرئيسية مؤجلة لعنصر عمل خاص)، وسطر RISK-0070 في السجل. قرار مكتوب ضمن تفويض المالك الكامل (Revision 5 §1).
+- التحقق: تغيير وثائق فقط (SECURITY_RULES §11 + RISK_REGISTER). لا شيفرة ولا ترقية اعتماديات في هذا الـPR.
+- أُعيد توليد بصمة `docs/12-testing/BASELINE.json` بقرار مكتوب (نمط CLM-0654): العدّاد الساكن `risks_not_closed` وحده تغيّر 26 ← 27 بإضافة RISK-0070، والبصمة أُعيد حسابها بخوارزمية `baseline_canon` نفسها ولا تغيير في غيره.
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0663 — GHSA-qxg6-89mg-rqv8 temporary exception". عناوين القيم: Product progress (2026-10-22) — docs: RISK-0040 temporary exception for @vitest/mocker advisory — merged to main.
+## CLM-0664 — 2026-10-22 — stage-zero: إعادة توليد بصمة BASELINE.json (M0-08)
+
+- **Work Item(s):** M0-08
+- **Status:** Merged (PR [#9](https://github.com/nooonvg/wasla/pull/9), docs only)
+- **Risk(s):** none — بصمة أساس تُعيد الحفاظ على قابلية التكرار، لا تغيير سلوك.
+- الميزة: فحص الحوكمة 11 (الباب 2) رفض الدفع لأن العدّاد الساكن `risks_not_closed` في الأساس الملتزم (26) صار يخالف الحي (27) بعد إضافة RISK-0070 في CLM-0663.
+- ما أُنجز: تحديث `docs/12-testing/BASELINE.json`: العدّاد 26 ← 27، وأُعيد حساب البصمة بخوارزمية `baseline_canon` نفسها (تحقق محلي: البصمة مطابقة للمحتويات). نمط CLM-0654 (قرار مكتوب، لا تغيير في غير العدّاد). لا تغيير في الشيفرة ولا في الاختبارات.
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0664 — BASELINE risks_not_closed 26→27". عناوين القيم: Product progress (2026-10-22) — docs: baseline fingerprint regenerated for risks_not_closed counter — merged to main.
