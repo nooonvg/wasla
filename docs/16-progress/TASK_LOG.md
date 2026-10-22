@@ -11301,3 +11301,12 @@ Tests: dispatch 271/271 (+8 in `user-assertion-ownership.test.ts`: off ×2, enfo
 - التحقق: `vitest run` محليًا = 18 ملفًا و152 اختبارًا ناجحًا (منها ملفا الاختبار الجديدان `pwa-register.test.ts` بست حالات و`whatsapp-share.test.tsx` بثلاث)، وفحص الأنواع `tsc --noEmit` نظيف. وأُعيد توليد بصمة `docs/12-testing/BASELINE.json` بقرار مكتوب (نمط CLM-0654): العدّاد `test_files_tracked` 583 ← 585 وحده، والبصمة أعيد حسابها بخوارزمية `baseline_canon` نفسها.
 - لم يُنجز: بوت واتساب نفسه (خلف OD-XR-11 — حساب المالك)، ودخول الويب (XR-8.5 في CORE)، وغلافا المتاجر (XR-8.4/8.8 خلف OD-XR-1/2).
 - التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0666 — Revision 6: all channels + PWA service worker + WhatsApp share". عناوين القيم: Product progress (2026-10-22) — apps/customer-mini-app: PWA service worker + WhatsApp share links (18 files, 152 tests) — merged to main.
+## CLM-0668 — 2026-10-22 — stage-zero: إعلان سير عمل فحص تطابق عقود CORE في جرد سلسلة التوريد
+
+- **Work Item(s):** M0-54
+- **Status:** Merged (PR — رقم الطلب يُستكمل عند الفتح)
+- **Risk(s):** none — إعلان جردٍ لسير عملٍ بلا سرٍّ ولا كتابةٍ.
+- الميزة: سير العمل الجديد `core-contract-parity.yml` (دفعة CLM-0667 القادمة) يلزمه إعلان في جرد حرّاس سلسلة توريد سير العمل، وتوسيعُ حجز CLM-0667 بعد دفعه ممنوع (WORK_CLAIM_RULE.md §6) — فكان هذا حجزًا مستقلًا يُدمج قبله.
+- ما أُنجز: سطر إعلان واحد في `scripts/checks/validate-workflow-supply-chain.sh` (بلا سرٍّ ولا كتابةٍ، غرضٌ مكتوبٌ). فحص الجرد محليًا: 19 سيرَ عملٍ معلنةً، لا يتيمَ ولا إعلانَ بلا سير.
+- التحقق: `bash scripts/checks/validate-workflow-supply-chain.sh .` محليًا = نجح.
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0668 — workflow supply-chain declaration for core-contract-parity". عناوين القيم: Product progress (2026-10-22) — scripts/checks: core-contract-parity workflow declared in supply-chain guard — merged to main.
