@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.wasla/events/core.fulfillment.dispatched.v1.schema.json",
+  "title": "core.fulfillment.dispatched v1",
+  "description": "Published by CORE when MOVE accepts a fulfillment request and binds it to an operational job. Marks the transition coordinating -> dispatched. MARKET consumes it to show the commercial order as assigned; the job reference stays opaque to MARKET.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fulfillment_id",
+    "organization_id",
+    "order_reference",
+    "job_reference",
+    "dispatched_at"
+  ],
+  "properties": {
+    "fulfillment_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "organization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The CORE organization (tenant) this fulfillment belongs to. CORE owns tenancy and is the only system that can state it, so it is stated here rather than left for a consumer to ask back for. Added in the 2026-09-12 tenant-scope cycle to resolve blocker B-23: without it a consumer could not route a closure by tenant, and a tenant-scoped notification recipient for this event type matched nothing, for ever, with no error anywhere. Every event CORE publishes from that cycle onward carries it; events stored before it do not, so a consumer replaying history must treat an absent value as unknown rather than as a tenant."
+    },
+    "order_reference": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque MARKET commercial order reference."
+    },
+    "job_reference": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque MOVE operational job reference. CORE never interprets it."
+    },
+    "dispatched_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "examples": [
+    {
+      "fulfillment_id": "e53bd31b-06e4-4609-a109-fcfe6848376d",
+      "organization_id": "3f2b1c7a-8d4e-4f21-9a55-6b0c1d2e3f44",
+      "order_reference": "order-2",
+      "job_reference": "job-9",
+      "dispatched_at": "2026-09-11T03:40:00.000Z"
+    }
+  ]
+}
