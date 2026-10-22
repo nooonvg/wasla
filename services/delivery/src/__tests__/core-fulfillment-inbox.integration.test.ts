@@ -274,6 +274,104 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     expect(result.kind).toBe("order_not_found");
   });
 
+  it("الإيصالُ المرتبطُ بالحدثِ: انهيارٌ ثمّ تقدّمُ الأحداثِ — إعادةُ الإرسالِ تجدُ الإيصالَ فتعودُ applied لا خارجَ الترتيبِ", async () => {
+    // هذا هوَ امتحانُ الحالةِ التي لا يُغني عنها كشفُ الحالةِ: الحدثُ التزمَ
+    // أثرَهُ، وفُقدَ إيصالُ الصندوقِ، ثمّ تقدّمتِ الأحداثُ بعدهُ.
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const eventId = crypto.randomUUID();
+    const first = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(eventId, "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-1",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    expect(first.kind).toBe("applied");
+    // محاكاةُ الانهيارِ: الأثرُ والتماثُلُ التزما، وإيصالُ الصندوقِ لم يُكتبْ.
+    await pool.query(`DELETE FROM core_fulfillment_inbox WHERE event_id = $1::uuid`, [eventId]);
+    // ثمّ يتقدّمُ الطلبُ: إغلاقٌ بالتسليمِ والإثباتِ ← delivered.
+    const completion = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(crypto.randomUUID(), "core.fulfillment.completed", {
+        ...basePayload(order.publicId),
+        outcome: "completed",
+        completed_at: "2026-10-22T10:40:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+      PROOF,
+    );
+    expect(completion.kind).toBe("applied");
+    // الآنَ إعادةُ إرسالِ الحدثِ الأولِ: الحالةُ صارتْ delivered — ولا إعلانَ
+    // «خارجَ الترتيبِ» أبدًا: إيصالُ التماثُلِ المرتبطُ بالحدثِ يُجيبُ applied.
+    const replay = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(eventId, "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-1",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    expect(replay.kind).toBe("applied");
+    const row = await pool.query<{ consumed_status: string }>(
+      `SELECT consumed_status FROM core_fulfillment_inbox WHERE event_id = $1::uuid`,
+      [eventId],
+    );
+    expect(row.rows[0]).toMatchObject({ consumed_status: "applied" });
+    // والحالةُ لم تتأثرْ بإعادةِ الإرسالِ.
+    const still = await store.getOrderByPublicId(order.publicId);
+    expect(still?.fulfillmentState).toBe("delivered");
+  });
+
+  it("مفتاحُ حدثٍ ليسَ UUID = سمٌّ مسمّى بمفتاحٍ بديلٍ حتميٍّ لا استثناءً يُفجّرُ القاعدةَ", async () => {
+    const poisoned = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      {
+        ...coreEnvelope("", "core.fulfillment.created", {
+          ...basePayload("WS-0000000001"),
+          requested_service: "delivery",
+        }),
+        event_id: "not-a-uuid-at-all",
+      },
+    );
+    expect(poisoned).toMatchObject({ kind: "poisoned", error: expect.stringContaining("invalid_event_id") });
+    // الصفُّ مسجّلٌ تحتَ المفتاحِ البديلِ — سمٌّ مرئيٌّ لا اختفاءٌ.
+    const row = await pool.query<{ consumed_status: string; last_error: string }>(
+      `SELECT consumed_status, last_error FROM core_fulfillment_inbox WHERE last_error LIKE 'invalid_event_id%'`,
+    );
+    expect(row.rows[0]).toMatchObject({ consumed_status: "poisoned" });
+    // وإعادةُ الإرسالِ تعيدُ المفتاحَ نفسَهُ = duplicate (لا يتضاعفُ السمُّ).
+    const again = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      {
+        ...coreEnvelope("", "core.fulfillment.created", {
+          ...basePayload("WS-0000000001"),
+          requested_service: "delivery",
+        }),
+        event_id: "not-a-uuid-at-all",
+      },
+    );
+    expect(again.kind).toBe("poisoned");
+    const count = await pool.query(`SELECT count(*)::int AS n FROM core_fulfillment_inbox WHERE last_error LIKE 'invalid_event_id%'`);
+    expect(count.rows[0]["n"]).toBe(1);
+  });
+
+  it("نوعٌ حدثٍ أطولُ من حدِّ العقدِ (96) = سمٌّ يُقصُّ ويسجَّلُ لا CHECKٌ يُفجّرُ التسجيلَ", async () => {
+    const longType = "core.fulfillment." + "x".repeat(150);
+    const poisoned = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(crypto.randomUUID(), longType, { ...basePayload("WS-0000000001") }),
+    );
+    expect(poisoned.kind).toBe("poisoned");
+    const row = await pool.query<{ event_type: string; consumed_status: string }>(
+      `SELECT event_type, consumed_status FROM core_fulfillment_inbox WHERE consumed_status = 'poisoned' AND event_type LIKE 'core.fulfillment.x%'`,
+    );
+    expect(row.rows[0]).toMatchObject({ consumed_status: "poisoned" });
+    expect((row.rows[0]["event_type"] as string).length).toBe(96);
+  });
+
   it("CHECK عقدِ الصندوقِ نفسِهِ: نوعٌ قصيرٌ ترفضُهُ القاعدةُ لا التطبيقُ وحدَهُ", async () => {
     // attempt_count يُعطى صراحةً حتى يكونَ المُرفِضُ هوَ CHECKُ النوعِ لا NOT NULL قبله.
     await expect(
