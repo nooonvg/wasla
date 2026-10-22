@@ -63,6 +63,10 @@ export const DELIVERY_TABLES = [
   // Listed before store_orders: the FK cascades, but TRUNCATE order is also
   // the order a reader learns the dependency in.
   "delivery_idempotency_keys",
+  // صندوقُ استهلاكِ إغلاقِ التنفيذِ (XR-3.5): مذكورٌ صراحةً — لا مفتاحَ
+  // أجنبيًّا فيه إلى store_orders فهو سجلُّ استهلاكٍ مستقلٌّ، ولولا ذكرُهُ
+  // لتسرّبَ صفٌّ من اختبارٍ إلى اختبارٍ.
+  "core_fulfillment_inbox",
   "delivery_relay_checkpoint",
   "delivery_relay_consumed_events",
   "delivery_outbox",

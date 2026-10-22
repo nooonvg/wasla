@@ -11317,3 +11317,20 @@ Tests: dispatch 271/271 (+8 in `user-assertion-ownership.test.ts`: off ×2, enfo
 - التحقق: `vitest run` لخدمة التوصيل = 43 ملفًا و618 اختبارًا ناجحًا (منها ملف الاختبار الجديد بـ16 حالة)، وفحص الأنواع `tsc --noEmit` نظيف، وفحص التطابق أخضر محليًا (بنيويًا وبايتيًا ضد wasla-core@main)، وأُعيد توليد بصمة `docs/12-testing/BASELINE.json` (test_files_tracked 585←586 بقرار مكتوب بنمط CLM-0654).
 - لم يُنجز: مستهلك `core.fulfillment.*` في MARKET (XR-3.5 — البند التالي)، وإسقاط المنظمة (جزء XR-6.1)، وبيئة CORE (B-5 — قرار مالك).
 - التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0667 — Revision 7: CORE contracts parity + market.order.created egress converter". عناوين القيم: Product progress (2026-10-22) — services/delivery: core-egress converter (16 tests) + docs/contracts/core parity gate — merged to main.
+
+## CLM-0668 — 2026-10-22 — stage-zero: XR-3.5 كاملًا: مستهلك core.fulfillment في خدمة التوصيل
+
+- **Work Item(s):** M0-54
+- **Status:** Merged (PR — رقم الطلب يُستكمل عند الفتح)
+- **Risk(s):** none — إسقاط خاضع لآلة الحالة القائمة بلا حافّة جديدة، وصندوق استهلاك بلا فقد، والتطبيق بمسار الانتقال الواحد القائم.
+- الميزة: تعليمة المالك الخامسة (الاتساق والاكتمال التقني) — أول بند من قائمة D-XR-30 يُغلق تنفيذًا: XR-3.5 «مستهلك inbox يحرّك store_order إلى handed_to_courier/delivered/فشل».
+- ما أُنجز (خدمة التوصيل):
+  1. `domain/core-fulfillment-events.ts` — تصنيف نقي للأحداث الخمسة يتبع العقود المنقولة حرفًا (السم مسمّى: CoreFulfillmentPayloadError بلا بلع صامت).
+  2. `domain/core-fulfillment-projection.ts` — إسقاط خاضع لآلة الحالة القائمة بلا حافّة واحدة جديدة: dispatched→handed_to_courier (من ready_for_delivery)، completed(delivered)→delivered (من handed_to_courier وبإثبات §2.4)، completed(failed)→failed، cancelled→cancelled (من حالات العميل فقط)، executed_after_cancellation→ملاحظة براية مالية (لا حكم هنا — XR-4.4 للمالك).
+  3. `use-cases/consume-core-fulfillment.ts` — الصندوق: إغلاق مفرد بمفتاح الحدث، ولا فقد أبدًا (خارج الترتيب/الإثبات المفقود/الطلب غير الموجود = قابل للإعادة مسمّى؛ السم وحده نهائي)، ونافذة الانهيار مغلقة (الحالة المستهدفة قائمة = أثر وقع)، والتطبيق بمسار fulfillmentTransition القائم وحده.
+  4. `infrastructure/pg-core-fulfillment-inbox.ts` + جدول `core_fulfillment_inbox` (عقد schema.sql + مرآة schema.ts + ترحيل 0007 يدوي مطابق لنمط المستودع) + فهرس الحية القابلة للإعادة.
+  5. اختبارات: 14 وحدة (تصنيف + إسقاط + بوابة الإثبات + حارس إلزام المخططات: حذف أي حقل required يُسقط المصنّف) و9 تكامل على PostgreSQL حقيقية (رحلة كاملة جاهزية→handed_to_courier→delivered بإثبات، والإغلاق المفرد، ونافذة الانهيار، والحدث قبل أوانه ثم انطباقه، والإثبات المفقود، وخارج الترتيب، والسم، والمرجع الأجنبي، وCHECK القاعدة).
+- قرارات مراجع خارجي أُخذت بجدية: الذرّية (كشف الحالة المستهدفة يغلق نافذة الانهيار)، وقابلية الإعادة لغير السم (لا فقد أبدًا)، وإلزام المخطط مقاد بالمخطط نفسه، وإصلاح ثغرات اختبار التكامل (attempt_count في CHECK، وتنظيف الصندوق في resetData).
+- سؤال مفتوح مسجل صراحةً في الخارطة (§8 المراجعة 8): هل يُثبت core.fulfillment.dispatched التسليم الفيزيائي للساعي أم انتظاره — يُحسم في تصميم XR-4.3.
+- التحقق: `vitest run` = 44 ملفًا و634 اختبارًا ناجحًا (منها 14 وحدة جديدة)، و`tsc --noEmit` نظيف، واختبارات التكامل تُشغل في CI (db-integration بـPostgreSQL حقيقية — محليًا بلا قاعدة فتتخطى بنمط المستودع القائم)، وبصمة الأساس أُعيد توليدها (test_files_tracked 586←588).
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0668 — XR-3.5: core.fulfillment consumer (infallible inbox + state-machine projection)". عناوين القيم: Product progress (2026-10-22) — services/delivery: core.fulfillment consumer + inbox table + migration 0007 (14 unit + 9 integration tests) — merged to main.

@@ -871,3 +871,53 @@ export interface RelayDeadLetterAcknowledgementPort {
     readonly acknowledgedAt: string;
   }): Promise<RelayAcknowledgementDecision>;
 }
+
+/**
+ * صندوقُ استهلاكِ أحداثِ إغلاقِ التنفيذِ من CORE (XR-3.5 · المراجعةُ 7) —
+ * ملكُ خدمةِ التوصيلِ وحدَها، بلا أيِّ كتابةٍ في مصدرِ الأحداثِ.
+ *
+ * **نهائيٌّ** يعني: أُحسِمَ أمرُ الحدثِ (applied/observed/out_of_order/
+ * proof_missing/poisoned) فلا يُعادُ معالجتُهُ أبدًا. و**قابلٌ للإعادةِ**
+ * (pending/error) يعني: فشلٌ عابرٌ فيُعادُ المحاولةُ بلا فقدٍ ولا تكرارِ أثرٍ.
+ */
+export interface CoreFulfillmentInboxRecord {
+  readonly eventId: string;
+  readonly eventType: string;
+  readonly orderReference: string | null;
+  readonly consumedStatus:
+    | "pending"
+    | "applied"
+    | "observed"
+    | "out_of_order"
+    | "proof_missing"
+    | "poisoned"
+    | "error";
+  readonly lastError: string | null;
+  readonly attemptCount: number;
+}
+
+export interface CoreFulfillmentInboxStore {
+  /** يقرأُ صفَّ الحدثِ إن وُجِدَ (للإغلاقِ المفردِ قبلَ أيِّ أثرٍ). */
+  find(eventId: string): Promise<CoreFulfillmentInboxRecord | null>;
+  /**
+   * يُسجِّلُ الحسمَ النهائيَّ للحدثِ: إدراجٌ أو تحديثٌ إلى حالةٍ نهائيةٍ.
+   * لا يُخفَّضُ صفٌّ نهائيٌّ إلى حالةٍ حيةٍ — القاعدةُ في العقدِ ترفضُهُ.
+   */
+  recordTerminal(cmd: {
+    readonly eventId: string;
+    readonly eventType: string;
+    readonly orderReference: string | null;
+    readonly consumedStatus:
+      | "applied"
+      | "observed"
+      | "out_of_order"
+      | "proof_missing"
+      | "poisoned";
+    readonly lastError: string | null;
+  }): Promise<void>;
+  /**
+   * يُسجِّلُ فشلًا عابرًا قابلًا للإعادةِ: يرفعُ `attempt_count` ويُبقي
+   * الصفَّ حيًّا — لا سمًّا ولا فقدًا.
+   */
+  recordRetryable(eventId: string, lastError: string): Promise<void>;
+}

@@ -607,6 +607,32 @@ CREATE CONSTRAINT TRIGGER trg_delivery_outbox_commit_sequence
     AFTER INSERT ON delivery_outbox
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW EXECUTE FUNCTION delivery_outbox_assign_commit_sequence();
+-- ─────────────────────────────────────────────────────────────
+-- 15) core_fulfillment_inbox — صندوقُ استهلاكِ أحداثِ إغلاقِ التنفيذِ من CORE
+--     (XR-3.5 · المراجعةُ 7): ملكُ التوصيلِ وحدَهُ، بلا كتابةٍ في مصدرِ
+--     الأحداثِ. الإغلاقُ المفردُ بمفتاحِ الحدثِ، والسمُّ وخارجُ الترتيبِ
+--     والإثباتُ المفقودُ كلُّها حالاتٌ **مسمّاةٌ** لا صامتةٌ.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS core_fulfillment_inbox (
+    event_id        UUID        PRIMARY KEY,
+    -- النوعُ حرٌّ هنا عمدًا: السمُّ يُسجَّلُ بنوعِهِ الخامِ ولو كانَ خارجَ
+    -- الأنواعِ الخمسةِ — والمصنِّفُ (`core-fulfillment-events.ts`) هو الحارسُ.
+    event_type      TEXT        NOT NULL CHECK (char_length(event_type) BETWEEN 3 AND 96),
+    order_reference TEXT        CHECK (order_reference IS NULL OR order_reference ~ '^WS-[0-9]{10}$'),
+    consumed_status TEXT        NOT NULL CHECK (consumed_status IN (
+                                   'pending','applied','observed','out_of_order',
+                                   'proof_missing','poisoned','error')),
+    last_error      TEXT,
+    attempt_count   INTEGER     NOT NULL CHECK (attempt_count >= 1),
+    consumed_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- فهرسُ الحادثةِ: الصفوفُ الحيّةُ القابلةُ للإعادةِ وحدَها.
+CREATE INDEX IF NOT EXISTS ix_core_fulfillment_inbox_retryable
+    ON core_fulfillment_inbox (updated_at)
+    WHERE consumed_status IN ('pending', 'error');
+
 -- <<< RISK-0012 commit_sequence (delivery_outbox)
 
 COMMIT;
