@@ -11301,3 +11301,18 @@ Tests: dispatch 271/271 (+8 in `user-assertion-ownership.test.ts`: off ×2, enfo
 - التحقق: `vitest run` محليًا = 18 ملفًا و152 اختبارًا ناجحًا (منها ملفا الاختبار الجديدان `pwa-register.test.ts` بست حالات و`whatsapp-share.test.tsx` بثلاث)، وفحص الأنواع `tsc --noEmit` نظيف. وأُعيد توليد بصمة `docs/12-testing/BASELINE.json` بقرار مكتوب (نمط CLM-0654): العدّاد `test_files_tracked` 583 ← 585 وحده، والبصمة أعيد حسابها بخوارزمية `baseline_canon` نفسها.
 - لم يُنجز: بوت واتساب نفسه (خلف OD-XR-11 — حساب المالك)، ودخول الويب (XR-8.5 في CORE)، وغلافا المتاجر (XR-8.4/8.8 خلف OD-XR-1/2).
 - التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0666 — Revision 6: all channels + PWA service worker + WhatsApp share". عناوين القيم: Product progress (2026-10-22) — apps/customer-mini-app: PWA service worker + WhatsApp share links (18 files, 152 tests) — merged to main.
+## CLM-0667 — 2026-10-22 — stage-zero: المراجعة 7 (الاتساق والاكتمال التقني) + جسر عقود CORE
+
+- **Work Item(s):** M0-54
+- **Status:** Merged (PR [#11](https://github.com/nooonvg/wasla/pull/11))
+- **Risk(s):** none — عقود منقولة من مصدرها الرسمي بفحص تطابق، ومحوّل نقي لا يقرأ ولا يكتب.
+- الميزة: تعليمة المالك الخامسة (2026-10-22): «ليس مهمه إعادة اي شي إلى الحياه ما يهم هو أن كل شي يعمل باتساق ويهم ايضاء أن كل العمل التقني مكتمل وان المشاريع مترابطه ومتسقه».
+- ما أُنجز (خارطة): المراجعة 7 — التعليمة الخامسة في §1، القرار D-XR-30 (تعديل XR-9.1: الأولوية لبناء الترابط والاكتمال التقني، وعودة MOVE للإنتاج بند مستقل لا يحجب)، الحقائق F-38 (قياس: لا إسقاط «متجر ← منظمة CORE» في MARKET بعد — يلزم قبل تفعيل منتج market.order.created) وF-39 (ما نتج في الدفعة).
+- ما أُنجز (شيفرة — جسر ترابط MARKET↔CORE):
+  1. **XR-3.6 كاملًا:** عقود CORE السبعة منقولة إلى `docs/contracts/core/` (المغلّف + market.order.created.v1 + خمسة core.fulfillment.*) مع `PROVENANCE.md` يسجل المصدر (wasla-core@d685364)، وفحص `scripts/checks/check-core-contract-parity.mjs` يقارن بايتًا بصمة SHA-256 مع wasla-core@main (محليًا: أخضر في الوضعين)، وسير عمل `core-contract-parity.yml` يفرضه في CI على كل دفعة تمس العقود وعلى جدول يومي.
+  2. **XR-3.4 (المحوّل):** `services/delivery/src/domain/core-egress.ts` — محوّل نقي يحوّل `store_order.created` المحلي إلى `market.order.created` بمغلّف CORE كامل (correlation_id من trace_id، causation_id=null للفعل المنشئ، entity=store_order، payload بمطابقة العقد). التفعيل خلف إسقاط المنظمة (F-38) — لا يستدعيه إنتاج بعد، عمدًا.
+  3. **اختبارات:** `core-egress.test.ts` — 16 حالة تقرأ العقد المنقول نفسه وتطابق ناتج المحوّل حرفًا (الحقول المطلوبة، additionalProperties:false، uuid، minlength، pattern)، وتغطي قرارات التحويل وحالات الرفض.
+- وأُعلن سيرُ العملِ `core-contract-parity.yml` في جردِ حرّاسِ سلسلةِ توريدِ سيرِ العملِ (`validate-workflow-supply-chain.sh` · بلا سرٍّ ولا كتابةٍ) — فحصُ الجردِ محليًا: 19 سيرَ عملٍ معلنةً ولا يتيمَ ولا إعلانَ بلا سير.
+- التحقق: `vitest run` لخدمة التوصيل = 43 ملفًا و618 اختبارًا ناجحًا (منها ملف الاختبار الجديد بـ16 حالة)، وفحص الأنواع `tsc --noEmit` نظيف، وفحص التطابق أخضر محليًا (بنيويًا وبايتيًا ضد wasla-core@main)، وأُعيد توليد بصمة `docs/12-testing/BASELINE.json` (test_files_tracked 585←586 بقرار مكتوب بنمط CLM-0654).
+- لم يُنجز: مستهلك `core.fulfillment.*` في MARKET (XR-3.5 — البند التالي)، وإسقاط المنظمة (جزء XR-6.1)، وبيئة CORE (B-5 — قرار مالك).
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0667 — Revision 7: CORE contracts parity + market.order.created egress converter". عناوين القيم: Product progress (2026-10-22) — services/delivery: core-egress converter (16 tests) + docs/contracts/core parity gate — merged to main.

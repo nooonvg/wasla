@@ -1,0 +1,45 @@
+# XR-3.6 (shared ecosystem roadmap Revision 7): the CORE event contracts copied
+# into docs/contracts/core/ must stay byte-identical to their source of truth
+# in nooonvg/wasla-core. Source: docs/contracts/core/PROVENANCE.md.
+#
+# What this gate proves, that a unit test cannot: that MARKET's copy has not
+# drifted from CORE's published contract — the drift RISK-0035 taught this
+# repository to catch with a guard, not a one-time check.
+#
+# Strict on every push/schedule; the --offline structural check runs in the
+# same job so a PROVENANCE bookkeeping error fails even when the source is
+# unreachable.
+name: Core contract parity
+
+on:
+  pull_request:
+    paths:
+      - "docs/contracts/core/**"
+      - "scripts/checks/check-core-contract-parity.mjs"
+      - ".github/workflows/core-contract-parity.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/contracts/core/**"
+      - "scripts/checks/check-core-contract-parity.mjs"
+      - ".github/workflows/core-contract-parity.yml"
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-contract-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Structure (offline)
+        run: node scripts/checks/check-core-contract-parity.mjs --offline
+      - name: Byte-identical to wasla-core@main
+        run: node scripts/checks/check-core-contract-parity.mjs
