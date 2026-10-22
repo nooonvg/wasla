@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { useSessionStore } from "./store/session";
 import { startSessionLifecycle } from "./session/session-init";
+import { registerServiceWorker } from "./pwa/register-service-worker";
 import "./i18n";
 import "./index.css";
 
@@ -11,6 +12,11 @@ import "./index.css";
 // في الإنتاجِ. لا تُخزَّنُ الجلسةُ في أيِّ تخزينٍ محليٍّ (ADR-044 §4).
 // G-S8 (CLM-0610): تهيئةٌ أولى + إعادةٌ محدودةٌ عندَ الانتهاءِ/401.
 startSessionLifecycle();
+
+// XR-8.3 (المراجعة 6 · CLM-0665): تسجيلُ عاملِ الخدمةِ للقشرةِ القابلةِ للتثبيتِ
+// (PWA) على الحاسوبِ والجوالِ من المتصفحِ — إنتاجٌ ومتصفحٌ فقط، وبلا عاملِ
+// خدمةٍ في اختباراتِ Playwright ولا داخلَ تيليجرام (انظر pwa/register-service-worker.ts).
+registerServiceWorker({ e2e: import.meta.env.VITE_E2E === "true" });
 
 // E2E test support — compile-time gated, tree-shaken in production.
 // When VITE_E2E is not set, this entire block is removed by the bundler.

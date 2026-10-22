@@ -129,6 +129,9 @@ const resources = {
         store_search_error: "تعذّر البحث عن المتاجر",
         no_products: "لا توجد منتجات في هذا المتجر",
       },
+      share: {
+        whatsapp_store: "مشاركة عبر واتساب",
+      },
       search: {
         title: "البحث",
         placeholder: "ابحث عن منتج...",
@@ -305,6 +308,9 @@ const resources = {
         store_search_error: "Could not search stores",
         no_products: "No products in this store",
       },
+      share: {
+        whatsapp_store: "Share on WhatsApp",
+      },
       search: {
         title: "Search",
         placeholder: "Search for a product...",
@@ -480,6 +486,9 @@ const resources = {
         store_search_empty: "اس نام کی کوئی دستیاب دکان نہیں",
         store_search_error: "دکانیں تلاش نہیں ہو سکیں",
         no_products: "اس دکان میں کوئی مصنوعات نہیں",
+      },
+      share: {
+        whatsapp_store: "واٹس ایپ پر شیئر کریں",
       },
       search: {
         title: "تلاش",

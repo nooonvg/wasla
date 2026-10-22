@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
 import { StoreSearch } from "../components/StoreSearch";
+import { WhatsAppShareButton } from "../components/WhatsAppShareButton"; // D-XR-27 (المراجعة 6): مشاركة المتجر عبر واتساب.
 
 interface Store {
   store_id: string;
@@ -27,6 +28,7 @@ export function Marketplace() {
   const { token } = useSessionStore();
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [selectedStoreName, setSelectedStoreName] = useState<string>("");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,14 +68,16 @@ export function Marketplace() {
     loadStores();
   }, [loadStores]);
 
-  const handleStoreClick = useCallback((slug: string) => {
+  const handleStoreClick = useCallback((slug: string, displayName?: string) => {
     setSelectedStore(slug);
+    setSelectedStoreName(displayName ?? "");
     setProducts([]);
     loadProducts(slug);
   }, [loadProducts]);
 
   const handleBack = useCallback(() => {
     setSelectedStore(null);
+    setSelectedStoreName("");
     setProducts([]);
   }, []);
 
@@ -113,6 +117,11 @@ export function Marketplace() {
           </button>
           <h2 data-testid="selected-store-name">{selectedStore}</h2>
 
+          {/* D-XR-27 (المراجعة 6): مشاركة المتجر عبر واتساب برابط wa.me، بلا اعتماد منصة. */}
+          {selectedStoreName && (
+            <WhatsAppShareButton storeName={selectedStoreName} />
+          )}
+
           {loading && (
             <div className="loading-indicator" data-testid="products-loading">
               {t("common.loading")}
@@ -146,7 +155,7 @@ export function Marketplace() {
       ) : (
         <>
           {/* G-S9.7 (CLM-0649): name search over the search service's derived model. */}
-          <StoreSearch testId="store-search" onSelect={(store) => handleStoreClick(store.store_slug)} />
+          <StoreSearch testId="store-search" onSelect={(store) => handleStoreClick(store.store_slug, store.title)} />
 
           {stores.length === 0 && !loading && (
             <div className="empty-state" data-testid="stores-empty">
@@ -161,7 +170,7 @@ export function Marketplace() {
                   key={store.store_id}
                   className="store-item"
                   data-testid={`store-${store.slug}`}
-                  onClick={() => handleStoreClick(store.slug)}
+                  onClick={() => handleStoreClick(store.slug, store.display_name)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {

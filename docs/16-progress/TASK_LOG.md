@@ -11286,3 +11286,18 @@ Tests: dispatch 271/271 (+8 in `user-assertion-ownership.test.ts`: off ×2, enfo
 - الميزة: فحص الحوكمة 11 (الباب 2) رفض الدفع لأن العدّاد الساكن `risks_not_closed` في الأساس الملتزم (26) صار يخالف الحي (27) بعد إضافة RISK-0070 في CLM-0663.
 - ما أُنجز: تحديث `docs/12-testing/BASELINE.json`: العدّاد 26 ← 27، وأُعيد حساب البصمة بخوارزمية `baseline_canon` نفسها (تحقق محلي: البصمة مطابقة للمحتويات). نمط CLM-0654 (قرار مكتوب، لا تغيير في غير العدّاد). لا تغيير في الشيفرة ولا في الاختبارات.
 - التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0664 — BASELINE risks_not_closed 26→27". عناوين القيم: Product progress (2026-10-22) — docs: baseline fingerprint regenerated for risks_not_closed counter — merged to main.
+## CLM-0666 — 2026-10-22 — stage-zero: المراجعة 6 (كل القنوات) + عامل خدمة PWA + مشاركة واتساب
+
+- **Work Item(s):** M0-54
+- **Status:** Merged (PR [#10](https://github.com/nooonvg/wasla/pull/10))
+- **Risk(s):** none — عامل الخدمة يستثني مسارات المصادقة (/edge/ و/api/) من الذاكرة أصلًا، والمشاركة رابط wa.me بلا اعتماد منصة.
+- الميزة: تعليمة المالك الرابعة (2026-10-22): «وصله ليست فقط تيليجرام، يجب أن تكون تيليجرام ديسكورد واتساب اندرويد وآيفون وسطح المكتب ومواقع وغيرها».
+- ما أُنجز (خارطة): المراجعة 6 — التعليمة الرابعة في §1، الحقيقة F-37 (واتساب للأعمال بمصادره)، القرارات D-XR-27 (واتساب قناة من الدرجة الأولى: مشاركة wa.me الآن والبوت خلف OD-XR-11) وD-XR-28 (سطح المكتب = PWA لا تطبيق منفصل) وD-XR-29 (البناء يبدأ الآن، تعديل D-XR-26)، بند XR-8.12 وصف واتساب في §4-أ، وOD-XR-11 (قرار مالك: حساب واتساب للأعمال).
+- ما أُنجز (شيفرة، تطبيق الزبون `apps/customer-mini-app/`):
+  1. `public/sw.js` — عامل خدمة شبكة-أولًا بذاكرة تشغيل للأصول الثابتة من نفس الأصل فقط، باستثناء صريح لمسارات المصادقة `/edge/` و`/api/` (لا تخزين بيانات جلسة أبدًا)، واستجابة 503 صريحة عند فشل كل شيء.
+  2. `src/pwa/register-service-worker.ts` — تسجيل مقيد بأربعة شروط مقيسة باختبار: دعم المتصفح، بيئة الإنتاج، ليس VITE_E2E (حتى لا يخدع اختبارات Playwright)، والمضيف متصفحًا (خارج تيليجرام). فشل التسجيل لا يُفشل التطبيق.
+  3. `src/share/whatsapp.ts` + `src/components/WhatsAppShareButton.tsx` + تكامل شاشة المتاجر: زر «مشاركة عبر واتساب» يفتح محادثة wa.me بنص جاهز (اسم المتجر + وَصْلة)، بثلاث لغات (ar/en/ur).
+- وأُضيف متغيّر `PROD` إلى `packages/config/env-registry.json` (قراءة `import.meta.env.PROD` في bag نمط في pwa/register-service-worker.ts) وأُعيد توليد `.env.example` و`registry.generated.ts` بالمولّد الرسمي — فحص الإعداد 18 أبوابه الثمانية كلها خضراء.
+- التحقق: `vitest run` محليًا = 18 ملفًا و152 اختبارًا ناجحًا (منها ملفا الاختبار الجديدان `pwa-register.test.ts` بست حالات و`whatsapp-share.test.tsx` بثلاث)، وفحص الأنواع `tsc --noEmit` نظيف. وأُعيد توليد بصمة `docs/12-testing/BASELINE.json` بقرار مكتوب (نمط CLM-0654): العدّاد `test_files_tracked` 583 ← 585 وحده، والبصمة أعيد حسابها بخوارزمية `baseline_canon` نفسها.
+- لم يُنجز: بوت واتساب نفسه (خلف OD-XR-11 — حساب المالك)، ودخول الويب (XR-8.5 في CORE)، وغلافا المتاجر (XR-8.4/8.8 خلف OD-XR-1/2).
+- التقرير: مطلوب عند دمج هذه القائمة؟ نعم. عنوان التقرير: "CLM-0666 — Revision 6: all channels + PWA service worker + WhatsApp share". عناوين القيم: Product progress (2026-10-22) — apps/customer-mini-app: PWA service worker + WhatsApp share links (18 files, 152 tests) — merged to main.
