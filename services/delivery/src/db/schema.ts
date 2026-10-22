@@ -844,6 +844,57 @@ export const coreFulfillmentInbox = pgTable(
 );
 
 /**
+ * 16) core_egress_outbox — صندوقُ صادرِ أحداثِ CORE (XR-3.4): الحدثُ كاملًا
+ * بمغلّفِهِ عندَ الوضعِ، مستقلٌّ عن delivery_outbox (المُحوِّلُ يعيدُ
+ * event_id المحليَّ والجدولُ القائمُ يرفضُ التكرارَ بصمتٍ).
+ */
+export const coreEgressOutbox = pgTable(
+  "core_egress_outbox",
+  {
+    eventId: uuid("event_id").primaryKey(),
+    eventType: text("event_type").notNull(),
+    version: integer("version").notNull(),
+    producer: text("producer").notNull(),
+    occurredAt: instant("occurred_at").notNull(),
+    correlationId: text("correlation_id").notNull(),
+    causationId: text("causation_id"),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    payload: jsonb("payload").notNull(),
+    publishedAt: instant("published_at"),
+    attempts: integer("attempts").notNull().default(0),
+    lastError: text("last_error"),
+    createdAt: instant("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    check("core_egress_outbox_event_type_check", sql`char_length(${table.eventType}) BETWEEN 3 AND 96`),
+    check("core_egress_outbox_version_check", sql`${table.version} >= 1`),
+    check("core_egress_outbox_attempts_check", sql`${table.attempts} >= 0`),
+    index("ix_core_egress_outbox_unpublished")
+      .on(table.eventId)
+      .where(sql`${table.publishedAt} IS NULL`),
+  ],
+);
+
+/**
+ * 17) core_egress_blocked — القرارُ المحجوزُ المتينُ: طلبٌ بلا منظمةِ متجرٍ
+ * يُسجَّلُ في معاملةِ الوضعِ لا أن يُفقدَ؛ الربطُ (XR-6.1) يُلحِقُهُ لاحقًا.
+ */
+export const coreEgressBlocked = pgTable(
+  "core_egress_blocked",
+  {
+    orderId: uuid("order_id").primaryKey(),
+    orderPublicId: text("order_public_id").notNull(),
+    reason: text("reason").notNull(),
+    createdAt: instant("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    check("core_egress_blocked_order_public_id_check", sql`${table.orderPublicId} ~ '^WS-[0-9]{10}$'`),
+    check("core_egress_blocked_reason_check", sql`char_length(${table.reason}) BETWEEN 3 AND 96`),
+  ],
+);
+
+/**
  * جداولُ العقدِ بلا مرآةٍ — **فارغةٌ** لا محذوفةٌ: حارسُ الانحرافِ يُقابلُها بفرقِ
  * (جداولِ العقدِ − جداولِ المرآةِ) بالضبطِ، فبقاؤها فارغةً هو ما يُسقِطُ أوّلَ جدولٍ يُضافُ
  * غداً إلى العقدِ بلا مرآةٍ هنا.

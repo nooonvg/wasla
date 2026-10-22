@@ -45,6 +45,7 @@ function storeBody(overrides: Record<string, unknown> = {}): Record<string, unkn
     store_id: STORE_ID,
     store_slug: SLUG,
     owner_public_id: "WS-0000000009",
+    organization_id: null,
     title_ar: "متجرُ الفواكهِ",
     category_slug: "grocery",
     state: "approved",
@@ -144,7 +145,7 @@ describe("HttpMarketplaceCatalogPort · resolving the store by its published slu
     const { port, calls } = buildPort(() => ({ status: 200, body: storeBody() }));
     const store = await port.getStoreBySlug(SLUG);
 
-    expect(store).toEqual({ storeId: STORE_ID, orderable: true });
+    expect(store).toEqual({ storeId: STORE_ID, orderable: true, organizationId: null });
     expect(calls).toHaveLength(1);
     expect(calls[0]?.path).toBe(`/stores/${SLUG}`);
     // الرمزُ مربوطٌ بالطريقةِ والمسارِ (ADR-021 §4): رمزٌ عامٌّ كانَ يُعادُ استعمالُهُ.
@@ -166,14 +167,14 @@ describe("HttpMarketplaceCatalogPort · resolving the store by its published slu
   it("only an approved store with a locked slug is orderable", async () => {
     for (const state of ["draft", "pending_review", "rejected", "suspended", "archived"]) {
       const { port } = buildPort(() => ({ status: 200, body: storeBody({ state }) }));
-      expect(await port.getStoreBySlug(SLUG)).toEqual({ storeId: STORE_ID, orderable: false });
+      expect(await port.getStoreBySlug(SLUG)).toEqual({ storeId: STORE_ID, orderable: false, organizationId: null });
     }
     // موافَقٌ عليهِ وslug غيرُ مقفولٍ: مرجعٌ قد يتغيّرُ، ودفترُنا يحفظُهُ نصّاً.
     const { port } = buildPort(() => ({
       status: 200,
       body: storeBody({ is_slug_locked: false }),
     }));
-    expect(await port.getStoreBySlug(SLUG)).toEqual({ storeId: STORE_ID, orderable: false });
+    expect(await port.getStoreBySlug(SLUG)).toEqual({ storeId: STORE_ID, orderable: false, organizationId: null });
   });
 
   it("refuses a body describing a DIFFERENT store rather than binding the order to it", async () => {

@@ -67,6 +67,8 @@ export const DELIVERY_TABLES = [
   // أجنبيًّا فيه إلى store_orders فهو سجلُّ استهلاكٍ مستقلٌّ، ولولا ذكرُهُ
   // لتسرّبَ صفٌّ من اختبارٍ إلى اختبارٍ.
   "core_fulfillment_inbox",
+  "core_egress_outbox",
+  "core_egress_blocked",
   "delivery_relay_checkpoint",
   "delivery_relay_consumed_events",
   "delivery_outbox",

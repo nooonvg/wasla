@@ -56,10 +56,12 @@ import type { StoreSlug, WaslaPublicId } from "@wasla/contracts-delivery";
 import { DeliveryError } from "../domain/errors.js";
 import { buildReservationCommand } from "../domain/inventory-reservation.js";
 import { storeOrderCreatedEvent, deliveryTaskCreatedEvent, storeOrderInventoryReservedEvent, type EventContext } from "../domain/events.js";
+import { marketOrderCreatedForCore } from "../domain/core-egress.js";
 import { buildStoreOrderPlacement } from "../domain/store-order-placement.js";
 import type { PlaceOrderInput } from "../domain/validation.js";
 import type { StoreOrder } from "../domain/model.js";
 import type {
+  CoreEgressWrite,
   IdempotencyIntent,
   IdempotentReplay,
   InventoryReservationPort,
@@ -129,18 +131,41 @@ export async function placeStoreOrder(
   const orderContext: EventContext = { eventId: deps.newUuid(), occurredAt, traceId };
   const taskContext: EventContext = { eventId: deps.newUuid(), occurredAt, traceId };
 
+  // صادرُ CORE (XR-3.4 · F-38): الحدثُ **الجاهزُ كاملًا** يُبنى هنا منَ الحدثِ
+  // المحليِّ نفسِهِ (تغليفٌ لا توليدُ حادثةٍ) ويُلتزَمُ في معاملةِ الوضعِ
+  // نفسِها. ولا منظمةَ → قرارٌ محجوزٌ متينٌ (لا حدثَ مُختلَقًا ولا فقدًا
+  // صامتًا): الربطُ المتحقَّقُ منهُ (XR-6.1) يُلحِقُهُ منَ السجلِّ لاحقًا.
+  const createdEvent = storeOrderCreatedEvent(order, orderContext, {
+    actor_type: "customer",
+    actor_ref: order.customerRef,
+  });
+  const coreEgress: CoreEgressWrite =
+    store.organizationId !== null
+      ? {
+          kind: "core-event",
+          event: marketOrderCreatedForCore(createdEvent, {
+            organizationId: store.organizationId,
+            // خدمةُ رحلةِ XR-4 (مثالُ العقدِ) — الحقلُ صريحٌ في العقدِ لا
+            // مُستنتَجٌ، وخدماتٌ أخرى تأتي حينَ تُعرَّفُ.
+            requestedService: "delivery",
+            // الساقُ الماليّةُ معطّلةٌ حتى D-XR-21 — لا حجزَ مالٍ يُرفَقُ.
+            paymentAuthorizationId: null,
+          }),
+        }
+      : {
+          kind: "blocked",
+          orderId: order.orderId,
+          orderPublicId: order.publicId,
+          reason: "organization_not_linked",
+        };
+
   const write: PlacementWrite = {
     order,
     task,
-    events: [
-      storeOrderCreatedEvent(order, orderContext, {
-        actor_type: "customer",
-        actor_ref: order.customerRef,
-      }),
-      deliveryTaskCreatedEvent(task, order.publicId, taskContext),
-    ],
+    events: [createdEvent, deliveryTaskCreatedEvent(task, order.publicId, taskContext)],
     traceId,
     idempotency,
+    coreEgress,
   };
 
   const outcome = await deps.writePort.placeOrder(write);

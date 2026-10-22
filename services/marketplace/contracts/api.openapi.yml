@@ -1042,12 +1042,16 @@ components:
 
     StoreResource:
       type: object
-      required: [store_id, store_slug, owner_public_id, title_ar, category_slug, state, state_sequence, is_slug_locked, first_approved_at, created_at, updated_at]
+      required: [store_id, store_slug, owner_public_id, organization_id, title_ar, category_slug, state, state_sequence, is_slug_locked, first_approved_at, created_at, updated_at]
       additionalProperties: false
       properties:
         store_id: {type: string, format: uuid}
         store_slug: {$ref: '#/components/schemas/StoreSlug'}
         owner_public_id: {$ref: '#/components/schemas/WaslaPublicId'}
+        organization_id:
+          type: [string, "null"]
+          format: uuid
+          description: منظمة CORE صاحبة المتجر — من الربط المتحقق منه (XR-6.1)، أو null حتى يتوافر (لا يقبلها مسار الإنشاء).
         title_ar: {type: string, minLength: 2, maxLength: 80}
         title_en: {type: [string, 'null'], minLength: 2, maxLength: 80}
         title_ur: {type: [string, 'null'], minLength: 2, maxLength: 80}

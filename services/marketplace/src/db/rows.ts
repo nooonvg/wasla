@@ -79,6 +79,7 @@ function narrowOptional<T extends string>(
 export interface StoreRow {
   readonly storeId: string;
   readonly ownerPublicId: string;
+  readonly organizationId: string | null;
   readonly slug: string;
   readonly titleAr: string;
   readonly titleEn: string | null;
@@ -95,6 +96,8 @@ export interface StoreRow {
 export interface StoreRecord {
   readonly storeId: string;
   readonly ownerPublicId: string;
+  /** منظمةُ CORE للمتجرِ — منَ الربطِ المتحقَّقِ منهِ (XR-6.1) أو غائبةٌ. */
+  readonly organizationId: string | null;
   readonly slug: string;
   readonly titleAr: string;
   readonly titleEn?: string;
@@ -112,6 +115,7 @@ export function toStore(row: StoreRow): StoreRecord {
   return {
     storeId: row.storeId,
     ownerPublicId: row.ownerPublicId,
+    organizationId: row.organizationId ?? null,
     slug: row.slug,
     titleAr: row.titleAr,
     titleEn: row.titleEn ?? undefined,

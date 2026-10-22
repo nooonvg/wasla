@@ -129,6 +129,7 @@ export const stores = pgTable(
   {
     storeId: uuid("store_id").primaryKey(),
     ownerPublicId: text("owner_public_id").notNull(),
+    organizationId: uuid("organization_id"),
     slug: text("slug").notNull(),
     titleAr: text("title_ar").notNull(),
     titleEn: text("title_en"),

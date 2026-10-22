@@ -51,6 +51,8 @@ export const CUSTOMER_REF = "WS-0000000009" as WaslaPublicId;
 export const STORE_SLUG = "matjar-alfawakih" as StoreSlug;
 export const PRODUCT_A = "11111111-1111-4111-8111-111111111111";
 export const PRODUCT_B = "22222222-2222-4222-8222-222222222222";
+/** معرفُ المتجرِ الافتراضيُّ في `FakeCatalog` — معلَنٌ لأنَّ اختباراتِ الصادرِ تُسنِدُ إليهِ. */
+export const STORE_ID = "cccccccc-0000-4000-8000-000000000003";
 
 export class FakeStoreOrderStore implements StoreOrderReadPort, StoreOrderWritePort {
   readonly orders = new Map<string, StoreOrder>();
@@ -283,14 +285,23 @@ export class FakeReadinessProbe implements ReadinessProbePort {
 
 export class FakeCatalog implements StoreOrderCatalogPort {
   constructor(
-    private readonly store: { storeId: string; orderable: boolean } | null = {
-      storeId: "cccccccc-0000-4000-8000-000000000003",
-      orderable: true,
-    },
+    private readonly store:
+      | { storeId: string; orderable: boolean; organizationId: string | null }
+      | null = {
+          storeId: STORE_ID,
+          orderable: true,
+          // لا منظمةَ بعدُ (F-38): الحدثُ يبقى محجوزًا لا مُختلَقًا —
+          // والاختباراتُ التي تُثبتُ الرحلةَ تُعطي المنظمةَ صراحةً.
+          organizationId: null,
+        },
     private readonly prices: Record<string, number> = { [PRODUCT_A]: 1000, [PRODUCT_B]: 250 },
   ) {}
 
-  async getStoreBySlug(): Promise<{ storeId: string; orderable: boolean } | null> {
+  async getStoreBySlug(): Promise<{
+    storeId: string;
+    orderable: boolean;
+    organizationId: string | null;
+  } | null> {
     return this.store;
   }
 

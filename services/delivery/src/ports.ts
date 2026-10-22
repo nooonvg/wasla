@@ -22,6 +22,7 @@
 import type { DispatchOutboxRow, RelayCheckpoint, ConsumedStatus } from "./domain/consumed-events.js";
 import type { MirrorTransition } from "./domain/dispatch-mirror.js";
 import type { DelegatableTask } from "./domain/delegation.js";
+import type { MarketOrderCreatedCoreEvent } from "./domain/core-egress.js";
 
 export interface DispatchEventSource {
   /** Read up to `limit` dispatch outbox rows strictly after the checkpoint (or from zero). */
@@ -469,7 +470,29 @@ export interface PlacementWrite {
   readonly traceId: string | null;
   /** Optional so fakes and internal callers may write without a wire key. */
   readonly idempotency?: IdempotencyIntent;
+  /**
+   * صادرُ CORE للحدثِ (XR-3.4 · F-38): إمّا الحدثُ **كاملًا** بمغلّفِهِ —
+   * يُلتزَمُ في معاملةِ الوضعِ نفسِها في `core_egress_outbox` — أو القرارُ
+   * المحجوزُ المتينُ في `core_egress_blocked`. لا ثالثَ: طلبٌ لا يعرفُ
+   * منظمةَ متجرِهِ لا يُفقدُ بصمتٍ ولا يُختلَقُ لهُ حدثٌ.
+   */
+  readonly coreEgress?: CoreEgressWrite;
 }
+
+/**
+ * ما يُكتبُهُ الوضعُ لصادرِ CORE: حدثٌ جاهزٌ بمغلّفِهِ (يُحوِّلُهُ
+ * `marketOrderCreatedForCore` منَ الحدثِ المحليِّ نفسِهِ — حدثٌ واحدٌ لا
+ * حدثانِ، فالتحويلُ تغليفٌ لا توليدُ حادثةٍ)، أو حجزٌ مسمّى حتى يتوافرَ
+ * الربطُ المتحقَّقُ منهُ (XR-6.1).
+ */
+export type CoreEgressWrite =
+  | { readonly kind: "core-event"; readonly event: MarketOrderCreatedCoreEvent }
+  | {
+      readonly kind: "blocked";
+      readonly orderId: string;
+      readonly orderPublicId: string;
+      readonly reason: string;
+    };
 
 /** What one cancellation writes — the order after, plus its ledger rows. */
 export interface CancellationWrite {
@@ -632,7 +655,9 @@ export interface StoreOrderCatalogPort {
    * signature asked marketplace for an identity marketplace never published,
    * which is why no adapter could exist (ADR-026 §4.9-2 → §4.11).
    */
-  getStoreBySlug(storeSlug: StoreSlug): Promise<{ storeId: string; orderable: boolean } | null>;
+  getStoreBySlug(
+    storeSlug: StoreSlug,
+  ): Promise<{ storeId: string; orderable: boolean; organizationId: string | null } | null>;
   /**
    * Price snapshots for the requested products, in the requested store.
    *

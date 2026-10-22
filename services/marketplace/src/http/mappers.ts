@@ -77,6 +77,7 @@ export function toStoreResource(store: StoreRecord, categories: CategorySlugInde
     store_id: store.storeId,
     store_slug: store.slug,
     owner_public_id: store.ownerPublicId,
+    organization_id: store.organizationId,
     title_ar: store.titleAr,
     ...optional("title_en", store.titleEn),
     ...optional("title_ur", store.titleUr),
