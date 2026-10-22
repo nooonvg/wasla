@@ -807,6 +807,43 @@ export const deliveryInventoryConflicts = pgTable(
 );
 
 /**
+ * 15) core_fulfillment_inbox — صندوقُ استهلاكِ أحداثِ إغلاقِ التنفيذِ من CORE
+ * (XR-3.5 · المراجعةُ 7). النوعُ حرٌّ عمدًا (السمُّ يُسجَّلُ بنوعِهِ الخامِ)،
+ * والمرجعُ يقبلُ NULL لأنَّ تصنيفَ السمِّ قد يسبقُ استخراجَ المرجعِ.
+ */
+export const coreFulfillmentInbox = pgTable(
+  "core_fulfillment_inbox",
+  {
+    eventId: uuid("event_id").primaryKey(),
+    eventType: text("event_type").notNull(),
+    orderReference: text("order_reference"),
+    consumedStatus: text("consumed_status").notNull(),
+    lastError: text("last_error"),
+    attemptCount: integer("attempt_count").notNull(),
+    consumedAt: instant("consumed_at").notNull().defaultNow(),
+    updatedAt: instant("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    check(
+      "core_fulfillment_inbox_event_type_check",
+      sql`char_length(${table.eventType}) BETWEEN 3 AND 96`,
+    ),
+    check(
+      "core_fulfillment_inbox_order_reference_check",
+      sql`${table.orderReference} IS NULL OR ${table.orderReference} ~ '^WS-[0-9]{10}$'`,
+    ),
+    check(
+      "core_fulfillment_inbox_consumed_status_check",
+      sql`${table.consumedStatus} IN ('pending','applied','observed','out_of_order','proof_missing','poisoned','error')`,
+    ),
+    check("core_fulfillment_inbox_attempt_count_check", sql`${table.attemptCount} >= 1`),
+    index("ix_core_fulfillment_inbox_retryable")
+      .on(table.updatedAt)
+      .where(sql`${table.consumedStatus} IN ('pending', 'error')`),
+  ],
+);
+
+/**
  * جداولُ العقدِ بلا مرآةٍ — **فارغةٌ** لا محذوفةٌ: حارسُ الانحرافِ يُقابلُها بفرقِ
  * (جداولِ العقدِ − جداولِ المرآةِ) بالضبطِ، فبقاؤها فارغةً هو ما يُسقِطُ أوّلَ جدولٍ يُضافُ
  * غداً إلى العقدِ بلا مرآةٍ هنا.
