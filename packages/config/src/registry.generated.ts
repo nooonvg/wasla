@@ -32,7 +32,7 @@ export interface EnvVarSpec {
   readonly ownerItem: string;
 }
 
-/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 94 متغيّراً. */
+/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 95 متغيّراً. */
 export const ENV_REGISTRY: readonly EnvVarSpec[] = [
   {
     name: "BILLING_DATABASE_URL",
@@ -695,6 +695,16 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     ownerItem: "M2-04",
   },
   {
+    name: "PROD",
+    type: "flag",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["tooling"],
+    readerCount: 1,
+    ownerItem: "M0-54",
+  },
+  {
     name: "SUBSCRIPTION_SERVICE_HOST",
     type: "string",
     required: "optional",
@@ -1044,6 +1054,7 @@ export const ENV_VAR_NAMES = [
   "PARTNER_BOT_TOKEN",
   "PARTNER_BOT_WEBHOOK_SECRET",
   "PORT",
+  "PROD",
   "SUBSCRIPTION_SERVICE_HOST",
   "SUBSCRIPTION_SERVICE_PORT",
   "SUPPORT_GROUP_CHAT_IDS",

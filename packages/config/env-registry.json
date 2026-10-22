@@ -1817,6 +1817,25 @@
       "note_ar": "لا افتراضيَّ واحدٌ لهُ: كلُّ خدمةٍ تسقطُ إلى منفذِ عقدِها (`*_SERVICE_PORT`) عندَ غيابِهِ."
     },
     {
+      "name": "PROD",
+      "type": "flag",
+      "required": "optional",
+      "default": null,
+      "secret": false,
+      "scopes": [
+        "tooling"
+      ],
+      "description_ar": "علامة بناء الإنتاج التي يحقنها Vite في import.meta.env (vite build) — تُقرأ في pwa/register-service-worker.ts لتقييد تسجيل عامل الخدمة ببناء الإنتاج حصرًا.",
+      "owner_item": "M0-54",
+      "readers": [
+        {
+          "file": "apps/customer-mini-app/src/pwa/register-service-worker.ts",
+          "mode": "bag"
+        }
+      ],
+      "note_ar": "لا يُضبط من ملف بيئة بل من وضع البناء؛ لا معنى لقيمته خارج Vite، وقراءته الوحيدة قيمة منطقية لا سر."
+    },
+    {
       "name": "SUBSCRIPTION_SERVICE_HOST",
       "type": "string",
       "required": "optional",
