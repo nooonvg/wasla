@@ -1,3 +1,13 @@
+# 2026-10-23 — CLM-0687 — البندُ 2.2: حسمُ دلالةِ core.fulfillment.dispatched
+
+- **Work Item(s):** M2-02 (البندُ 2.2 من خطةِ المراجعةِ الشاملةِ — المرحلةُ الثانيةة).
+- **Kind:** documentation — قرارٌ معماريٌّ يُسجَّلُ في الخارطةِ المشتركةِ (`ECOSYSTEM_ROADMAP.md` · المراجعةُ 11): حسمُ دلالةِ `core.fulfillment.dispatched`.
+- **Units:** `docs/ecosystem/ECOSYSTEM_ROADMAP.md` (D-XR-31 جديدٌ · Revision 11 · §8) · دليلُ CLM-0687.
+- **Status:** In Progress — على الفرعِ `stage-zero/clm-0687-item-2-2-fulfillment-dispatched-semantics` بانتظارِ الدمجِ.
+- **Change:** **القرارُ D-XR-31: إسنادٌ لا تسليم.** الحدثُ `core.fulfillment.dispatched` يُنشرُ عندَ **قبولِ MOVE للطلبِ** وإنشاءِ المهمةِ التشغيليّةِ (الانتقالُ `coordinating → dispatched` استجابةً لـ`move.job.accepted`) فيُثبتُ أنَّ العملَ **أُسندَ إلى MOVE** (قَبِلَ المهمةَ وأصبحَ منفّذَها) لا أنَّهُ **سُلِّمَ فيزيائيًّا** — التسليمُ حالةٌ أخرى لاحقةٌ (`completed` بعدَ `move.job.completed`). **الدليلُ من الشيفرةِ:** تعليقُ `consumeJobAccepted` («so MARKET can observe the assignment») · `dispatched_at = accepted_at` (وقتُ القبولِ) · `job_reference` (المهمةُ المُسنَدة). **يُغلقُ السؤالَ المفتوحَ المسجَّلَ في المراجعةِ 8** (§8: «هل يُثبتُ الحدثُ التسليمَ أم انتظارَهُ»). التطابقُ البايتيُّ في المستودعاتِ الثلاثةِ (check-ecosystem-sync · md5 واحدٌ).
+- **Tests:** توثيقٌ فقط (لا شيفرةَ) — الفحصُ: التطابقُ البايتيُّ (`ecosystem-sync`) + الحوكمةُ.
+- **Risks:** none — قرارُ توثيقٍ يُغلقُ سؤالًا مفتوحًا، لا يمسُّ شيفرةً ولا يُلغي بندًا (تعديلُ وصفٍ لا مسارٍ).
+
 # 2026-10-23 — CLM-0686 — البندُ 2.1: الربطُ الموثَّقُ الأدنى متجر ↔ منظمة
 
 - **Work Item(s):** M2-01 (البندُ 2.1 من خطةِ المراجعةِ الشاملةِ — المرحلةُ الثانيةة).
