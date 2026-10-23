@@ -32,7 +32,7 @@ export interface EnvVarSpec {
   readonly ownerItem: string;
 }
 
-/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 96 متغيّراً. */
+/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 98 متغيّراً. */
 export const ENV_REGISTRY: readonly EnvVarSpec[] = [
   {
     name: "BILLING_DATABASE_URL",
@@ -755,6 +755,16 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     ownerItem: "M3-04",
   },
   {
+    name: "VITE_CORE_URL",
+    type: "http_url",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["runtime", "test"],
+    readerCount: 1,
+    ownerItem: "M0-54",
+  },
+  {
     name: "VITE_E2E",
     type: "string",
     required: "optional",
@@ -763,6 +773,16 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     scopes: ["test"],
     readerCount: 4,
     ownerItem: "M3-01",
+  },
+  {
+    name: "VITE_TELEGRAM_CLIENT_ID",
+    type: "string",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["runtime", "test"],
+    readerCount: 1,
+    ownerItem: "M0-54",
   },
   {
     name: "WASLA_CORE_URL",
@@ -1070,7 +1090,9 @@ export const ENV_VAR_NAMES = [
   "SUPPORT_GROUP_CHAT_IDS",
   "SUPPORT_SERVICE_PORT",
   "VITE_API_BASE_URL",
+  "VITE_CORE_URL",
   "VITE_E2E",
+  "VITE_TELEGRAM_CLIENT_ID",
   "WASLA_CORE_URL",
   "WASLA_EDGE_ENABLED",
   "WASLA_OBS_ENVIRONMENT",

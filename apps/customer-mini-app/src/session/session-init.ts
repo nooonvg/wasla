@@ -66,9 +66,10 @@ async function runInit(): Promise<boolean> {
   const host = detectHost();
   const credential = host.sessionCredential();
   if (!credential) {
-    // مضيفٌ بلا إثباتٍ مبنيٍّ (المتصفّحُ اليوم، حتى XR-8.5) — لا يُختَرَعُ مصدرُ
-    // جلسةٍ ثانٍ؛ الفشلُ ظاهرٌ بسببِه بدلَ تحميلٍ لا ينتهي.
-    return fail("not_in_telegram");
+    // مضيفٌ بلا إثباتٍ مبنيٍّ: المصغّرُ (تيليجرامُ بلا initData) يبقى خطأهُ
+    // الأصليُّ، والمتصفّحُ صارَ لهُ دخولٌ (XR-8.5) — فيُعلَنُ طلبُ الدخولِ
+    // لا «افتح من تلغرام» — الواجهةُ تُظهرُ زرَّ الدخولِ لا نصًّا لا يفعلُ شيئًا.
+    return fail(host.kind === "browser" ? "web_login_required" : "not_in_telegram");
   }
   store.setInitState("initializing");
   host.ready();

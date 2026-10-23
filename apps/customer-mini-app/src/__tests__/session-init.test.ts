@@ -58,12 +58,14 @@ afterEach(() => {
 });
 
 describe("initSession", () => {
-  it("outside Telegram fails as not_in_telegram without any network call", async () => {
+  it("outside Telegram (browser, no web login yet) fails as web_login_required without any network call", async () => {
     setTelegram(null);
     await expect(initSession()).resolves.toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(useSessionStore.getState().initStatus).toBe("failed");
-    expect(useSessionStore.getState().initError).toBe("not_in_telegram");
+    // XR-8.5: المتصفّحُ صارَ لهُ دخولٌ — يُطلَبُ الدخولُ لا «افتح من تلغرام».
+    // (بعدَ الدخولِ بالويبِ يُختبرُ المسارُ الكاملُ في `web-login.test.ts`.)
+    expect(useSessionStore.getState().initError).toBe("web_login_required");
   });
 
   it("posts init_data to /edge/session and stores the session in memory as ready", async () => {
@@ -266,7 +268,15 @@ function stripCommentsAndStrings(src: string): string {
 
 function hostBoundaryViolations(files: Record<string, string>): string[] {
   return Object.entries(files)
-    .filter(([path]) => !path.includes("/__tests__/") && !path.includes("/host/"))
+    .filter(
+      ([path]) =>
+        // ملفاتُ الاختبارِ ليست شيفرةَ إنتاجٍ: ملفاتُ `__tests__/` بمفاتيحِها
+        // النسبيةِ، وملفّاتُ `*.test.ts` في نفسِ المجلّدِ (مفتاحُها `./x.test.ts`
+        // لا يَحملُ `__tests__` — خللٌ كامنٌ كشفَهُ اختبارُ الدخولِ بالويبِ).
+        !path.includes("/__tests__/") &&
+        !path.includes("/host/") &&
+        !/\.test\.(ts|tsx)$/.test(path),
+    )
     .filter(([, src]) => PLATFORM_IDENTIFIERS.test(stripCommentsAndStrings(src)))
     .map(([path]) => path);
 }

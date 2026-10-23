@@ -27,10 +27,13 @@ const resources = {
       session: {
         expired: "انتهت الجلسة، يرجى إعادة الدخول",
         not_in_telegram: "افتح التطبيق من تلغرام لبدء الجلسة",
+        web_login_required: "سجّل الدخول بحساب تيليجرام للمتابعة",
         edge_rejected: "تعذّر بدء الجلسة",
         network: "تعذّر الاتصال لبدء الجلسة",
         invalid_response: "ردّ غير صالح عند بدء الجلسة",
         retry_limit: "تكرّر انتهاء الجلسة — أعد المحاولة",
+        sign_in_telegram: "الدخول عبر تيليجرام",
+        signing_in: "جارٍ الدخول…",
       },
       ride_order: {
         title: "طلب مشوار",
@@ -206,10 +209,13 @@ const resources = {
       session: {
         expired: "Session expired, please re-enter",
         not_in_telegram: "Open the app from Telegram to start a session",
+        web_login_required: "Sign in with your Telegram account to continue",
         edge_rejected: "Could not start the session",
         network: "Could not connect to start the session",
         invalid_response: "Invalid response while starting the session",
         retry_limit: "The session keeps expiring — please retry",
+        sign_in_telegram: "Sign in with Telegram",
+        signing_in: "Signing in…",
       },
       ride_order: {
         title: "Request a Ride",
