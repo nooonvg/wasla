@@ -113,8 +113,10 @@ async function loadTelegramLoginLibrary(): Promise<TelegramLoginLibrary | null> 
 export async function beginTelegramWebLogin(): Promise<boolean> {
   if (!webLoginConfigured()) return false;
   try {
+    // وحدةُ نقلٍ مُعلَنةٌ (APP_API_ROUTES §3): العميلُ الذي يُركّبُ `${baseUrl}${path}`.
+    const baseUrl = coreBaseUrl();
     // 1) فتحُ المحاولةِ عندَ النواةِ — الكوكيُّ HttpOnly يُرفَقُ بالمتصفّحِ.
-    const nonceResponse = await fetch(`${coreBaseUrl()}/v1/web-session/telegram/nonce`, {
+    const nonceResponse = await fetch(`${baseUrl}/v1/web-session/telegram/nonce`, {
       method: "POST",
       credentials: "include",
     });
@@ -132,7 +134,7 @@ export async function beginTelegramWebLogin(): Promise<boolean> {
     if (idToken === null) return false;
 
     // 3) إتمامُ الدخولِ عندَ النواةِ — الكوكيُّ يُرفَقُ تلقائيًّا.
-    const sessionResponse = await fetch(`${coreBaseUrl()}/v1/web-session/telegram`, {
+    const sessionResponse = await fetch(`${baseUrl}/v1/web-session/telegram`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

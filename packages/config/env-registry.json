@@ -1936,6 +1936,26 @@
       "note_ar": "يُمرَّرُ عبرَ سطرِ الأوامرِ في webServer في Playwright، ويُقرَأُ في client.ts عبر import.meta.env."
     },
     {
+      "name": "VITE_CORE_URL",
+      "type": "http_url",
+      "required": "optional",
+      "default": null,
+      "secret": false,
+      "scopes": [
+        "runtime",
+        "test"
+      ],
+      "description_ar": "عنوانُ أساسِ النواةِ (wasla-core) لدخولِ الويبِ — يُقرأُ في host/web-login.ts عبر import.meta.env. بلا عنوانٍ لا يُعرَضُ دخولُ الويبِ أصلًا (fail-closed).",
+      "owner_item": "M0-54",
+      "readers": [
+        {
+          "file": "apps/customer-mini-app/src/host/web-login.ts",
+          "mode": "direct"
+        }
+      ],
+      "note_ar": "يُضبَطُ في بيئةِ البناءِ عندَ نشرِ النواةِ (قرارُ البيئةِ: المجانيُّ). مسارا النواةِ (/v1/web-session/*) عابرانِ للمستودعاتِ (wasla-core F-42) — مُعلَنانِ كوحدةِ نقلٍ في APP_API_ROUTES لا كفجوةٍ."
+    },
+    {
       "name": "VITE_E2E",
       "type": "string",
       "required": "optional",
@@ -1965,6 +1985,26 @@
         }
       ],
       "note_ar": "تُمرَّرُ عبرَ سطرِ الأوامرِ في webServer في Playwright، ويُقرأُها main.tsx عبرَ import.meta.env. تُزالُ بالكاملِ من حزمةِ الإنتاجِ عندَ غيابِها."
+    },
+    {
+      "name": "VITE_TELEGRAM_CLIENT_ID",
+      "type": "string",
+      "required": "optional",
+      "default": null,
+      "secret": false,
+      "scopes": [
+        "runtime",
+        "test"
+      ],
+      "description_ar": "مُعرّفُ عميلِ تيليجرامِ (الرقمُ الرقميُّ للبوتِ من @BotFather) لنافذةِ دخولِ الويبِ — يُقرأُ في host/web-login.ts عبر import.meta.env.",
+      "owner_item": "M0-54",
+      "readers": [
+        {
+          "file": "apps/customer-mini-app/src/host/web-login.ts",
+          "mode": "direct"
+        }
+      ],
+      "note_ar": "قيمةٌ رقميّةٌ كنصٍّ (معرّفُ البوتِ). بلا مُعرّفٍ صالحٍ لا يُعرَضُ دخولُ الويبِ أصلًا (fail-closed)."
     },
     {
       "name": "WASLA_CORE_URL",
