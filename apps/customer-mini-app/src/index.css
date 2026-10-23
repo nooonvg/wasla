@@ -1,9 +1,39 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   طبقةُ التصميمِ (البندُ 1.4 · CLM-0683) — نظامُ تصميمٍ واحدٌ لتطبيقِ الزبونِ.
+
+   الرموزُ (tokens) أوّلًا، ثمّ أنماطُ المكوّناتِ على **الفئاتِ الموجودةِ** في
+   الشاشاتِ — بلا تغييرِ أيِّ شاشةٍ أو مكوّنٍ: التطبيقُ يعملُ والفئاتُ مستخدمةٌ
+   (35+ فئةَ محتوى)، ما كانَ ناقصًا هو تنسيقُها. (قبلَ هذا كانَ الملفُّ يُنسِّقُ
+   الهيكلَ وحدَه: 4 فئاتٍ — انظرْ تقريرَ العيوبِ D1–D4.)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
+  /* الألوانُ — لوحةٌ واحدةٌ متّسقةٌ */
   --wasla-primary: #0066cc;
+  --wasla-primary-dark: #004c99;
   --wasla-bg: #ffffff;
+  --wasla-bg-soft: #f5f6f8;
   --wasla-text: #1a1a1a;
+  --wasla-text-muted: #5f6368;
   --wasla-border: #e0e0e0;
+  --wasla-border-strong: #c4c7ca;
+  --wasla-danger: #b3261e;
+  --wasla-danger-soft: #fdeceb;
+  --wasla-success: #1e7a34;
+  --wasla-success-soft: #e8f5ec;
+  --wasla-warning: #8a6100;
+  --wasla-warning-soft: #fff4d6;
+
+  /* المسافاتُ والأشكالُ */
   --wasla-radius: 8px;
+  --wasla-radius-lg: 12px;
+  --wasla-space-1: 0.25rem;
+  --wasla-space-2: 0.5rem;
+  --wasla-space-3: 0.75rem;
+  --wasla-space-4: 1rem;
+  --wasla-space-6: 1.5rem;
+  --wasla-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --wasla-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
   --wasla-font-size: 16px;
 }
 
@@ -25,6 +55,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── الهيكلُ (كانَ موجودًا) ─────────────────────────────────────────────── */
+
 .app,
 .home {
   min-height: 100vh;
@@ -33,7 +65,7 @@ body {
 }
 
 .home h1 {
-  padding: 1rem;
+  padding: var(--wasla-space-6) var(--wasla-space-4) var(--wasla-space-4);
   text-align: center;
   color: var(--wasla-primary);
   font-size: 1.5rem;
@@ -41,27 +73,36 @@ body {
 
 .home nav ul {
   list-style: none;
-  padding: 0 1rem;
+  padding: 0 var(--wasla-space-4);
 }
 
 .home nav li {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--wasla-space-2);
 }
 
 .home nav a {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: var(--wasla-space-3);
+  padding: var(--wasla-space-4);
   text-decoration: none;
   color: var(--wasla-text);
+  background: var(--wasla-bg);
   border: 1px solid var(--wasla-border);
-  border-radius: var(--wasla-radius);
+  border-radius: var(--wasla-radius-lg);
   min-height: 48px;
+  box-shadow: var(--wasla-shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home nav a:hover,
+.home nav a:focus-visible {
+  border-color: var(--wasla-primary);
+  box-shadow: var(--wasla-shadow-lg);
 }
 
 .home nav a:active {
-  background: #f0f0f0;
+  background: var(--wasla-bg-soft);
 }
 
 .app-loading {
@@ -78,10 +119,10 @@ body {
   z-index: 10;
   width: 100%;
   box-sizing: border-box;
-  background: #b3261e;
+  background: var(--wasla-danger);
   color: #ffffff;
   text-align: center;
-  padding: 0.5rem 1rem;
+  padding: var(--wasla-space-2) var(--wasla-space-4);
   font-size: 0.9rem;
 }
 
@@ -100,7 +141,7 @@ video {
    مقروءٍ بدلَ تمدُّدِ القوائمِ على عرضِ الشاشةِ كلِّه. الجوالُ وتيليجرام لا يتغيّران. */
 @media (min-width: 768px) {
   body {
-    background: #f5f6f8;
+    background: var(--wasla-bg-soft);
   }
 
   .app,
@@ -112,3 +153,504 @@ video {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   طبقةُ التصميمِ — أنماطُ المكوّناتِ على فئاتِ الشاشاتِ الموجودةِ
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1) حاويةُ الشاشةِ (كلُّ الشاشاتِ: `.screen`) ────────────────────────── */
+
+.screen {
+  flex: 1;
+  padding: var(--wasla-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-4);
+}
+
+.screen h1 {
+  font-size: 1.25rem;
+  color: var(--wasla-primary);
+  padding-bottom: var(--wasla-space-2);
+  border-bottom: 2px solid var(--wasla-border);
+}
+
+/* ── 2) القوائمُ (stores/products/orders/places) ──────────────────────── */
+
+.stores-list,
+.products-list,
+.orders-list,
+.places-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+}
+
+/* ── 3) بطاقاتُ العناصرِ (متجرٌ · منتجٌ · طلبٌ · مكانٌ) ────────────────── */
+
+.store-item,
+.product-item,
+.order-item,
+.place-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-1);
+  padding: var(--wasla-space-4);
+  background: var(--wasla-bg);
+  border: 1px solid var(--wasla-border);
+  border-radius: var(--wasla-radius-lg);
+  box-shadow: var(--wasla-shadow);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.store-item:hover,
+.store-item:focus-visible,
+.product-item:hover,
+.order-item:hover,
+.place-item:hover {
+  border-color: var(--wasla-primary);
+  box-shadow: var(--wasla-shadow-lg);
+}
+
+.store-name,
+.product-name,
+.place-label {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.store-description,
+.product-status,
+.place-zone-path {
+  color: var(--wasla-text-muted);
+  font-size: 0.875rem;
+}
+
+.product-price {
+  font-weight: 700;
+  color: var(--wasla-primary);
+}
+
+/* ── 4) الطلبُ: البطاقةُ والتفصيلُ ───────────────────────────────────── */
+
+.order-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  color: var(--wasla-text-muted);
+}
+
+.order-type,
+.order-vehicle {
+  font-size: 0.875rem;
+}
+
+.order-status {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--wasla-radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* حالاتُ الطلبِ — لونٌ دالٌّ على الحالةِ */
+.order-status[data-status="submitted"],
+.order-status[data-status="pending"] {
+  background: var(--wasla-warning-soft);
+  color: var(--wasla-warning);
+}
+
+.order-status[data-status="completed"],
+.order-status[data-status="delivered"] {
+  background: var(--wasla-success-soft);
+  color: var(--wasla-success);
+}
+
+.order-status[data-status="cancelled"],
+.order-status[data-status="rejected"] {
+  background: var(--wasla-danger-soft);
+  color: var(--wasla-danger);
+}
+
+.order-date {
+  font-size: 0.8125rem;
+  color: var(--wasla-text-muted);
+}
+
+.order-item-button {
+  all: unset;
+  cursor: pointer;
+}
+
+.order-detail {
+  padding: var(--wasla-space-4);
+  background: var(--wasla-bg);
+  border: 1px solid var(--wasla-border);
+  border-radius: var(--wasla-radius-lg);
+  box-shadow: var(--wasla-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-4);
+}
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--wasla-space-2) var(--wasla-space-4);
+}
+
+.order-detail-grid dt {
+  color: var(--wasla-text-muted);
+  font-size: 0.875rem;
+}
+
+.order-detail-grid dd {
+  font-weight: 500;
+}
+
+.order-detail-stops {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+  padding-inline-start: var(--wasla-space-4);
+  border-inline-start: 3px solid var(--wasla-border-strong);
+}
+
+/* ── 5) النماذجُ (طلبُ مشوارٍ/توصيلٍ · الأماكنُ) ───────────────────────── */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-1);
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: var(--wasla-space-2) var(--wasla-space-3);
+  border: 1px solid var(--wasla-border-strong);
+  border-radius: var(--wasla-radius);
+  background: var(--wasla-bg);
+  font: inherit;
+  color: var(--wasla-text);
+  min-height: 44px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible {
+  outline: none;
+  border-color: var(--wasla-primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+  margin-top: var(--wasla-space-4);
+}
+
+.form-actions button {
+  padding: var(--wasla-space-3) var(--wasla-space-4);
+  border: none;
+  border-radius: var(--wasla-radius);
+  font: inherit;
+  font-weight: 600;
+  min-height: 48px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+/* الزرُّ الرئيسيُّ (المعاينةُ/الإرسالُ) */
+.form-actions button:not(.back-button):not(.delete-button) {
+  background: var(--wasla-primary);
+  color: #ffffff;
+}
+
+.form-actions button:not(.back-button):not(.delete-button):hover:not(:disabled) {
+  background: var(--wasla-primary-dark);
+}
+
+.form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── 6) الأزرارُ الثانويّةُ (رجوعٌ · حذفٌ خطرٌ · إعادةُ محاولةٍ) ────────── */
+
+.back-button {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--wasla-space-2) var(--wasla-space-4);
+  border: 1px solid var(--wasla-border-strong);
+  border-radius: var(--wasla-radius);
+  background: var(--wasla-bg);
+  color: var(--wasla-text);
+  font: inherit;
+  min-height: 44px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.back-button:hover,
+.back-button:focus-visible {
+  background: var(--wasla-bg-soft);
+  border-color: var(--wasla-primary);
+}
+
+/* الحذفُ إجراءٌ خطرٌ — تمييزٌ بصريٌّ لا لبسَ فيه (D3) */
+.delete-button {
+  background: var(--wasla-danger-soft);
+  color: var(--wasla-danger);
+  border: 1px solid var(--wasla-danger);
+}
+
+.delete-button:hover,
+.delete-button:focus-visible {
+  background: var(--wasla-danger);
+  color: #ffffff;
+}
+
+/* ── 7) الحالاتُ: تحميلٌ · خطأٌ · فراغٌ (D4) ──────────────────────────── */
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wasla-space-2);
+  padding: var(--wasla-space-6) var(--wasla-space-4);
+  color: var(--wasla-text-muted);
+}
+
+/* دورانٌ — علامةُ «جارٍ» البصريّةُ */
+.loading-indicator::before {
+  content: "";
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--wasla-border-strong);
+  border-top-color: var(--wasla-primary);
+  border-radius: 50%;
+  animation: wasla-spin 0.8s linear infinite;
+}
+
+@keyframes wasla-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  padding: var(--wasla-space-3) var(--wasla-space-4);
+  background: var(--wasla-danger-soft);
+  color: var(--wasla-danger);
+  border: 1px solid var(--wasla-danger);
+  border-radius: var(--wasla-radius);
+  font-weight: 500;
+}
+
+.empty-state {
+  padding: var(--wasla-space-6) var(--wasla-space-4);
+  text-align: center;
+  color: var(--wasla-text-muted);
+  background: var(--wasla-bg-soft);
+  border: 1px dashed var(--wasla-border-strong);
+  border-radius: var(--wasla-radius-lg);
+}
+
+/* ── 8) نتيجةُ المعاينةِ (طلبُ مشوارٍ/توصيلٍ) ──────────────────────────── */
+
+.preview-result {
+  padding: var(--wasla-space-4);
+  background: var(--wasla-bg-soft);
+  border: 1px solid var(--wasla-border);
+  border-radius: var(--wasla-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+}
+
+.preview-result h2,
+.preview-result h3 {
+  font-size: 1rem;
+  color: var(--wasla-primary);
+}
+
+/* ── 9) شريطُ البحثِ ───────────────────────────────────────────────────── */
+
+.search-bar {
+  display: flex;
+  gap: var(--wasla-space-2);
+}
+
+.search-bar input {
+  flex: 1;
+  padding: var(--wasla-space-2) var(--wasla-space-3);
+  border: 1px solid var(--wasla-border-strong);
+  border-radius: var(--wasla-radius);
+  font: inherit;
+  min-height: 44px;
+}
+
+.search-bar input:focus-visible {
+  outline: none;
+  border-color: var(--wasla-primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+.search-bar button {
+  padding: var(--wasla-space-2) var(--wasla-space-4);
+  background: var(--wasla-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--wasla-radius);
+  font: inherit;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* ── 10) فشلُ الجلسةِ (App.tsx) ───────────────────────────────────────── */
+
+.app-session-failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wasla-space-4);
+  min-height: 100vh;
+  padding: var(--wasla-space-4);
+  text-align: center;
+}
+
+.app-session-failed p {
+  color: var(--wasla-text-muted);
+}
+
+.app-session-failed button {
+  padding: var(--wasla-space-3) var(--wasla-space-6);
+  background: var(--wasla-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--wasla-radius);
+  font: inherit;
+  font-weight: 600;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.app-session-failed button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── 11) السمعةُ: بطاقةُ النتيجةِ والتقييماتُ ──────────────────────────── */
+
+.score-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+  padding: var(--wasla-space-4);
+  background: var(--wasla-bg);
+  border: 1px solid var(--wasla-border);
+  border-radius: var(--wasla-radius-lg);
+  box-shadow: var(--wasla-shadow);
+  text-align: center;
+}
+
+.score-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--wasla-primary);
+}
+
+.score-level {
+  display: inline-block;
+  padding: 0.125rem 0.75rem;
+  background: var(--wasla-success-soft);
+  color: var(--wasla-success);
+  border-radius: var(--wasla-radius);
+  font-weight: 600;
+  align-self: center;
+}
+
+.ratings-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+}
+
+.rating-item {
+  padding: var(--wasla-space-3) var(--wasla-space-4);
+  background: var(--wasla-bg);
+  border: 1px solid var(--wasla-border);
+  border-radius: var(--wasla-radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-1);
+}
+
+.rating-stars {
+  color: #e8a200;
+  letter-spacing: 0.125rem;
+}
+
+.rating-order,
+.rating-date {
+  font-size: 0.8125rem;
+  color: var(--wasla-text-muted);
+}
+
+.rating-comment {
+  color: var(--wasla-text);
+}
+
+/* ── 12) نتائجُ البحثِ ────────────────────────────────────────────────── */
+
+.search-results-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-2);
+}
+
+.search-result-item {
+  padding: var(--wasla-space-3) var(--wasla-space-4);
+  background: var(--wasla-bg);
+  border: 1px solid var(--wasla-border);
+  border-radius: var(--wasla-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-1);
+}
+
+.result-name {
+  font-weight: 600;
+}
+
+.result-store {
+  font-size: 0.875rem;
+  color: var(--wasla-text-muted);
+}
+
+.result-price {
+  font-weight: 700;
+  color: var(--wasla-primary);
+}
+
+/* ── 13) الملفُّ الشخصيُّ ─────────────────────────────────────────────── */
+
+.profile-places {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wasla-space-3);
+}

@@ -1,0 +1,13 @@
+
+> @wasla/customer-mini-app@0.1.0 build /home/user/workspace/repos/wasla/apps/customer-mini-app
+> tsc -p tsconfig.json --noEmit && vite build
+
+vite v6.4.5 building for production...
+transforming...
+✓ 84 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.42 kB │ gzip:  0.83 kB
+dist/assets/index-U4ur38N0.css   10.49 kB │ gzip:  2.14 kB
+dist/assets/index-C10Ofg4S.js   269.73 kB │ gzip: 80.90 kB │ map: 759.64 kB
+✓ built in 1.24s
