@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-23T03:22:14Z",
+  "generated_at": "2026-10-23T08:54:16Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "1fdeaf2e202f9808fca47dc6f74b33b559a04824",
-    "branch": "stage-zero/clm-0672-xr-6-1-web-session-bridge",
-    "dirty": true,
-    "dirty_files": 1,
+    "commit": "3f70bcfcca33671f444bd5bef35a02f00a752e32",
+    "branch": "stage-zero/clm-0677-xr-8-3-web-login-wiring",
+    "dirty": false,
+    "dirty_files": 0,
     "dirty_reason": "إعادةُ توليدِ BASELINE.json نفسِهِ — الملفُّ الوحيدُ المُعدَّلُ عندَ التوليدِ",
-    "tracked_files": 3631
+    "tracked_files": 3642
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 589,
+    "test_files_tracked": 590,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 29,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-23T025000Z-clm-0672-xr-6-1-web-session-bridge/raw/verify-log.txt",
-    "tests_passed": 6216,
-    "test_files_executed": 433,
+    "source": "docs/12-testing/ci-evidence/2026-10-23T050000Z-clm-0677-xr8-5-web-login-wiring/raw/verify-log.txt",
+    "tests_passed": 6331,
+    "test_files_executed": 446,
     "governance_suite_cases": 696,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:313855d283665a2700c80d056f7b58c20305a4b1a8330fadf7b3cd13a32d9eb5",
+  "fingerprint": "sha256:932328124a9d147effe881b9dc2fc1a19a8757692d6c2e6f792fe8f4d17e64a5",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
