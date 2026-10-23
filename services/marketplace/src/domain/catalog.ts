@@ -138,6 +138,7 @@ export function assertStoreSlugMutable(firstApprovedAt: string | undefined): voi
  */
 export function draftStore(input: {
   ownerPublicId: unknown;
+  organizationId?: unknown;
   slug: unknown;
   titleAr: unknown;
   titleEn?: unknown;
@@ -160,6 +161,13 @@ export function draftStore(input: {
     stateSequence: STORE_INITIAL_SEQUENCE,
   };
 
+  // البندُ 2.1 — ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ: مُعرّفٌ اختياريٌّ، يُفحَصُ شكلُهُ
+  // (UUID) لا وجودُهُ — فالوجودُ عقدُ النواةِ (wasla-core) لا السوقِ.
+  const organizationId =
+    input.organizationId === undefined || input.organizationId === null
+      ? undefined
+      : assertUuid(input.organizationId, "organization_id");
+
   const titleEn = assertOptionalBoundedText(input.titleEn, "title_en", STORE_TITLE_MAX_LENGTH);
   const titleUr = assertOptionalBoundedText(input.titleUr, "title_ur", STORE_TITLE_MAX_LENGTH);
   const descriptionAr = assertOptionalBoundedText(
@@ -170,6 +178,7 @@ export function draftStore(input: {
 
   return {
     ...draft,
+    ...(organizationId === undefined ? {} : { organizationId }),
     ...(titleEn === undefined ? {} : { titleEn }),
     ...(titleUr === undefined ? {} : { titleUr }),
     ...(descriptionAr === undefined ? {} : { descriptionAr }),

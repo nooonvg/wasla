@@ -172,6 +172,7 @@ function oneOf<TValue extends string>(
 /** المفاتيحُ المُعلَنةُ لكلّ جسم — مُصدَّرةٌ كي يقرأها حارسُ الانحرافِ نصّاً. */
 export const REGISTER_STORE_KEYS = Object.freeze([
   "owner_public_id",
+  "organization_id",
   "store_slug",
   "title_ar",
   "title_en",
@@ -248,8 +249,11 @@ export function parseRegisterStore(raw: unknown): {
   const titleEn = optionalString(payload, "title_en");
   const titleUr = optionalString(payload, "title_ur");
   const descriptionAr = optionalString(payload, "description_ar");
+  // البندُ 2.1: ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ — مُعرّفٌ اختياريٌّ يُفحَصُ شكلُهُ في المجالِ.
+  const organizationId = optionalString(payload, "organization_id");
   return {
     ownerPublicId: requiredString(payload, "owner_public_id"),
+    ...(organizationId === undefined ? {} : { organizationId }),
     storeSlug: requiredString(payload, "store_slug"),
     titleAr: requiredString(payload, "title_ar"),
     ...(titleEn === undefined ? {} : { titleEn }),

@@ -85,9 +85,16 @@ export interface CategoryFacts {
   readonly isActive: boolean;
 }
 
-/** مسوّدةُ متجرٍ جديدٍ: `draft` والتسلسلُ 1، وكلاهما مُعلَنٌ لا مُفترَض. */
+/**
+ * مسوّدةُ متجرٍ جديدٍ: `draft` والتسلسلُ 1، وكلاهما مُعلَنٌ لا مُفترَض.
+ *
+ * `organizationId` (البندُ 2.1): ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ — مُعرّفٌ اختياريٌّ
+ * تُصدِرُه النواةُ (wasla-core · `POST /v1/organizations`) ويُخزَّنُ في `stores.organization_id`.
+ * السوقُ لا يتحقّقُ من وجودِ المنظمةِ (ذلكَ عقدُ النواةِ) بل من شكلِ المُعرّفِ فقط.
+ */
 export interface StoreDraft {
   readonly ownerPublicId: string;
+  readonly organizationId?: string;
   readonly slug: string;
   readonly titleAr: string;
   readonly titleEn?: string;

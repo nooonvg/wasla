@@ -98,6 +98,25 @@ describe("مسوّدةُ المتجر", () => {
     expect(draft.titleUr).toBeUndefined();
   });
 
+  // البندُ 2.1 — ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ: مُعرّفٌ اختياريٌّ يُفحَصُ شكلُهُ لا وجودُهُ.
+  it("البندُ 2.1: تقبلُ مُعرّفَ منظمةٍ صحيحَ الشكلِ وتُمرّرهُ كما هو", () => {
+    const organizationId = "019233ab-8f2e-7d4a-9c1b-5e6f7a8b9c0d";
+    const draft = draftStore({ ...input, organizationId });
+    expect(draft.organizationId).toBe(organizationId);
+  });
+
+  it("البندُ 2.1: بلا مُعرّفِ منظمةٍ تبقى المسوّدةُ بلا ربطٍ — لا قيمةً افتراضيّةً", () => {
+    const draft = draftStore(input);
+    expect(draft.organizationId).toBeUndefined();
+  });
+
+  it("البندُ 2.1: ترفضُ مُعرّفَ منظمةٍ ليسَ UUID برمزٍ مُسمّىً", () => {
+    expectCode(
+      () => draftStore({ ...input, organizationId: "ليس-مُعرّفاً" }),
+      "MARKETPLACE_VALIDATION_FAILED",
+    );
+  });
+
   it("ترفض الحدَّ قبل أن تلمس اللاحقة", () => {
     expectCode(() => draftStore({ ...input, activeStoreCount: 1 }), "STORE_OWNER_LIMIT_REACHED");
   });

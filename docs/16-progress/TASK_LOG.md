@@ -1,3 +1,13 @@
+# 2026-10-23 — CLM-0686 — البندُ 2.1: الربطُ الموثَّقُ الأدنى متجر ↔ منظمة
+
+- **Work Item(s):** M2-01 (البندُ 2.1 من خطةِ المراجعةِ الشاملةِ — المرحلةُ الثانيةة).
+- **Kind:** feature — مسارُ إدخالٍ يضبطُ `stores.organization_id`: مُعرّفُ المنظمةِ (UUID اختياريٌّ · تُصدِرُهُ النواةُ) يُقبلُ في تسجيلِ المتجرِ ويُخزَّنُ عبرَ كلِّ الطبقاتِ.
+- **Units:** `services/marketplace/src/domain/model.ts` · `services/marketplace/src/domain/catalog.ts` · `services/marketplace/src/app/stores.ts` · `services/marketplace/src/db/resources.ts` · `services/marketplace/src/http/requests.ts` · `services/marketplace/contracts/api.openapi.yml` · `packages/contracts/marketplace/src/api-types.ts` · `services/marketplace/src/__tests__/catalog.test.ts` · `services/marketplace/src/__tests__/stores.integration.test.ts` · دليلُ CLM-0686.
+- **Status:** In Progress — على الفرعِ `stage-zero/clm-0686-item-2-1-store-org-linking` بانتظارِ الدمجِ.
+- **Change:** قبلَ هذا كانَ `stores.organization_id` **موجودًا في المخططِ والقراءةِ** (يُخرَجُ في `StoreResource`) **لكنْ بلا مسارٍ يضبطُهُ** — العقدُ يقولُ صراحةً «لا يقبلُهُ مسارُ الإنشاءِ». الآنَ: سلسلةٌ واحدةٌ — `RegisterStoreInput.organizationId?` → `draftStore` (فحصُ الشكلِ · UUID · بلا قيمةٍ افتراضيّةٍ) → `insertStore` (`organizationId ?? null`) → `stores.organization_id` · العقدُ (`RegisterStoreRequest.organization_id?`) + تحديثُ وصفِ `StoreResource` (صارَ يقبلُهُ) · **السوقُ لا يتحقّقُ من وجودِ المنظمةِ** (عقدُ النواةِ) بل من شكلِها.
+- **Tests:** الوحداتُ **409 ناجحًا** (كانَ 406 · +3: شكلٌ صحيحٌ · بلا قيمةٍ افتراضيّةٍ · رفضُ غيرِ UUID) · التكاملُ (2: يُخزَّنُ · يبقى `null`) **في CI** (db-integration · لا PostgreSQL محليًّا) · `tsc` نظيفٌ · حارسُ التباعدِ أخضرَ.
+- **Risks:** none — إضافةٌ اختياريّةٌ لا تُكسِرُ أيَّ مُتَّصلٍ قائمٍ (بلا مُعرّفٍ = `null` كما كانَ) · العقدُ مُحدَّثٌ والحارسُ أخضرَ.
+
 # 2026-10-23 — CLM-0685 — إعادة توليد الأساس (تابع CLM-0684 · نمط CLM-0682)
 
 - **Work Item(s):** M0-08 (إعادةُ توليدِ الأساسِ — تابعٌ لحجزِ CLM-0684).
