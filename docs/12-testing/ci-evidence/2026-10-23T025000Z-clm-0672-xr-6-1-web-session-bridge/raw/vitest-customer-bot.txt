@@ -1,0 +1,22 @@
+
+> @wasla/customer-bot@0.1.0 test /home/user/workspace/repos/wasla/bots/customer-bot
+> vitest run
+
+
+ RUN  v3.2.7 /home/user/workspace/repos/wasla/bots/customer-bot
+
+ ✓ src/__tests__/bot-role.test.ts (15 tests) 6182ms
+   ✓ M3-05 · customer bot role (real composition root) > answers /negotiations  2007ms
+   ✓ M3-05 · customer bot role (real composition root) > answers /accept  2004ms
+   ✓ M3-05 · customer bot role (real composition root) > answers /reject  2005ms
+ ✓ src/__tests__/customer-flows.test.ts (14 tests) 119ms
+ ✓ src/__tests__/customer-bot.test.ts (6 tests) 129ms
+ ✓ src/__tests__/http-negotiations-signing.test.ts (4 tests) 24ms
+ ✓ src/__tests__/user-assertion-propagation.test.ts (5 tests) 24ms
+ ✓ src/__tests__/negotiation-flows.test.ts (12 tests) 7ms
+
+ Test Files  6 passed (6)
+      Tests  56 passed (56)
+   Start at  02:40:06
+   Duration  9.25s (transform 611ms, setup 0ms, collect 1.62s, tests 6.48s, environment 1ms, prepare 337ms)
+

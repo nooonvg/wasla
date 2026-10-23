@@ -95,3 +95,189 @@ describe("createChannelEdge — العقدُ الأساسيُّ", () => {
     expect(Object.keys(additions)).toEqual(["enabled", "apply"]);
   });
 });
+
+describe("createChannelEdge — جسرُ الويبِ (XR-6.1 · POST /edge/session/web)", () => {
+  /** بناءُ تطبيقِ Fastify حقيقيٍّ مع الحدِّ — للفحصِ عبرَ `inject`. */
+  async function buildApp(
+    overrides: Partial<Parameters<typeof createChannelEdge>[0]> = {},
+  ) {
+    const { default: Fastify } = await import("fastify");
+    const { mkdtempSync, writeFileSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    // قائمةُ سماحٍ حقيقيّةٌ فارغةٌ في ملفٍّ مؤقّتٍ: `loadAllowlist` يقرأُ ملفًّا لا
+    // مسارًا وهميًّا — والقائمةُ الفارغةُ لا تفتحُ شيئًا، وهوَ ما يفحصُهُ هنا.
+    const dir = mkdtempSync(join(tmpdir(), "edge-web-bridge-"));
+    const allowlistPath = join(dir, "allowlist.json");
+    writeFileSync(
+      allowlistPath,
+      JSON.stringify({ surface: "customer-mini-app", entries: [] }),
+      "utf-8",
+    );
+    const app = Fastify();
+    const additions = createChannelEdge(
+      buildOptions({ ...overrides, allowlistUrl: allowlistPath }),
+    );
+    additions.apply(app);
+    await app.ready();
+    return {
+      app,
+      cleanup: () => {
+        void app.close();
+        rmSync(dir, { recursive: true, force: true });
+      },
+    };
+  }
+
+  /** رابطُ تيليجرامٍ موثّقٌ كما تُعيدهُ النواةُ في `channel_links`. */
+  const verifiedTelegramLink = {
+    channel_type: "telegram",
+    external_id: "tg-445566780",
+    verified_at: "2026-10-23T00:00:00Z",
+  };
+
+  it("بلا منفذَي النواةِ لا يُسجَّلُ مسارُ الويبِ أصلاً (fail-closed بالعدمِ)", async () => {
+    const { app, cleanup } = await buildApp();
+    const response = await app.inject({
+      method: "POST",
+      url: "/edge/session/web",
+      payload: { core_access_token: "any" },
+    });
+    expect(response.statusCode).toBe(404);
+    cleanup();
+  });
+
+  it("المسارُ الكاملُ: رمزُ نواةٍ موثّقٌ → تسويةٌ → جلسةٌ ببصمةِ sha256 لجلسةِ النواةِ", async () => {
+    let issuedFingerprint = "";
+    const { app, cleanup } = await buildApp({
+      coreIntrospect: async (token) => {
+        expect(token).toBe("core-token-1");
+        return {
+          session_id: "11111111-2222-3333-4444-555555555555",
+          channel_links: [verifiedTelegramLink],
+        };
+      },
+      resolveIdentity: async (body) => {
+        expect(body.telegram_user_id).toBe(445566780);
+        return { wasla_public_id: "CUS-WEB-1", created: true };
+      },
+      issueSession: async (body) => {
+        issuedFingerprint = body.init_data_fingerprint;
+        return {
+          token: "market-token-1",
+          wasla_public_id: "CUS-WEB-1",
+          actor_type: "customer",
+          expires_at: "2026-10-30T00:00:00Z",
+          session_id: "sess-1",
+        };
+      },
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: "/edge/session/web",
+      payload: { core_access_token: "core-token-1" },
+    });
+    expect(response.statusCode).toBe(201);
+    const body = response.json();
+    expect(body.token).toBe("market-token-1");
+    expect(body.wasla_public_id).toBe("CUS-WEB-1");
+    // البصمةُ: sha256 لمُعرّفِ جلسةِ النواةِ — جلسةُ نواةٍ واحدةٌ = جلسةُ سوقٍ واحدةٌ
+    // (قيدُ القاعدةِ الفريدُ نفسُهُ الذي يحرسُ initData)، وصيغةُ الـ64 hex هي عقدُ
+    // عمودِ البصمةِ في identity. الحسابُ هنا هو الحكمُ لا قيمةٌ محفوظةٌ.
+    const { createHash } = await import("node:crypto");
+    const actual = createHash("sha256")
+      .update("core-web:11111111-2222-3333-4444-555555555555")
+      .digest("hex");
+    expect(issuedFingerprint).toBe(actual);
+    expect(issuedFingerprint).toMatch(/^[0-9a-f]{64}$/);
+    cleanup();
+  });
+
+  it("رمزُ نواةٍ مرفوضٌ → 401 مسمّى، ولا يُفصَحُ عن أخطاءِ الداخلِ", async () => {
+    const { app, cleanup } = await buildApp({
+      coreIntrospect: async () => {
+        throw new Error("internal detail must not leak");
+      },
+      resolveIdentity: async () => ({ wasla_public_id: "x", created: false }),
+      issueSession: async () => {
+        throw new Error("لا يُستدعى");
+      },
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: "/edge/session/web",
+      payload: { core_access_token: "bad" },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json().code).toBe("EDGE_CORE_REJECTED");
+    expect(response.body).not.toContain("internal detail");
+    cleanup();
+  });
+
+  it("رابطٌ غيرُ موثّقٍ أو قناةٌ أخرى ليست مفتاحَ دخولٍ → 401", async () => {
+    const { app, cleanup } = await buildApp({
+      coreIntrospect: async () => ({
+        session_id: "s-2",
+        channel_links: [
+          { channel_type: "telegram", external_id: "tg-445566780", verified_at: null },
+          { channel_type: "discord", external_id: "discord-1", verified_at: "2026-01-01T00:00:00Z" },
+        ],
+      }),
+      resolveIdentity: async () => ({ wasla_public_id: "x", created: false }),
+      issueSession: async () => {
+        throw new Error("لا يُستدعى");
+      },
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: "/edge/session/web",
+      payload: { core_access_token: "t" },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json().code).toBe("EDGE_CORE_REJECTED");
+    cleanup();
+  });
+
+  it("بلا رمزٍ في الجسمِ → 400 مسمّى", async () => {
+    const { app, cleanup } = await buildApp({
+      coreIntrospect: async () => ({ session_id: "s" }),
+      resolveIdentity: async () => ({ wasla_public_id: "x", created: false }),
+      issueSession: async () => {
+        throw new Error("لا يُستدعى");
+      },
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: "/edge/session/web",
+      payload: {},
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json().code).toBe("EDGE_INVALID_REQUEST");
+    cleanup();
+  });
+
+  it("فاعلٌ لا يطابقُ السطحَ → 401 (E-16 نفسُهُ على مسارِ الويبِ)", async () => {
+    const { app, cleanup } = await buildApp({
+      coreIntrospect: async () => ({
+        session_id: "s-3",
+        channel_links: [verifiedTelegramLink],
+      }),
+      resolveIdentity: async () => ({ wasla_public_id: "x", created: false }),
+      issueSession: async () => ({
+        token: "t",
+        wasla_public_id: "x",
+        actor_type: "driver",
+        expires_at: "",
+        session_id: "",
+      }),
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: "/edge/session/web",
+      payload: { core_access_token: "t" },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json().code).toBe("EDGE_ACTOR_MISMATCH");
+    cleanup();
+  });
+});

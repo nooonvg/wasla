@@ -14,6 +14,7 @@
  */
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import type { ServiceRequestSigner } from "@wasla/service-auth";
 import {
@@ -34,6 +35,19 @@ export interface ChannelEdgeOptions {
   readonly exchangeSession: ExchangeSessionPort;
   /** سحبُ الجلسةِ (POST /identity/sessions/revoke). */
   readonly revokeSession: RevokeSessionPort;
+  /**
+   * التحقّقُ من رمزِ جلسةٍ من النواةِ (GET /v1/sessions/current · XR-6.1).
+   *
+   * اختياريّ عمدًا: حينَ لا يُمرَّر، لا يُسجَّلُ مسارُ الويبِ أصلاً (fail-closed
+   * بالعدمِ لا بالرفضِ) — فالجسرُ بلا نواةٍ موصولةٍ ليس ميزةً معطّلةً بل مسارٌ غير
+   * موجود. المُركِّبُ (bots/*) هو من يقرأُ عنوانَ النواةِ من البيئةِ لا من هنا.
+   */
+  readonly coreIntrospect?: CoreIntrospectPort;
+  /**
+   * تسويةُ الهويةِ من رابطِ القناةِ (POST /identity/resolve · نفسَ ما يفعلُهُ البوتُ
+   * عندَ أولِ لقاءٍ). اختياريّ بنفسِ حكمِ `coreIntrospect`.
+   */
+  readonly resolveIdentity?: ResolveIdentityPort;
   /** عنوانُ استماعِ identity — لا يُقرأُ من جسمِ الطلبِ. */
   readonly identityUrl: string;
   /** مُوقِّعُ النداءاتِ الخلفيةِ — نفسُ مُوقِّعِ الروبوتِ القائمِ. */
@@ -63,6 +77,45 @@ export interface ExchangeSessionPort {
 /** منفذُ سحبِ الجلسةِ — يُمرَّرُ من التركيبِ لا من هنا. */
 export interface RevokeSessionPort {
   (body: RevokeSessionRequest): Promise<RevokeSessionResponse>;
+}
+
+/** منفذُ التحقّقِ من جلسةِ النواةِ (GET /v1/sessions/current · XR-6.1). */
+export interface CoreIntrospectPort {
+  (coreAccessToken: string): Promise<CoreCurrentSession>;
+}
+
+/** ما تُجيبُ بهِ النواةُ عن `GET /v1/sessions/current` — الجزءُ الذي يقرأُهُ الجسرُ. */
+export interface CoreCurrentSession {
+  /** مُعرّفُ جلسةِ النواةِ — يُشتقُّ منهُ البصمةُ (منعُ الإعادةِ 1:1). */
+  readonly session_id: string;
+  /** روابطُ قنواتِ الهويةِ — منها يُقرأُ رابطُ تيليجرامِ (`tg-<معرّف>`). */
+  readonly channel_links?: readonly CoreChannelLink[];
+}
+
+/** رابطُ قناةٍ واحدٍ كما تُعيدهُ النواةُ. */
+export interface CoreChannelLink {
+  readonly channel_type: string;
+  readonly external_id: string;
+  readonly verified_at?: string | null;
+}
+
+/** منفذُ تسويةِ الهويةِ (POST /identity/resolve) — إيجادٌ أو إنشاءٌ، لا جلستانِ. */
+export interface ResolveIdentityPort {
+  (body: ResolveIdentityRequest): Promise<ResolveIdentityResponse>;
+}
+
+/** عقدُ `POST /identity/resolve` — نفسُ ما يستدعيهُ البوتُ عندَ أولِ لقاءٍ. */
+export interface ResolveIdentityRequest {
+  readonly telegram_user_id: number;
+  readonly telegram_username?: string;
+  readonly telegram_first_name?: string;
+  readonly telegram_language_code?: string;
+}
+
+/** ردُّ `POST /identity/resolve` — الجزءُ الذي يقرأُهُ الجسرُ. */
+export interface ResolveIdentityResponse {
+  readonly wasla_public_id: string;
+  readonly created: boolean;
 }
 
 /** عقدُ `POST /identity/sessions` (نفسُ عقدِ identity · CLM-0519). */
@@ -208,6 +261,69 @@ function applySessionRoutes(
       session_id: issued.session_id,
     });
   });
+
+  // POST /edge/session/web — تبديلُ جلسةِ ويبٍ من النواةِ بجلسةِ السوقِ (XR-6.1).
+  //
+  // لا يُسجَّلُ المسارُ أصلاً ما لم يُمرَّر المنفذانِ (fail-closed بالعدمِ): الجسرُ
+  // بلا نواةٍ موصولةٍ ليس ميزةً معطّلةً بل مسارٌ غيرُ موجودٍ لا يُفتحُ بجسمٍ ولا
+  // بترويسةٍ. والمصدرُ الوحيدُ لثقةِ الويبِ هو النواةُ (D-XR-9) — لا يُخترَعُ
+  // هنا تحقّقٌ ثانٍ ولا يُوقَّعُ شيءٌ بسرِّ الروبوتِ.
+  if (options.coreIntrospect !== undefined && options.resolveIdentity !== undefined) {
+    app.post("/edge/session/web", async (request, reply) => {
+      assertAllowedOrigin(request, options.allowedOrigins);
+      const body = request.body as { core_access_token?: unknown };
+      const coreToken = typeof body?.core_access_token === "string" ? body.core_access_token : "";
+      if (!coreToken) {
+        return deny(reply, 400, "EDGE_INVALID_REQUEST", "core_access_token مطلوب");
+      }
+      // 1) التحقّقُ من الرمزِ عندَ مُصدِرِهِ (النواة) لا عندَنا — رفضُها مسمّى واحدٌ
+      // مهما كانَ السببُ الداخليُّ، فلا يُفصَحُ لشبكةٍ عامّةٍ عن أخطاءِ الداخلِ.
+      let core: CoreCurrentSession;
+      try {
+        core = await options.coreIntrospect!(coreToken);
+      } catch {
+        return deny(reply, 401, "EDGE_CORE_REJECTED", "رمز النواة غير مقبول");
+      }
+      // 2) رابطُ تيليجرامِ الموثّقُ وحدَهُ يفتحُ الجسرَ — `tg-<معرّف>` بمُعرّفٍ
+      // رقميٍّ موجبٍ. رابطٌ غيرُ موثّقٍ أو قناةٌ أخرى ليست مفتاحَ دخولٍ هنا.
+      const link = (core.channel_links ?? []).find(
+        (l) => l.channel_type === "telegram" && l.verified_at != null,
+      );
+      const match = link ? /^tg-(\d+)$/.exec(link.external_id) : null;
+      const telegramUserId = match ? Number(match[1]) : 0;
+      if (!match || !Number.isSafeInteger(telegramUserId) || telegramUserId <= 0) {
+        return deny(reply, 401, "EDGE_CORE_REJECTED", "لا رابط تيليجرام موثق في الجلسة");
+      }
+      // 3) عدّادُ المعدلِ على مُعرّفِ تيليجرامِ نفسِهِ — لا على رمزٍ يُولَدُ من جديدٍ.
+      if (options.rateLimiter && !options.rateLimiter.check(telegramUserId, request.ip)) {
+        return deny(reply, 429, "EDGE_RATE_LIMITED", "تجاوز حد المعدل");
+      }
+      // 4) تسويةُ الهويةِ عندَ البوتِ نفسِهِ: من دخلَ الويبَ أولَ مرةٍ يُنشأُ كما
+      // يُنشأُ من كلّمَ البوتَ أولَ مرةٍ — نفسُ الفعلِ (`/identity/resolve`) لا
+      // فعلٌ موازٍ يُنتجُ نظامَ مستخدمينَ ثانيًا.
+      await options.resolveIdentity!({ telegram_user_id: telegramUserId });
+      // 5) بصمةُ الجلسةِ: sha256 لمُعرّفِ جلسةِ النواةِ — جلسةُ نواةٍ واحدةٌ =
+      // جلسةُ سوقٍ واحدةٌ (منعُ الإعادةِ بقيدِ القاعدةِ الفريدِ نفسِهِ الذي يحرسُ
+      // initData)، وصيغةُ الـ64 محرفًا hex هي عقدُ عمودِ البصمةِ في identity.
+      const fingerprint = createHash("sha256")
+        .update(`core-web:${core.session_id}`)
+        .digest("hex");
+      const issued = await options.issueSession({
+        telegram_user_id: telegramUserId,
+        init_data_fingerprint: fingerprint,
+      });
+      if (issued.actor_type !== surface.actorType) {
+        // E-16 نفسُهُ: جلسةُ سطحٍ على حدِّ سطحٍ آخرَ تُرفضُ فورًا.
+        return deny(reply, 401, "EDGE_ACTOR_MISMATCH", "الفاعل لا يطابق السطح");
+      }
+      return reply.status(201).send({
+        token: issued.token,
+        wasla_public_id: issued.wasla_public_id,
+        expires_at: issued.expires_at,
+        session_id: issued.session_id,
+      });
+    });
+  }
 
   // POST /edge/session/logout — سحبُ الجلسةِ (ADR-069 §2.5).
   app.post("/edge/session/logout", async (request, reply) => {

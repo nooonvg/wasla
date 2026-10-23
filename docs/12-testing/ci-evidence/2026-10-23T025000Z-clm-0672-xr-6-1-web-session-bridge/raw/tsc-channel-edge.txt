@@ -1,0 +1,4 @@
+
+> @wasla/channel-edge@0.1.0 typecheck /home/user/workspace/repos/wasla/packages/channel-edge
+> tsc -p tsconfig.json --noEmit
+

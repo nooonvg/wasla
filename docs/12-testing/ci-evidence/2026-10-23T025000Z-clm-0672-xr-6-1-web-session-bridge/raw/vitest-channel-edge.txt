@@ -1,0 +1,14 @@
+
+> @wasla/channel-edge@0.1.0 test /home/user/workspace/repos/wasla/packages/channel-edge
+> vitest run
+
+
+ RUN  v3.2.7 /home/user/workspace/repos/wasla/packages/channel-edge
+
+ ✓ src/__tests__/create-channel-edge.test.ts (11 tests) 167ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  02:40:02
+   Duration  660ms (transform 209ms, setup 0ms, collect 280ms, tests 167ms, environment 0ms, prepare 67ms)
+

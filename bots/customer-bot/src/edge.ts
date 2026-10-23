@@ -5,14 +5,18 @@
  * الطبقاتِ معًا (القناةُ · النواةُ · الهويةُ) — وهذا الملفُّ يحملُ الحدَّ
  * وحدهُ. فمراجعُ التركيبِ يقرأُ عقدَ الحدِّ بلا قراءةِ ترتيبِ القناةِ كاملًا.
  *
- * **مُعطَّلٌ افتراضيًّا في الإنتاجِ:** `WASLA_EDGE_ENABLED` غيرُ مسجَّلٍ في
- * `env-registry` ولا يُقرأُ من جسمِ الطلبِ — فالتركيبُ بلا تفويضٍ صريحٍ
- * لا يُسجِّلُ مسارًا حيًّا (fail-closed · ADR-069 §2.6-9).
+ * **مُعطَّلٌ افتراضيًّا في الإنتاجِ:** `WASLA_EDGE_ENABLED` لا يُقرأُ من جسمِ
+ * الطلبِ — فالتركيبُ بلا تفويضٍ صريحٍ لا يُسجِّلُ مسارًا حيًّا (fail-closed ·
+ * ADR-069 §2.6-9).
+ *
+ * **جسرُ الويبِ (XR-6.1):** حينَ يُضبَطُ `WASLA_CORE_URL` يُسجَّلُ مسارُ تبديلِ
+ * جلسةِ النواةِ بجلسةِ السوقِ (`POST /edge/session/web`)؛ وبغيابِهِ لا يُسجَّلُ
+ * المسارُ أصلاً — الجسرُ بلا نواةٍ موصولةٍ مسارٌ غيرُ موجودٍ لا ميزةٌ معطَّلة.
  */
 
 import { buildBotApp, type BotApp, type BotRuntimeOverrides } from "@wasla/bot-runtime";
 import { createChannelEdge } from "@wasla/channel-edge";
-import { CHANNEL_SESSION_EDGE_SCOPES } from "@wasla/bot-runtime";
+import { CHANNEL_SESSION_EDGE_SCOPES, CHANNEL_IDENTITY_SCOPES } from "@wasla/bot-runtime";
 import { createServiceRequestSigner, keyRegistryFromEnv } from "@wasla/service-auth";
 
 import { BOT } from "./server.js";
@@ -21,6 +25,8 @@ import { BOT } from "./server.js";
 export interface CustomerBotEdgeOverrides extends BotRuntimeOverrides {
   /** عنوانُ استماعِ identity — لا يُقرأُ من جسمِ الطلبِ. */
   readonly identityServiceUrl?: string;
+  /** عنوانُ النواةِ لجسرِ الويبِ (XR-6.1) — اختياريٌّ وبغيابِهِ لا مسارَ للويبِ. */
+  readonly coreUrl?: string;
   /** مفتاحُ التفعيلِ — لا يُقرأُ من جسمِ الطلبِ ولا الترويساتِ. */
   readonly edgeEnabled?: boolean;
 }
@@ -36,6 +42,7 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
   const app = buildBotApp(BOT, overrides);
   const env = (overrides?.env ?? process.env) as Record<string, string | undefined>;
   const identityUrl = overrides?.identityServiceUrl ?? env.IDENTITY_SERVICE_URL;
+  const coreUrl = overrides?.coreUrl ?? env.WASLA_CORE_URL;
   const edgeEnabled =
     overrides?.edgeEnabled ?? env.WASLA_EDGE_ENABLED === "true";
   if (!edgeEnabled || !identityUrl) {
@@ -46,20 +53,58 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
     WASLA_SERVICE_AUTH_KEYS: env.WASLA_SERVICE_AUTH_KEYS,
     WASLA_SERVICE_AUTH_ACTIVE_KID: env.WASLA_SERVICE_AUTH_ACTIVE_KID,
   });
+
+  /** موقّعٌ بدرجةِ صلاحيةِ الجلساتِ (إصدارٌ واستبدالٌ وسحبٌ) — للحدِّ كاملًا. */
+  const sessionSigner = createServiceRequestSigner({
+    serviceName: "customer-bot",
+    audience: "identity",
+    keys,
+    scopes: CHANNEL_SESSION_EDGE_SCOPES,
+  });
+  /** موقّعٌ بدرجةِ صلاحيةِ حلِّ الهويةِ — لجسرِ الويبِ عندَ أولِ لقاءٍ. */
+  const resolveSigner = createServiceRequestSigner({
+    serviceName: "customer-bot",
+    audience: "identity",
+    keys,
+    scopes: CHANNEL_IDENTITY_SCOPES,
+  });
+
   const edge = createChannelEdge({
     surface: {
       actorType: "customer",
       botToken: env.CUSTOMER_BOT_TOKEN ?? "",
-      requestSigner: createServiceRequestSigner({
-        serviceName: "customer-bot",
-        audience: "identity",
-        keys,
-        scopes: CHANNEL_SESSION_EDGE_SCOPES,
-      }),
+      requestSigner: sessionSigner,
       waslaPublicIdOf: async () => "",
     },
-    issueSession: async () => {
-      throw new Error("لا يُستدعى في هذا التركيبِ");
+    // ── إصدارُ الجلسةِ: نداءٌ حقيقيٌّ إلى identity بنفسِ عقدِ initData. ──────
+    // (كانَ رفضًا ثابتًا في هذا التركيبِ — جسرُ الويبِ يحتاجُهُ فعلًا، فصارَ
+    // نداءً موقَّعًا حقيقيًّا بدرجةِ صلاحيةِ `identity:session:issue`.)
+    issueSession: async (body) => {
+      const response = await fetch(`${identityUrl}/identity/sessions`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...sessionSigner("POST", "/identity/sessions"),
+        },
+        body: JSON.stringify(body),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { token?: unknown; wasla_public_id?: unknown; actor_type?: unknown; expires_at?: unknown; session_id?: unknown }
+        | null;
+      if (response.status !== 201 || !payload || typeof payload.token !== "string") {
+        throw new Error(`identity sessions returned ${response.status}`);
+      }
+      const actorType = String(payload.actor_type ?? "");
+      if (actorType !== "customer" && actorType !== "driver") {
+        throw new Error(`identity sessions returned unknown actor_type`);
+      }
+      return {
+        token: payload.token,
+        wasla_public_id: String(payload.wasla_public_id ?? ""),
+        actor_type: actorType,
+        expires_at: String(payload.expires_at ?? ""),
+        session_id: String(payload.session_id ?? ""),
+      };
     },
     exchangeSession: async () => {
       throw new Error("لا يُستدعى في هذا التركيبِ");
@@ -67,13 +112,63 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
     revokeSession: async () => {
       throw new Error("لا يُستدعى في هذا التركيبِ");
     },
+    // ── جسرُ الويبِ (XR-6.1): التحقّقُ من رمزِ النواةِ عندَ مُصدِرِهِ. ──────
+    // المصدرُ الوحيدُ لثقةِ الويبِ هو النواةُ (D-XR-9) — النداءُ هنا يمرِّرُ
+    // الرمزَ كما هو ولا يوقِّعُهُ بسرِّ البوتِ ولا يخزِنُهُ.
+    ...(coreUrl
+      ? {
+          coreIntrospect: async (coreAccessToken: string) => {
+            const response = await fetch(
+              `${coreUrl.replace(/\/+$/, "")}/v1/sessions/current`,
+              {
+                method: "GET",
+                headers: { authorization: `Bearer ${coreAccessToken}` },
+              },
+            );
+            if (response.status !== 200) {
+              throw new Error(`core sessions/current returned ${response.status}`);
+            }
+            const payload = (await response.json()) as {
+              session_id?: unknown;
+              channel_links?: unknown;
+            };
+            return {
+              session_id: String(payload.session_id ?? ""),
+              channel_links: Array.isArray(payload.channel_links)
+                ? (payload.channel_links as Array<Record<string, unknown>>).map((link) => ({
+                    channel_type: String(link.channel_type ?? ""),
+                    external_id: String(link.external_id ?? ""),
+                    verified_at: link.verified_at == null ? null : String(link.verified_at),
+                  }))
+                : [],
+            };
+          },
+          // تسويةُ الهويةِ عندَ أولِ لقاءٍ — نفسُ فعلِ البوتِ عندَ `/start`:
+          // إيجادٌ أو إنشاءٌ، لا نظامُ مستخدمينَ ثانٍ.
+          resolveIdentity: async (body) => {
+            const response = await fetch(`${identityUrl}/identity/resolve`, {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                ...resolveSigner("POST", "/identity/resolve"),
+              },
+              body: JSON.stringify(body),
+            });
+            const payload = (await response.json().catch(() => null)) as
+              | { wasla_public_id?: unknown; created?: unknown }
+              | null;
+            if ((response.status !== 200 && response.status !== 201) || !payload) {
+              throw new Error(`identity resolve returned ${response.status}`);
+            }
+            return {
+              wasla_public_id: String(payload.wasla_public_id ?? ""),
+              created: payload.created === true,
+            };
+          },
+        }
+      : {}),
     identityUrl,
-    requestSigner: createServiceRequestSigner({
-      serviceName: "customer-bot",
-      audience: "identity",
-      keys,
-      scopes: CHANNEL_SESSION_EDGE_SCOPES,
-    }),
+    requestSigner: sessionSigner,
     allowlistUrl: "packages/channel-edge/allowlist/customer-mini-app.json",
     enabled: true,
     allowedOrigins: [],
