@@ -32,7 +32,7 @@ export interface EnvVarSpec {
   readonly ownerItem: string;
 }
 
-/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 95 متغيّراً. */
+/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 96 متغيّراً. */
 export const ENV_REGISTRY: readonly EnvVarSpec[] = [
   {
     name: "BILLING_DATABASE_URL",
@@ -765,6 +765,16 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     ownerItem: "M3-01",
   },
   {
+    name: "WASLA_CORE_URL",
+    type: "http_url",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["runtime"],
+    readerCount: 1,
+    ownerItem: "M0-54",
+  },
+  {
     name: "WASLA_EDGE_ENABLED",
     type: "string",
     required: "optional",
@@ -1061,6 +1071,7 @@ export const ENV_VAR_NAMES = [
   "SUPPORT_SERVICE_PORT",
   "VITE_API_BASE_URL",
   "VITE_E2E",
+  "WASLA_CORE_URL",
   "WASLA_EDGE_ENABLED",
   "WASLA_OBS_ENVIRONMENT",
   "WASLA_PG_CONNECT_TIMEOUT_MS",

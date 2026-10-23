@@ -1,0 +1,100 @@
+
+ RUN  v3.2.7 /home/user/workspace/repos/wasla/packages/channel-e2e
+
+ ✓ src/__tests__/phase03-exit-gate.e2e.test.ts (8 tests | 1 skipped) 199ms
+{"level":30,"time":"2026-10-23T04:05:41.132Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.146Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.133Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-f6y556","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.134Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.138Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"b3273586-a807-4540-9603-f1b5c2571846","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.140Z","res":{"statusCode":201},"responseTime":5.747703000000001,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.146Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-fdvtvz","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.146Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.150Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"32cf3fd6-e2a7-4a6c-8833-ca9cd6b226f4","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.151Z","res":{"statusCode":201},"responseTime":4.759221000000025,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.151Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.156Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.152Z","res":{"statusCode":409},"responseTime":0.9658870000000093,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.156Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-2gjv1b","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.156Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.161Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.165Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.170Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.157Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"562773dd-0045-4417-bc41-d7bd1cf070ce","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.157Z","res":{"statusCode":201},"responseTime":0.6502340000000117,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.161Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-lp08fz","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.161Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":40,"time":"2026-10-23T04:05:41.161Z","reqId":"req-1","reason":"insufficient_scope","status":403,"route":"POST /identity/sessions","missing_scopes":["identity:session:issue"],"msg":"رُفض طلب خدمة على حد الهويّة"}
+{"level":30,"time":"2026-10-23T04:05:41.162Z","res":{"statusCode":403},"responseTime":0.4963570000000459,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.165Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-hw11ji","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.166Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":40,"time":"2026-10-23T04:05:41.166Z","reqId":"req-1","reason":"missing_credentials","status":401,"route":"POST /identity/sessions","msg":"رُفض طلب خدمة على حد الهويّة"}
+{"level":30,"time":"2026-10-23T04:05:41.166Z","res":{"statusCode":401},"responseTime":0.44735400000001846,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.170Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-tscvn2","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.170Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.171Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"f7601179-9ec4-4f73-9f2f-78ce4556bead","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.171Z","res":{"statusCode":201},"responseTime":1.5683080000000018,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.172Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.178Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.173Z","event":"user_session_exchanged","wasla_public_id":"WS-0000000001","actor_type":"customer","via":"customer-bot","aud":["orders"],"kid":"clm-0519-test-tscvn2","jti":"Tn-983-M9Xo2JGyZ9XfIsQ","exp":1791504060,"session_id":"f7601179-9ec4-4f73-9f2f-78ce4556bead","msg":"user session exchanged"}
+{"level":30,"time":"2026-10-23T04:05:41.173Z","res":{"statusCode":200},"responseTime":1.4629879999999957,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.178Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-7mwdij","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.178Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.179Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"ac7112c0-0a17-49ce-b119-7b653e4bfef8","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.179Z","res":{"statusCode":201},"responseTime":0.7242370000000165,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.179Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.185Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.181Z","res":{"statusCode":401},"responseTime":1.2992319999999609,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.185Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-7q7s7z","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.185Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.185Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"1864de59-e3f9-4999-9749-87673bac0e0f","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.186Z","res":{"statusCode":201},"responseTime":0.7540239999999585,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.186Z","req":{"method":"POST","url":"/identity/sessions/revoke","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.187Z","event":"user_session_revoked","session_id":"1864de59-e3f9-4999-9749-87673bac0e0f","actor_type":"customer","via":"customer-bot","reason":"user_requested","msg":"user session revoked"}
+{"level":30,"time":"2026-10-23T04:05:41.187Z","res":{"statusCode":200},"responseTime":0.7716679999999769,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.187Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.188Z","res":{"statusCode":401},"responseTime":0.6367999999999938,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.188Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.193Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.189Z","res":{"statusCode":401},"responseTime":0.5365580000000136,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.193Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-qttm6a","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.194Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.194Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"453fb692-5d94-4ebf-a3c0-d0c324128596","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.194Z","res":{"statusCode":201},"responseTime":0.5283030000000508,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.194Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.200Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.195Z","res":{"statusCode":403},"responseTime":0.45011299999998755,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.200Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-52hjer","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.200Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.201Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"fd91e63f-a204-4b43-b6e8-a0e10932c278","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.201Z","res":{"statusCode":201},"responseTime":0.5861910000000421,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.201Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.206Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.202Z","res":{"statusCode":403},"responseTime":0.5738190000000145,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.206Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-gmpwwv","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.206Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.207Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"b5918456-4f65-48d3-8f7f-f94ccaaf74c2","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.207Z","res":{"statusCode":201},"responseTime":0.6362500000000182,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.207Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.208Z","res":{"statusCode":403},"responseTime":0.5488970000000108,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.208Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.209Z","res":{"statusCode":403},"responseTime":0.4371110000000158,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.220Z","event":"user_assertion_config","audience":"identity","mode":"off","kids":[],"msg":"user assertion receiver config"}
+{"level":30,"time":"2026-10-23T04:05:41.220Z","event":"user_assertion_signer","enabled":true,"kid":"clm-0519-test-mazias","msg":"user assertion signer config"}
+{"level":30,"time":"2026-10-23T04:05:41.220Z","req":{"method":"POST","url":"/identity/sessions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.226Z","event":"user_session_issued","wasla_public_id":"WS-0000000001","actor_type":"customer","channel":"telegram","session_id":"cbf15fd6-3869-4d99-889f-c7f04ae90e5e","expires_at":"2026-10-09T04:00:00.000Z","via":"customer-bot","msg":"user session issued"}
+{"level":30,"time":"2026-10-23T04:05:41.226Z","res":{"statusCode":201},"responseTime":6.0734639999999445,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.226Z","req":{"method":"POST","url":"/identity/sessions/exchange","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.227Z","event":"user_session_exchanged","wasla_public_id":"WS-0000000001","actor_type":"customer","via":"customer-bot","aud":["orders"],"kid":"clm-0519-test-mazias","jti":"TcXRQHm4KNtJjC3w8hw1Bg","exp":1791504060,"session_id":"cbf15fd6-3869-4d99-889f-c7f04ae90e5e","msg":"user session exchanged"}
+{"level":30,"time":"2026-10-23T04:05:41.227Z","res":{"statusCode":200},"responseTime":1.2132669999999735,"msg":"request completed"}
+{"level":30,"time":"2026-10-23T04:05:41.228Z","req":{"method":"POST","url":"/identity/sessions/revoke","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":"2026-10-23T04:05:41.228Z","event":"user_session_revoked","session_id":"cbf15fd6-3869-4d99-889f-c7f04ae90e5e","actor_type":"customer","via":"customer-bot","reason":"user_requested","msg":"user session revoked"}
+{"level":30,"time":"2026-10-23T04:05:41.228Z","res":{"statusCode":200},"responseTime":0.431508000000008,"msg":"request completed"}
+ ✓ src/__tests__/clm-0519-identity-sessions.e2e.test.ts (27 tests | 14 skipped) 161ms
+ ✓ src/__tests__/m1-02-session-gate.e2e.test.ts (17 tests | 10 skipped) 11ms
+
+ Test Files  3 passed (3)
+      Tests  27 passed | 25 skipped (52)
+   Start at  04:05:38
+   Duration  2.74s (transform 912ms, setup 0ms, collect 1.79s, tests 371ms, environment 0ms, prepare 178ms)
+

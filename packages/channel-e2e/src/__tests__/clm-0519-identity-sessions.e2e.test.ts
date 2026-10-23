@@ -357,11 +357,16 @@ function sessionRoutesSuite(
         session: w.sessionDeps,
       });
       // نلتقطُ ما يُكتَبُ في السجلِّ (I-13): لا رمزَ ولا بصمةً ولا مُعرِّفًا داخليًّا.
+      // fastify 5.12.7 (GHSA-389g-gv7q-r4x8): نداءاتُ السجلِّ الابنِ صارت تمرُّ عبرَ
+      // السجلِّ الأبِّ — فصارَ الاعتراضُ يلتقطُ سجلَّ الطلباتِ الداخليَّ الذي يحملُ جسمَ
+      // الطلبِ الخامَّ (رموزٌ) وكائناتٍ دائريةً. I-13 يقيسُ سجلَّ التطبيقِ نفسِهِ؛
+      // نتجاهلُ رسالتي fastify الداخليتين ونُبقي سجلَّ التطبيقِ كما كانَ يُلتقطُ في 5.12.5.
+      const fastifyInternalMessages = new Set(["incoming request", "request completed"]);
       const originalInfo = app.log.info.bind(app.log);
       (app.log as { info: unknown }).info = function (this: unknown, ...args: unknown[]) {
         const obj = typeof args[0] === "object" && args[0] !== null ? (args[0] as Record<string, unknown>) : {};
         const msg = typeof args[1] === "string" ? args[1] : (typeof args[0] === "string" ? args[0] : "");
-        logs.push({ ...obj, message: msg });
+        if (!fastifyInternalMessages.has(msg)) logs.push({ ...obj, message: msg });
         return originalInfo(...(args as [Record<string, unknown>, string]));
       };
     });
@@ -704,7 +709,18 @@ function sessionRoutesSuite(
         const revoked = await revokeViaHttp(app, issuedBody.token, T0, { serviceName: "customer-bot" });
         expect(revoked.statusCode).toBe(200);
 
-        const logText = JSON.stringify(logs);
+        // fastify 5.12.7 (GHSA-389g-gv7q-r4x8): مصنعُ السجلاتِ الابنةِ صار يمرُّ نداءاتِهِ عبرَ
+        // السجلِّ الأبِّ — فالتقطَ هذا الاعتراضُ سجلَّ «request completed» الداخليَّ الذي يحملُ
+        // كائنَ Replyِّ خامًا دائريًا. نبقى نفحصُ نصَّ السجلِّ كاملًا مع تجاوزِ المرجعِ الدائريِّ
+        // وحدَه — قصدُ I-13 (لا أسرارَ في السجلِّ) لا يتغيّرُ.
+        const seen = new WeakSet<object>();
+        const logText = JSON.stringify(logs, (_key, value) => {
+          if (typeof value === "object" && value !== null) {
+            if (seen.has(value)) return "[circular]";
+            seen.add(value);
+          }
+          return value;
+        });
         // لا رمزَ جلسةٍ صريحاً في السجلِّ.
         expect(logText).not.toContain(issuedBody.token);
         // لا بصمةَ init-data كاملةً (تُخزَّنُ مُعمّاةً في القاعدةِ لا نصًّا في السجلِّ).

@@ -1,0 +1,15 @@
+
+> @wasla/config@0.1.0 test /home/user/workspace/repos/wasla/packages/config
+> vitest run
+
+
+ RUN  v3.2.7 /home/user/workspace/repos/wasla/packages/config
+
+ ✓ src/__tests__/registry.test.ts (9 tests) 23ms
+ ✓ src/__tests__/readers.test.ts (24 tests) 9ms
+
+ Test Files  2 passed (2)
+      Tests  33 passed (33)
+   Start at  02:40:16
+   Duration  542ms (transform 92ms, setup 0ms, collect 113ms, tests 32ms, environment 0ms, prepare 123ms)
+

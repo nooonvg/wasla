@@ -752,6 +752,7 @@ const ownerScoped = (...scopes: string[]) => ({
 | `packages/incident-ops/src/harness.ts` | مِعْوانُ عمليّاتِ الحوادثِ والاسترجاعِ: يتحقّقُ من صحّةِ الخدماتِ بعدَ الاسترجاع. (CLM-0344 · M4-04) |
 | `services/observability/src/scraper.ts` | مُجمِّعُ مراقبةٍ — يقرأُ /metrics من 14 خدمة (نقطةُ نهايةٍ عامّةٌ بلا مُصادقةٍ لـPrometheus). ليسَ نداءً بينَ الخدماتِ ولا يحملُ رمزَ خدمةٍ. (CLM-0335 · M2-08 Stage B) |
 | `packages/channel-edge/src/create-channel-edge.ts` | حدُّ القناةِ — يوجِّهُ الطلبَ إلى الخدمةِ الخلفيةِ بحمولةِ `X-Wasla-User-Assertion` القادمِ من `exchange` لا بموقِّعِ الخدمةِ المباشرِ؛ الحدُّ لا يُنادي خلفيًّا بلا تأكيدٍ موقَّعٍ من identity (ADR-069 · §2.1-2 · CLM-0524). |
+| `bots/customer-bot/src/edge.ts` | جسرُ الويبِ (XR-6.1 · CLM-0672): نداءانِ موقَّعانِ بموقِّعِ الخدمةِ (`sessionSigner` بـ`CHANNEL_SESSION_EDGE_SCOPES` إلى `POST /identity/sessions` · `resolveSigner` بـ`CHANNEL_IDENTITY_SCOPES` إلى `POST /identity/resolve` — نفسُ ما يفعلهُ البوتُ عندَ أولِ لقاءٍ) ونداءٌ ثالثٌ يحملُ **رمزَ المستخدمِ نفسِهِ** إلى النواةِ (`GET /v1/sessions/current`) لا رمزَ خدمةٍ: مصدرُ ثقةِ الويبِ هو النواةُ (D-XR-9) فتمريرُ رمزِ المستخدمِ كما هو عقدُ التحقّقِ المقصودُ لا نداءٌ خامٌ ناسٍ. لا يُنادى أيُّ مسارٍ خلفيٍّ آخرَ من هذا الملفِّ. |
 
 <!-- fetch-exceptions:end -->
 
