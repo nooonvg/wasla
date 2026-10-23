@@ -438,6 +438,11 @@ export interface components {
         };
         RegisterStoreRequest: {
             owner_public_id: components["schemas"]["WaslaPublicId"];
+            /**
+             * Format: uuid
+             * @description البندُ 2.1 — ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ: مُعرّفٌ اختياريٌّ تُصدِرُه النواةُ (wasla-core · POST /v1/organizations)، يُفحَصُ شكلُهُ (UUID) لا وجودُهُ — فالوجودُ عقدُ النواةِ.
+             */
+            organization_id?: string;
             store_slug: components["schemas"]["StoreSlug"];
             title_ar: string;
             title_en?: string | null;

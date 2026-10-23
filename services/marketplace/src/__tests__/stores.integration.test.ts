@@ -103,6 +103,29 @@ describe.runIf(PG_ENABLED)("استمراريّةُ المتجر", () => {
     expect(storeId).toMatch(/^[0-9a-f-]{36}$/u);
   });
 
+  // البندُ 2.1 — الربطُ الموثَّقُ الأدنى متجر ↔ منظمة: مُعرّفٌ اختياريٌّ يُخزَّنُ في `stores.organization_id`.
+  it("البندُ 2.1: مُعرّفُ المنظمةِ يُخزَّنُ في `stores.organization_id` عندَ إنشاءِ المتجرِ", async () => {
+    const organizationId = "019233ab-8f2e-7d4a-9c1b-5e6f7a8b9c0d";
+    const draft = draftStore({
+      ownerPublicId: OWNER,
+      organizationId,
+      slug: "org-linked-store",
+      titleAr: "متجرٌ مربوطٌ بمنظمةٍ",
+      categoryId,
+      category: { slug: "electronics-phones", depth: 2, isActive: true },
+      activeStoreCount: 0,
+    });
+    const store = await pg.stores.resources.insertStore(draft);
+    const found = await pg.stores.resources.findStoreById(store.storeId);
+    expect(found?.organizationId).toBe(organizationId);
+  });
+
+  it("البندُ 2.1: بلا مُعرّفِ منظمةٍ يبقى `stores.organization_id` فارغًا (null)", async () => {
+    const storeId = await createStore("org-unlinked-store");
+    const found = await pg.stores.resources.findStoreById(storeId);
+    expect(found?.organizationId).toBeNull();
+  });
+
   it("والإسقاطُ يساوي اشتقاقَ الدفترِ — حرفاً بحرف", async () => {
     const storeId = await createStore();
     await requestReview(storeId);

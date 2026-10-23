@@ -75,6 +75,8 @@ import { assertStoreDecision } from "../domain/transitions.js";
 /** مُدخلُ تسجيلِ متجرٍ بعد تحقُّقِ الحدِّ — بلا `state`: الحالةُ إسقاطٌ لا حقلُ إدخال. */
 export interface RegisterStoreInput {
   readonly ownerPublicId: string;
+  /** البندُ 2.1: ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ — مُعرّفٌ اختياريٌّ تُصدِرُه النواةُ. */
+  readonly organizationId?: string;
   readonly storeSlug: string;
   readonly titleAr: string;
   readonly titleEn?: string;
@@ -151,6 +153,7 @@ export class MarketplaceStoreService {
 
       const draft = draftStore({
         ownerPublicId: input.ownerPublicId,
+        organizationId: input.organizationId,
         slug: input.storeSlug,
         titleAr: input.titleAr,
         titleEn: input.titleEn,

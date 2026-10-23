@@ -1033,6 +1033,13 @@ components:
       additionalProperties: false
       properties:
         owner_public_id: {$ref: '#/components/schemas/WaslaPublicId'}
+        organization_id:
+          type: string
+          format: uuid
+          description: >-
+            البندُ 2.1 — ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ: مُعرّفٌ اختياريٌّ تُصدِرُه النواةُ
+            (wasla-core · POST /v1/organizations)، يُفحَصُ شكلُهُ (UUID) لا وجودُهُ —
+            فالوجودُ عقدُ النواةِ.
         store_slug: {$ref: '#/components/schemas/StoreSlug'}
         title_ar: {type: string, minLength: 2, maxLength: 80}
         title_en: {type: [string, 'null'], minLength: 2, maxLength: 80}

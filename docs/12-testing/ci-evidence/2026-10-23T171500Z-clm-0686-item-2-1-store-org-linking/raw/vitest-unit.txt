@@ -1,0 +1,30 @@
+
+ RUN  v3.2.7 /home/user/workspace/repos/wasla/services/marketplace
+
+ ✓ src/__tests__/service-identity.test.ts (54 tests) 363ms
+ ✓ src/__tests__/http-degraded.test.ts (30 tests) 247ms
+ ✓ src/__tests__/purity.test.ts (21 tests) 117ms
+ ✓ src/__tests__/http-drift.test.ts (32 tests) 72ms
+ ✓ src/__tests__/canonical-json.test.ts (3 tests) 65ms
+ ✓ src/__tests__/schema-drift.test.ts (33 tests) 23ms
+ ✓ src/__tests__/composition.test.ts (19 tests) 21ms
+ ✓ src/__tests__/events.test.ts (57 tests) 18ms
+ ✓ src/__tests__/errors.test.ts (16 tests) 17ms
+ ✓ src/__tests__/catalog.test.ts (18 tests) 11ms
+ ✓ src/__tests__/transitions.test.ts (16 tests) 10ms
+ ✓ src/__tests__/staff.test.ts (20 tests) 9ms
+ ✓ src/__tests__/identifiers.test.ts (12 tests) 8ms
+ ✓ src/__tests__/service-auth-docs-drift.test.ts (7 tests) 7ms
+ ✓ src/__tests__/category-seed.test.ts (13 tests) 7ms
+ ✓ src/__tests__/state.test.ts (14 tests) 7ms
+ ✓ src/__tests__/visibility.test.ts (7 tests) 6ms
+ ✓ src/__tests__/inventory-sync.test.ts (13 tests) 6ms
+ ✓ src/__tests__/reservation.test.ts (9 tests) 6ms
+ ✓ src/__tests__/inventory.test.ts (11 tests) 5ms
+ ✓ src/__tests__/staff-rank.test.ts (4 tests) 3ms
+
+ Test Files  21 passed (21)
+      Tests  409 passed (409)
+   Start at  17:12:24
+   Duration  6.58s (transform 579ms, setup 0ms, collect 1.65s, tests 1.03s, environment 3ms, prepare 1.16s)
+

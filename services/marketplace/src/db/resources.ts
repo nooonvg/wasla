@@ -118,6 +118,8 @@ export class PostgresResourceStore {
         .values({
           storeId: sql`gen_random_uuid()`,
           ownerPublicId: draft.ownerPublicId,
+          // البندُ 2.1: ربطٌ موثَّقٌ أدنى بمَنظمةِ النواةِ — يُخزَّنُ في `stores.organization_id`.
+          organizationId: draft.organizationId ?? null,
           slug: draft.slug,
           titleAr: draft.titleAr,
           titleEn: draft.titleEn ?? null,
