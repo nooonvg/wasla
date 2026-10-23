@@ -9,11 +9,13 @@ test.describe("Session security", () => {
   // G-S8 (CLM-0610): outside Telegram there is no session source, so the app
   // says so with a retry instead of parking on «جارٍ التحميل» forever. (Was:
   // "fresh browser shows loading state without session".)
+  // XR-8.5: in the browser the app now offers the Telegram web login (CORE
+  // session) instead of a dead-end message — the button is the probe.
   test("fresh browser outside Telegram shows an explicit session error, not endless loading", async ({ page }) => {
     await page.goto("http://localhost:4173/");
 
-    await expect(page.getByTestId("session-error")).toHaveText("افتح التطبيق من تلغرام لبدء الجلسة");
-    await expect(page.getByTestId("session-retry")).toBeVisible();
+    await expect(page.getByTestId("session-error")).toHaveText("سجّل الدخول بحساب تيليجرام للمتابعة");
+    await expect(page.getByTestId("web-sign-in")).toBeVisible();
     await expect(page.locator(".app-loading")).toHaveCount(0);
   });
 

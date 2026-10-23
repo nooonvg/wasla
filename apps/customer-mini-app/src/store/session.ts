@@ -12,6 +12,7 @@ import { create } from "zustand";
 export type SessionInitStatus = "idle" | "initializing" | "ready" | "failed";
 export type SessionInitError =
   | "not_in_telegram"
+  | "web_login_required"
   | "edge_rejected"
   | "network"
   | "invalid_response"

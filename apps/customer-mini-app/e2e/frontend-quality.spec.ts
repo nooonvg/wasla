@@ -10,9 +10,10 @@ test.describe("Frontend quality (M3-06)", () => {
 
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
-    // G-S8 (CLM-0610): outside Telegram the shell shows the session error, not an
-    // endless "Loading..." — so the English probe is that text. (Was: "Loading...".)
-    await expect(page.getByText("Open the app from Telegram to start a session")).toBeVisible();
+    // G-S8 (CLM-0610) + XR-8.5: outside Telegram the shell shows the web-login
+    // prompt (session error), not an endless "Loading..." — so the English
+    // probe is that text. (Was: "Loading...", then the Telegram-only message.)
+    await expect(page.getByText("Sign in with your Telegram account to continue")).toBeVisible();
   });
 
   test("offline banner appears when the network drops and clears on reconnect", async ({ page }) => {

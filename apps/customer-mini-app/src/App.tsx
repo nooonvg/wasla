@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSessionStore } from "./store/session";
 import { retrySession } from "./session/session-init";
+import { beginTelegramWebLogin } from "./host";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { Home } from "./screens/Home";
 import { RideOrder } from "./screens/RideOrder";
@@ -48,6 +49,7 @@ export function App() {
   const { t } = useTranslation();
   const [route, setRoute] = useState<Route>(parseHash());
   const { isAuthenticated, initStatus, initError } = useSessionStore();
+  const [webSigningIn, setWebSigningIn] = useState(false);
 
   useEffect(() => {
     const onHashChange = () => setRoute(parseHash());
@@ -59,6 +61,32 @@ export function App() {
   // see a loading state until the session is initialized from the host (src/host/).
   // G-S8 (CLM-0610): a failed init is shown with a retry — never an endless
   // loading screen. Loading is shown only while an init is (or may be) running.
+  // XR-8.5: في المتصفّحِ بلا دخولٍ — زرُّ الدخولِ بجلسةِ النواةِ لا خطأٌ نهائيٌّ.
+  if (!isAuthenticated() && initStatus === "failed" && initError === "web_login_required") {
+    const startWebLogin = async () => {
+      setWebSigningIn(true);
+      const ok = await beginTelegramWebLogin();
+      setWebSigningIn(false);
+      if (ok) await retrySession();
+    };
+    return (
+      <>
+        <OfflineBanner />
+        <div className="app-session-failed" role="alert">
+          <p data-testid="session-error">{t("session.web_login_required")}</p>
+          <button
+            type="button"
+            data-testid="web-sign-in"
+            disabled={webSigningIn}
+            onClick={() => void startWebLogin()}
+          >
+            {webSigningIn ? t("session.signing_in") : t("session.sign_in_telegram")}
+          </button>
+        </div>
+      </>
+    );
+  }
+
   if (!isAuthenticated() && initStatus === "failed") {
     return (
       <>

@@ -11,13 +11,13 @@
 export type HostKind = "telegram" | "browser";
 
 /**
- * ما يُثبِتُ به المضيفُ هويّةَ المستخدمِ للحدّ. نوعٌ واحدٌ اليوم؛ وطرقُ الدخولِ
- * الأخرى (ويب، ديسكورد، آبل) تُضافُ بعدَ محوّلاتِها في CORE (XR-8.5 · B-45).
+ * ما يُثبِتُ به المضيفُ هويّةَ المستخدمِ للحدّ. نوعانِ اليوم: إثباتُ تيليجرامِ
+ * المصغّرِ (initData)، وإثباتُ الويبِ — جلسةُ نواةٍ مُصدَرةٌ من دخولِ تيليجرامِ
+ * OIDC (XR-8.5 · B-45) تُستبدَلُ عندَ الحدِّ بجلسةِ سوقٍ عبرَ `/edge/session/web`.
  */
-export type SessionCredential = {
-  readonly kind: "telegram_init_data";
-  readonly value: string;
-};
+export type SessionCredential =
+  | { readonly kind: "telegram_init_data"; readonly value: string }
+  | { readonly kind: "web_core_session"; readonly value: string };
 
 /** طلبُ إصدارِ الجلسةِ كما يرسلُه التطبيقُ إلى الحدّ. */
 export interface SessionRequest {
