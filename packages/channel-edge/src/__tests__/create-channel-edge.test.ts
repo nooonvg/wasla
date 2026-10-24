@@ -13,7 +13,6 @@ import { describe, expect, it } from "vitest";
 
 import { createChannelEdge } from "../create-channel-edge.js";
 
-const IDENTITY_URL = "http://identity.test";
 
 /** مُوقِّعٌ زائفٌ للفحصِ — لا يُستعملُ في الإنتاجِ ولا يُوقِّعُ شيئًا حقيقيًّا. */
 const fakeSigner = (() => ({
@@ -46,8 +45,6 @@ function buildOptions(overrides: Partial<Parameters<typeof createChannelEdge>[0]
     revokeSession: async () => {
       throw new Error("لا يُستدعى في هذا الفحص");
     },
-    identityUrl: IDENTITY_URL,
-    requestSigner: fakeSigner,
     allowlistUrl: EMPTY_ALLOWLIST_URL,
     enabled: true,
     allowedOrigins: [],

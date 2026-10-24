@@ -48,10 +48,26 @@ export interface ChannelEdgeOptions {
    * عندَ أولِ لقاءٍ). اختياريّ بنفسِ حكمِ `coreIntrospect`.
    */
   readonly resolveIdentity?: ResolveIdentityPort;
-  /** عنوانُ استماعِ identity — لا يُقرأُ من جسمِ الطلبِ. */
-  readonly identityUrl: string;
-  /** مُوقِّعُ النداءاتِ الخلفيةِ — نفسُ مُوقِّعِ الروبوتِ القائمِ. */
-  readonly requestSigner: ServiceRequestSigner;
+  /**
+   * **مُهملتانِ (للتوافقِ الخلفيِّ فقط):** كانَتا وجهةَ التوجيهِ وموقِّعَهُ،
+   * وصارَ التوجيهُ حصرًا عبرَ `upstreams` (العقدُ الواحدُ وجهةً وموقِّعًا).
+   * بقيتا اختياريتينِ لأنَّ `bots/driver-bot/src/edge.ts` **مجمَّدٌ** بقرارِ
+   * XR-1.1 (ADR-076 · مجالُ MOVE ملكُ nooonvg/ceezr) فلا يُعدَّلُ إلا بحذفٍ أو
+   * إيداعٍ موسومٍ — يمرِّرُهُما فيُجهَلانِ، ولا يُقرأُ لهما موضعٌ في التنفيذِ.
+   * تُحذفانِ حينَ تُرحَّلْ برمجةُ بوتِ السائقِ أو يُفتَحْ استثناءٌ بقرارٍ.
+   */
+  readonly identityUrl?: string;
+  /** @deprecated مُهملةٌ — التوجيهُ عبرَ `upstreams` وحدها (انظر `identityUrl`). */
+  readonly requestSigner?: ServiceRequestSigner;
+  /**
+   * وجهاتُ الخدماتِ للتوجيهِ — العنوانُ والموقِّعُ عقدٌ واحدٌ لكلِّ خدمةٍ لا
+   * يُجزَّآنِ: توقيعٌ بجمهورِ `identity` لا يصحُّ لنداءٍ يذهبُ إلى `customers`.
+   * **لا وجهةَ احتياطيةَ**: مدخلٌ مفتوحٌ (`production_open=true`) لخدمةٍ بلا
+   * وجهةٍ موصولةٍ هنا **يفشلِ التركيبُ بخطأِ تهيئةٍ صريحٍ** — لا يُخمَّنُ وجهةٌ
+   * ولا يُعادُ التوجيهُ إلى الهويةِ. المدخلُ المغلقُ لا يحتاجُ وجهةً. والخريطةُ
+   * اختياريةٌ للسطحِ الذي لا يفتحُ مسارًا (الحالةُ القائمةُ كلُّها).
+   */
+  readonly upstreams?: Readonly<Record<string, EdgeUpstream>>;
   /** أصلُ المسارِ المسموحُ لقائمةِ السماحِ — يُقرأُ من ملفِ الحدِّ. */
   readonly allowlistUrl: string;
   /** مفتاحُ التفعيلِ — لا يُقرأُ من جسمِ الطلبِ ولا الترويساتِ. */
@@ -67,6 +83,27 @@ export interface ChannelEdgeOptions {
 /** منفذُ إصدارِ الجلسةِ — يُمرَّرُ من التركيبِ لا من هنا. */
 export interface IssueSessionPort {
   (body: IssueSessionRequest): Promise<IssueSessionResponse>;
+}
+
+/**
+ * وجهةُ خدمةٍ واحدةٍ للتوجيهِ — قاعدةُ العنوانِ وموقِّعُ نداءاتِها عقدٌ واحد.
+ * العنوانُ من التهيئةِ الخادميةِ فقط، والموقِّعُ بجمهورِ الخدمةِ وصلاحياتِها
+ * المصرَّحِ بها — لا تُولَّدُ صلاحيةٌ من `required_scopes` ولا يُوسَّعُ منحٌ
+ * ليخضرَّ اختبارٌ (ADR-069 §2.6-6).
+ */
+export interface EdgeUpstream {
+  /** قاعدةُ عنوانِ الخدمةِ — من التركيبِ لا من قائمةِ السماحِ. */
+  readonly baseUrl: string;
+  /** مُوقِّعُ نداءاتِ هذهِ الخدمةِ — بجمهورِها المصرَّحِ بهِ. */
+  readonly requestSigner: ServiceRequestSigner;
+}
+
+/**
+ * رفضُ جلسةٍ متوقعٌ (رمزٌ مجهولٌ أو منتهٍ) — يرميهِ منفذُ الاستبدالِ ليردَّ
+ * الحدُّ عليهِ بـ401 مسمًّى، لا استثناءً عامًّا يتحولُ 500 عندَ المسارِ.
+ */
+export class EdgeSessionRejectedError extends Error {
+  override readonly name = "EdgeSessionRejectedError";
 }
 
 /** منفذُ استبدالِ الجلسةِ — يُمرَّرُ من التركيبِ لا من هنا. */
@@ -205,6 +242,15 @@ export interface ChannelEdgeAdditionsImpl {
   readonly enabled: boolean;
 }
 
+/**
+ * تصنيفُ هويةِ الخدمةِ لمساراتِ الحدِّ: `open` — لا برمزِ خدمةٍ. حمايةُ هذهِ
+ * المساراتِ آليّتُها الخاصةُ (توقيعُ `initData` بسرِّ الروبوتِ · رمزُ الجلسةِ
+ * المستبدَلُ) كما أنَّ حمايةَ الـwebhook سرُّهُ (ADR-007) — فلو فُرضَ عليها
+ * `service-auth` لَرُدَّ كلُّ نداءِ متصفحٍ بـ401. والتصنيفُ صريحٌ لا صمتٌ،
+ * لأنَّ حارسَ التركيبِ يُسقِطُ المسارَ غيرَ المُصنَّفِ (M1-07).
+ */
+const OPEN_SERVICE_IDENTITY = { serviceIdentity: "open" } as const;
+
 /** بناءُ مساراتِ إصدارِ الجلسةِ (`POST /edge/session` و`/logout`). */
 function applySessionRoutes(
   app: FastifyInstance,
@@ -213,7 +259,7 @@ function applySessionRoutes(
   now: () => Date,
 ): void {
   // POST /edge/session — إصدارُ جلسةٍ من `initData` موقَّعٍ (ADR-069 §2.1).
-  app.post("/edge/session", async (request, reply) => {
+  app.post("/edge/session", { config: OPEN_SERVICE_IDENTITY }, async (request, reply) => {
     assertAllowedOrigin(request, options.allowedOrigins);
     const body = request.body as { init_data?: unknown };
     const raw = typeof body?.init_data === "string" ? body.init_data : "";
@@ -269,7 +315,7 @@ function applySessionRoutes(
   // بترويسةٍ. والمصدرُ الوحيدُ لثقةِ الويبِ هو النواةُ (D-XR-9) — لا يُخترَعُ
   // هنا تحقّقٌ ثانٍ ولا يُوقَّعُ شيءٌ بسرِّ الروبوتِ.
   if (options.coreIntrospect !== undefined && options.resolveIdentity !== undefined) {
-    app.post("/edge/session/web", async (request, reply) => {
+    app.post("/edge/session/web", { config: OPEN_SERVICE_IDENTITY }, async (request, reply) => {
       assertAllowedOrigin(request, options.allowedOrigins);
       const body = request.body as { core_access_token?: unknown };
       const coreToken = typeof body?.core_access_token === "string" ? body.core_access_token : "";
@@ -326,7 +372,7 @@ function applySessionRoutes(
   }
 
   // POST /edge/session/logout — سحبُ الجلسةِ (ADR-069 §2.5).
-  app.post("/edge/session/logout", async (request, reply) => {
+  app.post("/edge/session/logout", { config: OPEN_SERVICE_IDENTITY }, async (request, reply) => {
     assertAllowedOrigin(request, options.allowedOrigins);
     const authorization = request.headers.authorization;
     if (!authorization?.startsWith("Bearer ")) {
@@ -359,11 +405,20 @@ function applyProxyRoutes(
   }
   for (const entry of allowlist) {
     if (!entry.production_open) continue; // مسارٌ مسجَّلٌ للقياسِ لا للفتحِ.
+    const upstream = options.upstreams?.[entry.service];
+    if (upstream === undefined) {
+      // لا وجهةَ احتياطيةَ ولا تخطيًا صامتًا: مدخلٌ مفتوحٌ بلا وجهةٍ موصولةٍ
+      // خطأُ تهيئةٍ يُفشِلُ التركيبَ كي يقرأَهُ المشغِّلُ لا ليتعثرَ الطلبُ.
+      throw new Error(
+        `مدخلُ سماحٍ مفتوحٌ (${entry.method} ${entry.path}) بلا وجهةٍ موصولةٍ للخدمةِ «${entry.service}» — صِلْ upstreams.${entry.service} أو أغلِقِ المدخلَ؛ لا يُخمَّنُ وجهةٌ ولا يُوجَّهُ إلى الهويةِ.`,
+      );
+    }
     app.route({
       method: entry.method as "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
       url: entry.path,
+      config: OPEN_SERVICE_IDENTITY,
       handler: async (request, reply) => {
-        return proxyRequest(options, surface, entry, request, reply);
+        return proxyRequest(options, surface, entry, upstream, request, reply);
       },
     });
   }
@@ -393,41 +448,65 @@ function loadAllowlist(allowlistUrl: string, surface: EdgeSurface): readonly All
   return actorBySurface[surface.actorType] ?? [];
 }
 
-/** توجيهُ الطلبِ إلى الخدمةِ الخلفيةِ بعدَ حذفِ الترويساتِ وصنعِ رمزِ الخدمةِ. */
+/** توجيهُ الطلبِ إلى وجهةِ الخدمةِ — بحذفِ الترويساتِ وصنعِ ترويساتِ النداءِ. */
 async function proxyRequest(
   options: ChannelEdgeOptions,
   surface: EdgeSurface,
   entry: AllowlistEntry,
+  upstream: EdgeUpstream,
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
   assertAllowedOrigin(request, options.allowedOrigins);
-  // ADR-069 §2.6-2: يُحذفُ من الطلبِ الواردِ كلُّ ترويسةٍ داخليةٍ قبلَ التوجيهِ.
+  // ADR-069 §2.6-2: الجلسةُ تُقرأُ قبلَ الحذفِ — الحدُّ يستعملُ الرمزَ
+  // للاستبدالِ ثم يصنعُ ترويساتِ النداءِ بنفسِهِ؛ فلا يصلُ الخلفَ رمزُ المتصفحِ
+  // ولا ترويسةٌ داخليةٌ واحدةٌ (الحذفُ يحرِسُ الطلبَ الواردَ نفسَهُ).
+  const authorization = request.headers.authorization;
   for (const name of STRIPPED_INBOUND_HEADERS) {
     delete request.headers[name];
   }
-  const authorization = request.headers.authorization;
   if (!authorization?.startsWith("Bearer ")) {
     return deny(reply, 401, "EDGE_UNAUTHENTICATED", "رمز الجلسة مطلوب");
   }
   const sessionToken = authorization.slice("Bearer ".length);
-  // ADR-069 §2.1 (2): استبدالُ الجلسةِ بتأكيدٍ قصيرِ العمرِ ≤60 ث.
-  const exchanged = await options.exchangeSession({
-    session_token: sessionToken,
-    audience: [entry.service],
-  });
+  // ADR-069 §2.1 (2): استبدالُ الجلسةِ بتأكيدٍ قصيرِ العمرِ ≤60 ث. ورفضُ الجلسةِ
+  // المتوقعُ (مجهولةٌ أو منتهيةٌ) يُعلَنُهُ المنفذُ بـ`EdgeSessionRejectedError`
+  // فيردُّ الحدُّ 401 مسمًّى — لا استثناءً عامًّا يتحولُ 500.
+  let exchanged: ExchangeSessionResponse;
+  try {
+    exchanged = await options.exchangeSession({
+      session_token: sessionToken,
+      audience: [entry.service],
+    });
+  } catch (error) {
+    if (error instanceof EdgeSessionRejectedError) {
+      return deny(reply, 401, "EDGE_UNAUTHENTICATED", "الرمز مجهول أو منتهٍ");
+    }
+    throw error;
+  }
   if (exchanged.actor_type !== surface.actorType) {
     return deny(reply, 401, "EDGE_ACTOR_MISMATCH", "الفاعل لا يطابق السطح");
   }
+  // هدفُ الطلبِ كما سيُرسَل: المسارُ الخامُ بعدَ مطابقةِ المسارِ المسموحِ مع
+  // استعلامِهِ — قيمُ المعاملاتِ بترميزِ العميلِ كما وردت، لا قالبَ القائمةِ
+  // ولا فكًّا وإعادةَ ترميزٍ. ويُوقَّعُ ويُوجَّهُ الشيءُ نفسُهُ (عقدُ الموقِّعِ:
+  // «هدفُ الطلبِ كما سيُرسَل — المسارُ مع استعلامِهِ» · RISK-0026)، فيتحققُ
+  // المستقبِلُ من التوقيعِ على ما وصلهُ فعلًا.
+  const rawUrl = request.raw.url ?? "/";
+  const queryIndex = rawUrl.indexOf("?");
+  const requestTarget =
+    queryIndex === -1 || rawUrl.slice(queryIndex + 1) === ""
+      ? rawUrl.slice(0, queryIndex === -1 ? undefined : queryIndex)
+      : rawUrl;
   // ADR-069 §2.6-1: مصدرُ `obo` الوحيدُ هو `wasla_public_id` العائدُ من `exchange`.
-  const headers = options.requestSigner(
+  const headers = upstream.requestSigner(
     entry.method,
-    entry.path,
+    requestTarget,
     exchanged.wasla_public_id,
   );
   headers["X-Wasla-User-Assertion"] = exchanged.assertion;
   headers["Content-Type"] = request.headers["content-type"] ?? "application/json";
-  const target = `${options.identityUrl.replace(/\/$/, "")}/${entry.path.replace(/^\//, "")}`;
+  const target = `${upstream.baseUrl.replace(/\/$/, "")}/${requestTarget.replace(/^\//, "")}`;
   const response = await fetch(target, {
     method: entry.method,
     headers,
