@@ -523,4 +523,41 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
     const after = await db.query("SELECT count(*)::int AS n FROM delivery_idempotency_keys");
     expect(after.rows[0].n).toBe(1);
   });
+
+  it("رفيقُ ترجعِ 0009 يرفضُ صراحةً إن وُجِدَ صفٌّ في assigned — لا مِحرقةَ بياناتٍ (§4.29)", async () => {
+    // القاعدةُ الآنَ على الترقيةِ الكاملةِ (12 حالةً). نُحاكي عالمًا فيهِ طلبٌ حيٌّ
+    // في `assigned` — فالترجعُ يَجِبُ أن يرفضَ لا أن يعيدَ تصنيفَ الصفِّ الحيِّ ليَمرَّ
+    // القيدَ الأحدَ عشريَّ.
+    const last = upgrades[upgrades.length - 1];
+    await db.query(`UPDATE store_orders SET fulfillment_state = 'assigned' WHERE public_id = 'WS-0000000034'`);
+    await expect(applySqlFile(db, last.down)).rejects.toThrow(/CLM-0689 rollback refused/u);
+    // والرفضُ تركَ كلَّ شيءٍ كما كانَ: القيدُ لا يزالُ اثنيَ عشريّاً والصفُّ في مكانهِ.
+    const check = await db.query<{ check_clause: string }>(
+      `SELECT check_clause FROM information_schema.table_constraints tc
+         JOIN information_schema.check_constraints cc ON cc.constraint_name = tc.constraint_name
+        WHERE tc.table_name = 'store_orders' AND tc.constraint_name = 'store_orders_fulfillment_state_check'`,
+    );
+    expect(check.rows[0]!.check_clause).toContain("assigned");
+    const row = await db.query<{ fulfillment_state: string }>(
+      `SELECT fulfillment_state FROM store_orders WHERE public_id = 'WS-0000000034'`,
+    );
+    expect(row.rows[0]!.fulfillment_state).toBe("assigned");
+    // وبعدَ رفعِ المانعِ: الترجعُ يمرُّ ويعيدُ القيدَ إلى أحدَ عشرةَ، ثمّ نُعيدُ
+    // الترقيةَ فتَعودُ القاعدةُ كما كانتْ — الاختبارُ يُغلِقُ على ما فَتحَ.
+    await db.query(`UPDATE store_orders SET fulfillment_state = 'placed' WHERE public_id = 'WS-0000000034'`);
+    await applySqlFile(db, last.down);
+    const afterDown = await db.query<{ check_clause: string }>(
+      `SELECT check_clause FROM information_schema.table_constraints tc
+         JOIN information_schema.check_constraints cc ON cc.constraint_name = tc.constraint_name
+        WHERE tc.table_name = 'store_orders' AND tc.constraint_name = 'store_orders_fulfillment_state_check'`,
+    );
+    expect(afterDown.rows[0]!.check_clause).not.toContain("assigned");
+    await applySqlFile(db, last.up);
+    const afterUp = await db.query<{ check_clause: string }>(
+      `SELECT check_clause FROM information_schema.table_constraints tc
+         JOIN information_schema.check_constraints cc ON cc.constraint_name = tc.constraint_name
+        WHERE tc.table_name = 'store_orders' AND tc.constraint_name = 'store_orders_fulfillment_state_check'`,
+    );
+    expect(afterUp.rows[0]!.check_clause).toContain("assigned");
+  });
 });

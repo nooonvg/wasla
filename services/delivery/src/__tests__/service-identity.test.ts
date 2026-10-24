@@ -305,6 +305,25 @@ describe("حد التوصيل — الأفعال الأربعة الخطيرة �
     await app.close();
   });
 
+  it("رمز قراءةٍ لا يُلغي من assigned عبرَ مسارِ الانتقالِ العامِّ (§4.29) → 403؛ فسياسةُ العميلِ لا تُتجاوزُ برمزٍ ناقصٍ", async () => {
+    // البوّابةُ: «استقبالُ إلغاءِ CORE المؤكَّدِ ليسَ منحًا للعميلِ أمرَ الإلغاءِ» —
+    // وحدُّ التوصيلِ أصلاً لا يعرفُ العميلَ (لا مُصادقةَ داخلةً · §4.18): لا دخولَ
+    // إلا برمزِ خدمةٍ موقَّعٍ، ولا انتقالَ إلا بصلاحيّةِ `fulfillment:transition`.
+    // هذا يثبِتُ أنَّ الوسيلةَ الوحيدةَ لقطعِ طلبٍ منَ `assigned` هيَ مسارُ الإلغاءِ
+    // المخصَّصُ (بقرارِهِ وصلاحيّتِهِ) أو إسقاطُ CORE (بصلاحيّةِ الخدمةِ).
+    const { app, rawInject, keys } = harnessApp();
+    const path = `${ORDERS}/${ORDER}/fulfillment-transition`;
+    const response = await rawInject({
+      method: "POST",
+      url: path,
+      headers: { ...idempotency(), ...signFor("POST", path, { keys, scopes: read }) },
+      payload: { to_state: "cancelled", from_state: "assigned" },
+    });
+    expect(response.statusCode).toBe(403);
+    expect(response.json().error_code).toBe(FORBIDDEN);
+    await app.close();
+  });
+
   it("صلاحية إلغاءٍ لا تفتح مرآة الدفع — صلاحية لكل خطرٍ لا صلاحية للحدّ", async () => {
     const { app, rawInject, keys } = harnessApp();
     const path = `${ORDERS}/${ORDER}/payment-mirror`;

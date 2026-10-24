@@ -487,6 +487,49 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     );
     expect(cancelled.kind).toBe("applied");
     expect(cancelled.kind === "applied" && cancelled.order.fulfillmentState).toBe("cancelled");
+    // §4.29 (قياسٌ لا افتراضٌ): مسارُ إلغاءِ CORE عبرَ الإسقاطِ لا يُفرِجُ الحجزَ المحليَّ —
+    // سلوكٌ **قائمٌ قبلَ هذهِ الرقعةِ** لكلِّ حالاتِ الإلغاءِ المقبولةِ (placed/confirmed/
+    // ready_for_delivery): الإفراجُ المحليُّ مسؤوليّةُ مسارِ إلغاءِ MARKET نفسِهِ
+    // (cancelStoreOrder · يُفرِجُ قبلَ صدى CORE)، وإلغاءُ CORE الصادرُ بلا مسارٍ محليٍّ
+    // سابقٍ يتركُ الحجزَ `reserved` — فجوةٌ معلَنةٌ تُسوّى معَ سلكِ XR-4.3/4.4 لا تُخفى هنا.
+    const afterCancel = await store.getOrderByPublicId(order.publicId);
+    expect(afterCancel?.inventoryState).toBe("reserved");
+  });
+
+  it("إيصالٌ تاريخيٌّ بمعنى الرقعةِ القديمةِ: dispatched طُبِّق قديمًا إلى handed_to_courier — إعادةُ إرسالِهِ بعدَ الرقعةِ duplicate بلا تراجعٍ (§4.29)", async () => {
+    // محاكاةُ عالمٍ ما قبلَ الرقعةِ: الانتقالُ وقعَ بالمعنىِ القديمِ (handed_to_courier)
+    // وسُجِّلَ إيصالُهُ في الصندوقِ كما كانَ يسجّلُهُ المسارُ القديمُ (applied نهائيًّا).
+    // بعدَ الرقعةِ، إعادةُ إرسالِ الحدثِ نفسِهِ لا تعيدُ تصنيفَ الطلبِ ولا تُتراجِعُ
+    // ولا تعيدُ تطبيقَ الإسنادِ: الإيصالُ يُجيبُ duplicate — لا سجلَّ يُعادُ كتابتُهُ.
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const legacy = await fulfillmentTransition(
+      { readPort: store, writePort: store, ...ids() },
+      order.publicId,
+      "handed_to_courier",
+      null,
+      "old-world-correlation",
+    );
+    expect(legacy.kind).toBe("applied");
+    const oldEventId = crypto.randomUUID();
+    await inbox.recordTerminal({
+      eventId: oldEventId,
+      eventType: "core.fulfillment.dispatched",
+      orderReference: order.publicId,
+      consumedStatus: "applied",
+      lastError: null,
+    });
+    // إعادةُ الإرسالِ بعدَ الرقعةِ: الإيصالُ التاريخيُّ حاسمٌ قبلَ أيِّ إسقاطٍ جديدٍ.
+    const replay = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(oldEventId, "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-old-world",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    expect(replay.kind).toBe("duplicate");
+    const still = await store.getOrderByPublicId(order.publicId);
+    expect(still?.fulfillmentState).toBe("handed_to_courier");
   });
 
   it("المسارُ المحليُّ القديمُ لا يتغيّرُ: ready_for_delivery → handed_to_courier (COURIER_ACCEPTED) ما زالت حافّةً تعملُ، وdispatched عليها = out_of_order مسمّى", async () => {
