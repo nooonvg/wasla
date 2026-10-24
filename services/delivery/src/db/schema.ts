@@ -118,7 +118,7 @@ export const storeOrders = pgTable(
     check("store_orders_store_slug_check", sql`${table.storeSlug} ~ '^[a-z][a-z0-9-]{2,47}$'`),
     check(
       "store_orders_fulfillment_state_check",
-      sql`${table.fulfillmentState} IN ('draft','placed','confirmed','picking','picked','ready_for_delivery','handed_to_courier','delivered','cancelled','rejected','failed')`,
+      sql`${table.fulfillmentState} IN ('draft','placed','confirmed','picking','picked','ready_for_delivery','assigned','handed_to_courier','delivered','cancelled','rejected','failed')`,
     ),
     check(
       "store_orders_payment_state_check",

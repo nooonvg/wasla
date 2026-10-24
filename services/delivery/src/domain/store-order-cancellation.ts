@@ -7,6 +7,18 @@
  * reachable from where this order and its task stand?" — by ASKING THE
  * TABLES (`state-machine.ts`), never by re-listing states in a condition.
  *
+ * ## Customer policy vs the graph (§4.29)
+ *
+ * The graph edge `assigned → cancelled` exists for the CORE projection: CORE
+ * closes a fulfillment by cancellation from any open status (dispatched
+ * included), and MARKET must apply that decision. But RECEIVING CORE's
+ * confirmed cancellation is NOT granting the customer the right to issue a
+ * cancel command from `assigned` — the customer's last point ("آخرُ نقطةٍ
+ * يملكُ فيها العميلُ قرارَهُ") is `ready_for_delivery`, unchanged. So this
+ * decision applies an explicit CUSTOMER_CANCELLABLE_FROM list (the §3.1
+ * customer edges) BEFORE the generic graph reachability: the edge serves
+ * the projection, the policy serves the command.
+ *
  * ## Two aggregates, two tables, one command
  *
  * The order's fulfillment edge (§3.1) and the task's edge (§3.3) are
@@ -36,7 +48,7 @@
  * that distinction into a message string.
  */
 
-import type { StoreOrderCancelReasonCode } from "@wasla/contracts-delivery";
+import type { FulfillmentState, StoreOrderCancelReasonCode } from "@wasla/contracts-delivery";
 
 import { DeliveryError } from "./errors.js";
 import type { DeliveryTask, StoreOrder } from "./model.js";
@@ -57,6 +69,19 @@ export interface CancellationDecision {
 }
 
 /**
+/**
+ * الحالاتُ التي يملكُ فيها **العميلُ** إلغاءَ طلبِهِ — حوافُ العميلِ في §3.1
+ * («آخرُ نقطةٍ يملكُ فيها العميلُ قرارَهُ»). غيرُ قائمةِ الإسقاطِ: حافةُ
+ * `assigned → cancelled` تخدمُ إغلاقَ CORE (§4.29) ولا تُوسِّعُ حقَّ العميلِ.
+ */
+const CUSTOMER_CANCELLABLE_FROM: readonly FulfillmentState[] = [
+  "draft",
+  "placed",
+  "confirmed",
+  "ready_for_delivery",
+];
+
+/**
  * Decide a cancellation. Throws `DELIVERY_CANCEL_NOT_ALLOWED` when §3.1 has
  * no edge from the order's current fulfillment state — including the
  * already-`cancelled` case, where `to === from` is not a transition at all
@@ -67,6 +92,16 @@ export function decideCancellation(
   task: DeliveryTask | null,
   reasonCode: StoreOrderCancelReasonCode,
 ): CancellationDecision {
+  // §4.29: سياسةُ العميلِ أولًا — «آخرُ نقطةٍ يملكُ فيها العميلُ قرارَهُ» —
+  // ثم عمومُ الرسمِ. حافةُ `assigned → cancelled` موجودةٌ للإسقاطِ (إغلاقُ CORE)؛
+  // استقبالُ قرارِها ليسَ منحًا للعميلِ أمرَ الإلغاءِ.
+  if (!CUSTOMER_CANCELLABLE_FROM.includes(order.fulfillmentState)) {
+    throw new DeliveryError(
+      "DELIVERY_CANCEL_NOT_ALLOWED",
+      `الإلغاءُ غيرُ مسموحٍ من ${order.fulfillmentState} — آخرُ نقطةٍ يملكُ فيها العميلُ قرارَهُ هيَ ready_for_delivery (§4.29)`,
+      { details: { from: order.fulfillmentState, to: "cancelled" } },
+    );
+  }
   if (!isFulfillmentTransitionAllowed(order.fulfillmentState, "cancelled")) {
     throw new DeliveryError(
       "DELIVERY_CANCEL_NOT_ALLOWED",

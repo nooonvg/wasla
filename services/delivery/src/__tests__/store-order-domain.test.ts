@@ -143,8 +143,10 @@ describe("cancellation decision — the published tables decide", () => {
     }
   });
 
-  it("refuses cancellation from picking, picked, handed_to_courier and delivered", () => {
-    for (const state of ["picking", "picked", "handed_to_courier", "delivered"] as const) {
+  it("refuses cancellation from picking, picked, assigned, handed_to_courier and delivered", () => {
+    // `assigned` مرفوضةٌ أيضًا (§4.29): سياسةُ إلغاءِ العميلِ لم تتغيّرْ — استقبالُ
+    // إلغاءِ CORE المؤكَّدِ (الإسقاطُ) غيرُ منحِ العميلِ أمرَ الإلغاءِ.
+    for (const state of ["picking", "picked", "assigned", "handed_to_courier", "delivered"] as const) {
       try {
         decideCancellation(fixedOrder({ fulfillmentState: state }), fixedTask(), "CUSTOMER_CHANGED_MIND");
         expect.unreachable(`cancellation from ${state} must be refused`);

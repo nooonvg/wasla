@@ -27,7 +27,12 @@ export interface FulfillmentTransitionDecision {
   readonly fromFulfillmentState: FulfillmentState;
   readonly toFulfillmentState: FulfillmentState;
   readonly reasonCode: FulfillmentReasonCode;
-  /** true when this edge consumes inventory (handed_to_courier → delivered). */
+  /**
+   * true when this edge consumes inventory — every edge into `delivered`
+   * (§4.29: the graph only allows it from the live courier states `assigned`
+   * and `handed_to_courier`; the proof gate and the `reserved` precondition
+   * apply unchanged).
+   */
   readonly consumesInventory: boolean;
 }
 
@@ -36,6 +41,10 @@ const REASON_CODES: Record<string, FulfillmentReasonCode> = {
   "picking→picked": "PICKING_COMPLETED",
   "picked→ready_for_delivery": "READY_FOR_HANDOVER",
   "ready_for_delivery→handed_to_courier": "COURIER_ACCEPTED",
+  "ready_for_delivery→assigned": "MOVE_JOB_ACCEPTED",
+  "assigned→delivered": "DELIVERED_WITH_PROOF",
+  "assigned→failed": "DELIVERY_ATTEMPTS_EXHAUSTED",
+  "assigned→cancelled": "CORE_FULFILLMENT_CANCELLED",
   "handed_to_courier→delivered": "DELIVERED_WITH_PROOF",
 };
 
@@ -65,7 +74,9 @@ export function decideFulfillmentTransition(
   const key = `${from}→${toState}`;
   const reasonCode = REASON_CODES[key] ?? "FULFILLMENT_TRANSITION";
 
-  const consumesInventory = from === "handed_to_courier" && toState === "delivered";
+  // §4.29: generalized to the destination — the graph only allows `delivered`
+  // from the live courier states (`assigned` | `handed_to_courier`).
+  const consumesInventory = toState === "delivered";
 
   return {
     fromFulfillmentState: from,

@@ -428,13 +428,37 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
   });
 
   it("الترجعُ طريقُ خروجٍ لا مِحرقةُ بياناتٍ: الصفوفُ تنجو بعدَ التراجعِ خطوةً", async () => {
-    // آخرُ ثلاثةِ ترحيلاتٍ (0008 ثمّ 0007 ثمّ 0006): التراجعُ يُختبرُ خطوةً
-    // خطوةً لا قفزةً — فكلُّ down.sql يعرفُ حدَّهُ وحدَهُ.
+    // آخرُ أربعِ ترحيلاتٍ (0009 ثمّ 0008 ثمّ 0007 ثمّ 0006): التراجعُ يُختبرُ
+    // خطوةً خطوةً لا قفزةً — فكلُّ down.sql يعرفُ حدَّهُ وحدَهُ.
     const last = upgrades[upgrades.length - 1];
     const beforeLast = upgrades[upgrades.length - 2];
     const beforeBeforeLast = upgrades[upgrades.length - 3];
+    const beforeBeforeBeforeLast = upgrades[upgrades.length - 4];
     await applySqlFile(db, last.down);
 
+    // 0009 (§4.29 · CLM-0689): تراجعُهُ يُعيدُ قيدَ الحالةِ إلى أحدَ عشرةَ حالةً
+    // ولا يمسُّ جداولَ أخرى — الصادرُ وصندوقُ الإغلاقِ (ملكُ 0008/0007) كما هما،
+    // ولا صفًّ يُعادُ تصنيفُهُ: الترحيلُ يُوسِّعُ القيدَ فقط.
+    const checkClauses = async (): Promise<string> =>
+      (
+        await db.query<{ check_clause: string }>(
+          `SELECT check_clause FROM information_schema.table_constraints tc
+             JOIN information_schema.check_constraints cc ON cc.constraint_name = tc.constraint_name
+            WHERE tc.table_name = 'store_orders' AND tc.constraint_name = 'store_orders_fulfillment_state_check'`,
+        )
+      ).rows[0]!.check_clause;
+    const egressStillThere = await db.query(
+      `SELECT 1 FROM information_schema.tables WHERE table_name = 'core_egress_outbox'`,
+    );
+    expect(egressStillThere.rowCount).toBe(1);
+    expect((await checkClauses()).includes("assigned")).toBe(false);
+    // وإعادةُ 0009 فوقَ القاعدةِ المأهولةِ تمرُّ — ثمّ نُرجِعُهُ لنكملَ سلسلةَ التراجعِ.
+    await applySqlFile(db, last.up);
+    expect((await checkClauses()).includes("assigned")).toBe(true);
+    await applySqlFile(db, last.down);
+    expect((await checkClauses()).includes("assigned")).toBe(false);
+
+    await applySqlFile(db, beforeLast.down);
     // 0008 (XR-3.4): تراجعُهُ يحذفُ صادرَ CORE وجدولَ الحجزِ وحدَهُما —
     // وصندوقُ إغلاقِ التنفيذِ (ملكُ 0007) يبقى بعدَهُ.
     const egressTable = await db.query(
@@ -471,7 +495,7 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
 
     // 0007 (XR-3.5): تراجعُهُ يحذفُ صندوقَ إغلاقِ التنفيذِ وحدَهُ —
     // وcommit_sequence (ملكُ 0006) يبقى بعدَهُ: لكلِّ down.sql حدُّهُ.
-    await applySqlFile(db, beforeLast.down);
+    await applySqlFile(db, beforeBeforeLast.down);
     const inboxTable = await db.query(
       `SELECT 1 FROM information_schema.tables WHERE table_name = 'core_fulfillment_inbox'`,
     );
@@ -484,14 +508,15 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
     // RISK-0012: the rollback of 0006 removes the column and keeps the outbox rows.
     const outboxAfter = await db.query(`SELECT count(*)::int AS n FROM delivery_outbox`);
     expect(outboxAfter.rows[0].n).toBe(2);
-    await applySqlFile(db, beforeBeforeLast.down);
+    await applySqlFile(db, beforeBeforeBeforeLast.down);
     const seqCol = await db.query(
       `SELECT 1 FROM information_schema.columns WHERE table_name = 'delivery_outbox' AND column_name = 'commit_sequence'`,
     );
     expect(seqCol.rowCount).toBe(0);
 
     // وإعادةُ التطبيقِ بعدَ التراجعِ تمرُّ أيضاً على القاعدةِ المأهولةِ —
-    // بالترتيبِ (0006 ثمّ 0007 ثمّ 0008) لا بالقفزِ.
+    // بالترتيبِ (0006 ثمّ 0007 ثمّ 0008 ثمّ 0009) لا بالقفزِ.
+    await applySqlFile(db, beforeBeforeBeforeLast.up);
     await applySqlFile(db, beforeBeforeLast.up);
     await applySqlFile(db, beforeLast.up);
     await applySqlFile(db, last.up);

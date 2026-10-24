@@ -846,7 +846,8 @@ export function buildDeliveryHttpApp(deps: DeliveryHttpDeps): DeliveryHttpApp {
 
   // ── Fulfillment transition (review 11/N, ADR-026 §4.13) ────────────
   // One route for the remaining fulfillment edges:
-  // confirmed → picking → picked → ready_for_delivery → handed_to_courier → delivered
+  // confirmed → picking → picked → ready_for_delivery → (assigned | handed_to_courier) → delivered
+  // (§4.29: `assigned` proves MOVE accepted the task — assignment, not physical handover)
   // `delivered` requires proof of delivery (§2.4) and triggers inventory
   // `reserved → consumed` in the same transaction (no marketplace call).
   app.post("/store-orders/:orderPublicId/fulfillment-transition", { config: scoped(DELIVERY_SCOPES.fulfillmentTransition) }, async (request, reply) => {

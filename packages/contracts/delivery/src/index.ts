@@ -60,6 +60,7 @@ export const FULFILLMENT_STATES = [
   "picking",
   "picked",
   "ready_for_delivery",
+  "assigned",
   "handed_to_courier",
   "delivered",
   "cancelled",

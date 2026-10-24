@@ -261,7 +261,7 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
     });
   });
 
-  it("dispatched ينتقلُ إلى handed_to_courier من ready_for_delivery فقط", () => {
+  it("dispatched يُثبِتُ الإسنادَ لا الاستلامَ: ينتقلُ إلى assigned من ready_for_delivery فقط (D-XR-31 · §4.29)", () => {
     const event = classifyCoreFulfillmentEvent(
       envelope("core.fulfillment.dispatched", {
         ...basePayload(),
@@ -271,7 +271,7 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
     );
     expect(projectCoreFulfillmentEvent(event, "ready_for_delivery")).toEqual({
       kind: "transition",
-      to: "handed_to_courier",
+      to: "assigned",
       requiresProof: false,
     });
     // الحافةُ موجودةٌ فعلًا في آلةِ الحالةِ — لا حافّةَ جديدةً للتكاملِ.
@@ -279,13 +279,29 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
       FULFILLMENT_TRANSITIONS.some(
         (t) =>
           t.from === "ready_for_delivery" &&
-          t.to === "handed_to_courier",
+          t.to === "assigned",
       ),
     ).toBe(true);
     expect(projectCoreFulfillmentEvent(event, "placed").kind).toBe("out_of_order");
   });
 
-  it("completed بالتسليمِ ينتقلُ إلى delivered من handed_to_courier فقط، وبإثباتٍ", () => {
+  it("الإسنادُ لا يُنتجُ handed_to_courier أبدًا: dispatched على طلبٍ في handed_to_courier = out_of_order لا تراجعَ ولا تقدّمَ (§4.29)", () => {
+    const event = classifyCoreFulfillmentEvent(
+      envelope("core.fulfillment.dispatched", {
+        ...basePayload(),
+        job_reference: "move-job-1",
+        dispatched_at: "2026-10-22T08:10:00.000Z",
+      }),
+    );
+    // طلبٌ في handed_to_courier (المسارُ المحليُّ القديمُ أو بياناتٌ سابقةٌ
+    // للرقعةِ): الحدثُ لا يُنقلُهُ ولا يُتراجِعُ بهِ — مسمّىً لا صامتًا.
+    expect(projectCoreFulfillmentEvent(event, "handed_to_courier")).toMatchObject({
+      kind: "out_of_order",
+      to: "assigned",
+    });
+  });
+
+  it("completed بالتسليمِ ينتقلُ إلى delivered من assigned أو handed_to_courier، وبإثباتٍ", () => {
     const event = classifyCoreFulfillmentEvent(
       envelope("core.fulfillment.completed", {
         ...basePayload(),
@@ -301,10 +317,15 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
       to: "delivered",
       requiresProof: true,
     });
+    expect(projectCoreFulfillmentEvent(event, "assigned")).toEqual({
+      kind: "transition",
+      to: "delivered",
+      requiresProof: true,
+    });
     expect(projectCoreFulfillmentEvent(event, "ready_for_delivery").kind).toBe("out_of_order");
   });
 
-  it("completed بالفشلِ ينتقلُ إلى failed من handed_to_courier فقط", () => {
+  it("completed بالفشلِ ينتقلُ إلى failed من assigned أو handed_to_courier", () => {
     const event = classifyCoreFulfillmentEvent(
       envelope("core.fulfillment.completed", {
         ...basePayload(),
@@ -316,6 +337,11 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
       }),
     );
     expect(projectCoreFulfillmentEvent(event, "handed_to_courier")).toEqual({
+      kind: "transition",
+      to: "failed",
+      requiresProof: false,
+    });
+    expect(projectCoreFulfillmentEvent(event, "assigned")).toEqual({
       kind: "transition",
       to: "failed",
       requiresProof: false,
@@ -334,7 +360,7 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
         financial_decision_required: false,
       }),
     );
-    for (const from of ["placed", "confirmed", "ready_for_delivery"] as const) {
+    for (const from of ["placed", "confirmed", "ready_for_delivery", "assigned"] as const) {
       expect(projectCoreFulfillmentEvent(event, from)).toEqual({
         kind: "transition",
         to: "cancelled",
@@ -342,6 +368,8 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
       });
     }
     // «آخرُ نقطةٍ يملكُ فيها العميلُ قرارَهُ» — فما بعدَها خارجُ الترتيبِ مسمّى.
+    // `assigned` مضافةٌ (§4.29): CORE يُغلقُ بالإلغاءِ من كافّةِ الحالاتِ المفتوحةِ
+    // (dispatched منها) — استقبالُ قرارِهِ ليسَ منحًا للعميلِ صلاحيّةَ الإلغاءِ.
     for (const from of ["picking", "picked", "handed_to_courier"] as const) {
       expect(projectCoreFulfillmentEvent(event, from).kind).toBe("out_of_order");
     }
@@ -369,9 +397,9 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
 describe("بوّابةُ الإثباتِ", () => {
   it("delivered بلا إثباتٍ غيرُ مُرضىٍ — وغيرُهُ مُرضىٍ بلا إثباتٍ", () => {
     const delivered = { kind: "transition", to: "delivered", requiresProof: true } as const;
-    const handedOver = { kind: "transition", to: "handed_to_courier", requiresProof: false } as const;
+    const assigned = { kind: "transition", to: "assigned", requiresProof: false } as const;
     expect(proofSatisfied(delivered, false)).toBe(false);
     expect(proofSatisfied(delivered, true)).toBe(true);
-    expect(proofSatisfied(handedOver, false)).toBe(true);
+    expect(proofSatisfied(assigned, false)).toBe(true);
   });
 });

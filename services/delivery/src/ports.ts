@@ -550,8 +550,9 @@ export interface FulfillmentTransitionWrite {
   readonly traceId: string | null;
   readonly idempotency?: IdempotencyIntent;
   /**
-   * When the transition is `handed_to_courier → delivered`, the inventory
-   * consume is written in the SAME transaction: `reserved → consumed` + the
+   * When the transition goes into `delivered` (from `assigned` or
+   * `handed_to_courier` — §4.29), the inventory consume is written in the
+   * SAME transaction: `reserved → consumed` + the
    * `store_order.inventory_consumed` outbox event + the reservations ledger
    * update. Null for all other transitions (no inventory side-effect).
    */

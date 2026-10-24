@@ -91,6 +91,7 @@
         "picking",
         "picked",
         "ready_for_delivery",
+        "assigned",
         "handed_to_courier",
         "delivered",
         "cancelled",
@@ -159,7 +160,9 @@
         "PICKING_STARTED",
         "PICKING_COMPLETED",
         "READY_FOR_HANDOVER",
+        "MOVE_JOB_ACCEPTED",
         "COURIER_ACCEPTED",
+        "CORE_FULFILLMENT_CANCELLED",
         "DELIVERED_WITH_PROOF",
         "DELIVERY_ATTEMPTS_EXHAUSTED",
         "SUBSTITUTION_APPLIED"

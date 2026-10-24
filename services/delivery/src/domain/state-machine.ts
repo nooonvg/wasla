@@ -54,7 +54,7 @@ export interface FulfillmentTransitionRule {
 }
 
 /**
- * The 14 allowed fulfillment transitions (ADR-026 §3.1: 11 states).
+ * The 18 allowed fulfillment transitions (ADR-026 §3.1: 12 states).
  * Grouped by source state, in ADR order.
  */
 export const FULFILLMENT_TRANSITIONS: readonly FulfillmentTransitionRule[] = [
@@ -78,11 +78,24 @@ export const FULFILLMENT_TRANSITIONS: readonly FulfillmentTransitionRule[] = [
   // picked (1)
   { from: "picked", to: "ready_for_delivery", expectedActor: "store", typicalReason: "READY_FOR_HANDOVER" },
 
-  // ready_for_delivery (2) — the last point a customer may cancel.
+  // ready_for_delivery (3) — the last point a customer may cancel.
+  // The legacy local edge keeps COURIER_ACCEPTED (its historical, ambiguous
+  // semantics — §4.29); the CORE projection's dispatched event now lands on
+  // `assigned` instead: it proves MOVE accepted the task, not physical
+  // handover (D-XR-31 · ADR-026 §4.29).
   { from: "ready_for_delivery", to: "handed_to_courier", expectedActor: "system", typicalReason: "COURIER_ACCEPTED" },
+  { from: "ready_for_delivery", to: "assigned", expectedActor: "system", typicalReason: "MOVE_JOB_ACCEPTED" },
   { from: "ready_for_delivery", to: "cancelled", expectedActor: "customer", typicalReason: "CUSTOMER_CHANGED_MIND" },
 
-  // handed_to_courier (2) — delivered REQUIRES proof (§2.4).
+  // assigned (3) — MOVE accepted the task (assignment, NOT physical pickup —
+  // §4.29). delivered REQUIRES proof (§2.4); cancelled because CORE can close
+  // a fulfillment by cancellation from any open status (dispatched included).
+  { from: "assigned", to: "delivered", expectedActor: "courier", typicalReason: "DELIVERED_WITH_PROOF" },
+  { from: "assigned", to: "failed", expectedActor: "system", typicalReason: "DELIVERY_ATTEMPTS_EXHAUSTED" },
+  { from: "assigned", to: "cancelled", expectedActor: "system", typicalReason: "CORE_FULFILLMENT_CANCELLED" },
+
+  // handed_to_courier (2) — delivered REQUIRES proof (§2.4). Legacy/local
+  // states: no CORE event produces this state anymore (§4.29).
   { from: "handed_to_courier", to: "delivered", expectedActor: "courier", typicalReason: "DELIVERED_WITH_PROOF" },
   { from: "handed_to_courier", to: "failed", expectedActor: "system", typicalReason: "DELIVERY_ATTEMPTS_EXHAUSTED" },
 ];

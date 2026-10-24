@@ -134,7 +134,7 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     transition: { readPort: store, writePort: store, ...ids() },
   });
 
-  it("الرحلةُ كاملةً: dispatched ← handed_to_courier ثم completed بالتسليمِ والإثباتِ ← delivered", async () => {
+  it("الرحلةُ كاملةً: dispatched ← assigned (إسنادٌ لا استلامٌ) ثم completed بالتسليمِ والإثباتِ ← delivered", async () => {
     const order = await walkToReadyForDelivery(await placedOrder());
 
     const dispatched = await consumeCoreFulfillmentEvent(
@@ -146,7 +146,7 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
       }),
     );
     expect(dispatched.kind).toBe("applied");
-    expect(dispatched.kind === "applied" && dispatched.order.fulfillmentState).toBe("handed_to_courier");
+    expect(dispatched.kind === "applied" && dispatched.order.fulfillmentState).toBe("assigned");
 
     const delivered = await consumeCoreFulfillmentEvent(
       consumeDeps(),
@@ -193,7 +193,7 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     expect(again.kind).toBe("duplicate");
     // ولا انتقالَ ثانيًا: الحالةُ كما هيَ والصندوقُ صفٌّ واحدٌ.
     const still = await store.getOrderByPublicId(order.publicId);
-    expect(still?.fulfillmentState).toBe("handed_to_courier");
+    expect(still?.fulfillmentState).toBe("assigned");
     const count = await pool.query(`SELECT count(*)::int AS n FROM core_fulfillment_inbox`);
     expect(count.rows[0]["n"]).toBe(1);
   });
@@ -222,7 +222,7 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     );
     expect(noProof.kind).toBe("proof_missing");
     const still = await store.getOrderByPublicId(order.publicId);
-    expect(still?.fulfillmentState).toBe("handed_to_courier");
+    expect(still?.fulfillmentState).toBe("assigned");
   });
 
   it("خارجُ الترتيبِ مسمّى: dispatched على طلبٍ لم يبلغِ الجاهزيّةَ = out_of_order لا قفزَ فوقَ الآلةِ", async () => {
@@ -238,7 +238,7 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     expect(result).toMatchObject({
       kind: "out_of_order",
       from: "placed",
-      to: "handed_to_courier",
+      to: "assigned",
     });
     const still = await store.getOrderByPublicId(order.publicId);
     expect(still?.fulfillmentState).toBe("placed");
@@ -411,6 +411,108 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
       [eventId],
     );
     expect(row.rows[0]).toMatchObject({ consumed_status: "applied" });
+  });
+
+  it("الخصمُ النهائيُّ مرةً واحدةً: delivered من assigned بالإثباتِ يستهلِكُ المخزونَ، وإعادةُ الإرسالِ لا تُكرِّرُ (§4.29)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    // قبلَ الإسنادِ: المخزونُ محجوزٌ لا مُستهلَك.
+    const reserved = await store.getOrderByPublicId(order.publicId);
+    expect(reserved?.inventoryState).toBe("reserved");
+    await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(crypto.randomUUID(), "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-1",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    const completionId = crypto.randomUUID();
+    const delivered = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(completionId, "core.fulfillment.completed", {
+        ...basePayload(order.publicId),
+        outcome: "completed",
+        completed_at: "2026-10-22T10:40:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+      PROOF,
+    );
+    expect(delivered.kind).toBe("applied");
+    expect(delivered.kind === "applied" && delivered.order.fulfillmentState).toBe("delivered");
+    // الخصمُ النهائيُّ وقعَ في الإغلاقِ نفسِهِ (الوجهةُ delivered — §4.29).
+    const consumed = await store.getOrderByPublicId(order.publicId);
+    expect(consumed?.inventoryState).toBe("consumed");
+    // وإعادةُ إرسالِ الإغلاقِ لا تُكرِّرُ الخصمَ: الإيصالُ يُجيبُ duplicate.
+    const replay = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(completionId, "core.fulfillment.completed", {
+        ...basePayload(order.publicId),
+        outcome: "completed",
+        completed_at: "2026-10-22T10:40:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+      PROOF,
+    );
+    expect(replay.kind).toBe("duplicate");
+    const still = await store.getOrderByPublicId(order.publicId);
+    expect(still?.fulfillmentState).toBe("delivered");
+    expect(still?.inventoryState).toBe("consumed");
+  });
+
+  it("الإلغاءُ بعدَ الإسنادِ: core.fulfillment.cancelled على طلبٍ في assigned يُطبَّقُ (CORE يُغلقُ من dispatched)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const dispatched = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(crypto.randomUUID(), "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-1",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    expect(dispatched.kind).toBe("applied");
+    const cancelled = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(crypto.randomUUID(), "core.fulfillment.cancelled", {
+        ...basePayload(order.publicId),
+        reason: "customer_changed_mind",
+        cancelled_at: "2026-10-22T10:20:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+    );
+    expect(cancelled.kind).toBe("applied");
+    expect(cancelled.kind === "applied" && cancelled.order.fulfillmentState).toBe("cancelled");
+  });
+
+  it("المسارُ المحليُّ القديمُ لا يتغيّرُ: ready_for_delivery → handed_to_courier (COURIER_ACCEPTED) ما زالت حافّةً تعملُ، وdispatched عليها = out_of_order مسمّى", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    // الحافّةُ المحليّةُ القديمةُ عبرَ مسارِ الانتقالِ الواحدِ (لا جسرًا للتكاملِ).
+    const legacy = await fulfillmentTransition(
+      { readPort: store, writePort: store, ...ids() },
+      order.publicId,
+      "handed_to_courier",
+      null,
+      "legacy-edge",
+    );
+    expect(legacy.kind).toBe("applied");
+    expect(legacy.kind === "applied" && legacy.order.fulfillmentState).toBe("handed_to_courier");
+    // وحدثُ الإسنادِ لا يُتراجِعُ بها ولا يُعيدُ تصنيفَها: مسمّىً لا صامتًا.
+    const dispatched = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(crypto.randomUUID(), "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-1",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    expect(dispatched).toMatchObject({ kind: "out_of_order", from: "handed_to_courier", to: "assigned" });
+    const still = await store.getOrderByPublicId(order.publicId);
+    expect(still?.fulfillmentState).toBe("handed_to_courier");
   });
 
   it("لا فقدَ: حدثٌ وصلَ قبلَ أوانِهِ يبقى حيًّا ثم ينطبقُ حينَ تبلغُ الحالةُ أوانَهُ", async () => {

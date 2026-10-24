@@ -180,6 +180,7 @@ export interface components {
       | "picking"
       | "picked"
       | "ready_for_delivery"
+      | "assigned"
       | "handed_to_courier"
       | "delivered"
       | "cancelled"

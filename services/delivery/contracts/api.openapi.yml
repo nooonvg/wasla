@@ -509,7 +509,7 @@ components:
         (المراجعةُ 8/N · §4.11).
     FulfillmentState:
       type: string
-      enum: [draft, placed, confirmed, picking, picked, ready_for_delivery, handed_to_courier, delivered, cancelled, rejected, failed]
+      enum: [draft, placed, confirmed, picking, picked, ready_for_delivery, assigned, handed_to_courier, delivered, cancelled, rejected, failed]
     PaymentState:
       type: string
       enum: [pending, authorized, captured, failed, refunding, partially_refunded, refunded]
