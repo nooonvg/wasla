@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-24T05:20:57Z",
+  "generated_at": "2026-10-24T06:00:24Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "db2bc86f8b59cc2d338d486774bde80c6b90bf5b",
-    "branch": "stage-zero/clm-0688-ecosystem-revisions-split",
+    "commit": "e9aa110931f9f4d682bd71c803eef7163e79b17e",
+    "branch": "stage-zero/clm-0689-assigned-state",
     "dirty": false,
     "dirty_files": 0,
     "dirty_reason": "",
-    "tracked_files": 3661
+    "tracked_files": 3664
   },
   "env": {
     "node": "v20.20.2",
