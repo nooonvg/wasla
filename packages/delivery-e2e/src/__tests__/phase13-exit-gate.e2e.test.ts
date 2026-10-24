@@ -690,6 +690,68 @@ describe.skipIf(!PG_ENABLED)("بوّابةُ خروج Phase 13 · السوقُ �
     expect(cancel.status).toBeLessThan(500);
   });
 
+  /*
+   * §4.29 (CLM-0689) — مسارُ الإسنادِ الجديدُ عبرَ HTTP: الحافةُ المحليّةُ القديمةُ
+   * (handed_to_courier) محفوظةٌ في الاختبارِ أعلاه كما وعدَ القرارُ، وهذا نظيرُها
+   * للمسارِ الذي يسلكُه إسقاطُ CORE (`dispatched` = إسنادٌ لا استلامٌ):
+   * assigned ثم delivered ببوّابةِ الإثباتِ، والخصمُ النهائيُّ في الصندوقِ
+   * في نفسِ المعاملةِ.
+   */
+  it("مسارُ الإسنادِ §4.29: confirmed → assigned → delivered عبرَ HTTP، والخصمُ النهائيُّ في الصندوق", async () => {
+    const productId = await publishProduct();
+    const order = await placeOrder(productId);
+    const publicId = order.public_id as string;
+
+    await callDelivery(gate, {
+      method: "PUT",
+      path: `/store-orders/${publicId}/payment-mirror`,
+      body: { payment_state: "authorized", reason_code: "AUTHORIZATION_SUCCEEDED", payment_ref: PAYMENT_REF },
+      idempotencyKey: nextKey("mirror-assigned"),
+    });
+    await callDelivery(gate, {
+      method: "POST",
+      path: `/store-orders/${publicId}/confirmation`,
+      idempotencyKey: nextKey("confirm-assigned"),
+    });
+
+    const transitions: { to: string; proof?: { proof_type: string; proof_ref: string } }[] = [
+      { to: "picking" },
+      { to: "picked" },
+      { to: "ready_for_delivery" },
+      { to: "assigned" },
+      { to: "delivered", proof: { proof_type: "otp", proof_ref: "OTP-GATE13-ASSIGNED-DELIVERED-001" } },
+    ];
+
+    for (const t of transitions) {
+      const body: Record<string, unknown> = { to_state: t.to };
+      if (t.proof) {
+        body.proof_type = t.proof.proof_type;
+        body.proof_ref = t.proof.proof_ref;
+      }
+      const res = await callDelivery(gate, {
+        method: "POST",
+        path: `/store-orders/${publicId}/fulfillment-transition`,
+        body,
+        idempotencyKey: nextKey(`ft-assigned-${t.to}`),
+      });
+      expect(res.status, res.text).toBe(200);
+    }
+
+    const read = await callDelivery(gate, {
+      method: "GET",
+      path: `/store-orders/${publicId}`,
+    });
+    expect(read.body.fulfillment_state).toBe("delivered");
+
+    // الخصمُ النهائيُّ وقعَ منَ المسارِ الجديدِ أيضًا (الوجهةُ delivered — §4.29).
+    const rows = await deliveryOutbox(gate.pool);
+    const consumed = rows.find((row) => row.event.event_type === "store_order.inventory_consumed");
+    expect(consumed, "لا حدثَ خصمٍ نهائيٍّ في الصندوقِ").toBeDefined();
+    const consumedPayload = consumed!.event.payload as Record<string, unknown>;
+    expect(consumedPayload.to_state).toBe("consumed");
+    expect(consumedPayload.reason_code).toBe("INVENTORY_CONSUMED");
+  });
+
   /**
    * فرضُ الهويّةِ **على السلكِ** (`M1-04` · الموجةُ السادسةُ · المراجعةُ 17/N).
    *
