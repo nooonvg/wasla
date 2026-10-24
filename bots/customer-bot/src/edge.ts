@@ -38,17 +38,29 @@ export interface CustomerBotEdgeOverrides extends BotRuntimeOverrides {
  * الإنتاجِ، وقائمةُ السماحِ الحاليةُ كلُّها `production_open=false` عمدًا
  * (CLM-0521). فالتركيبُ هنا يُسجِّلُ العقدَ لا الفتحَ.
  */
-export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
-  const app = buildBotApp(BOT, overrides);
-  const env = (overrides?.env ?? process.env) as Record<string, string | undefined>;
-  const identityUrl = overrides?.identityServiceUrl ?? env.IDENTITY_SERVICE_URL;
-  const coreUrl = overrides?.coreUrl ?? env.WASLA_CORE_URL;
-  const edgeEnabled =
-    overrides?.edgeEnabled ?? env.WASLA_EDGE_ENABLED === "true";
-  if (!edgeEnabled || !identityUrl) {
-    // معطَّلٌ افتراضيًّا — ولا مسارَ يُسجَّلُ أصلاً (fail-closed).
-    return app;
-  }
+/**
+ * منافذُ الجلسةِ الحقيقيةُ (إصدارٌ · استبدالٌ · سحبٌ) — نداءاتٌ موقَّعةٌ إلى
+ * identity. **مُصدَّرةٌ عمدًا:** التركيبُ يستعملُها، واختبارُ التركيبِ يبني
+ * حولَ `createChannelEdge` الحقيقيِّ مغلّفًا يمرِّرُها كما هي (لا نسخةً) مع
+ * قائمةِ سماحٍ ووجهةِ اختبارٍ معزولةٍ — فالثقةُ المقيسةُ هي منافذُ الإنتاجِ
+ * نفسُها لا محاكاةً لها.
+ */
+export function buildCustomerBotSessionPorts(options: {
+  readonly identityUrl: string;
+  readonly env: Record<string, string | undefined>;
+}): {
+  readonly sessionSigner: ReturnType<typeof createServiceRequestSigner>;
+  readonly issueSession: NonNullable<
+    Parameters<typeof createChannelEdge>[0]["issueSession"]
+  >;
+  readonly exchangeSession: NonNullable<
+    Parameters<typeof createChannelEdge>[0]["exchangeSession"]
+  >;
+  readonly revokeSession: NonNullable<
+    Parameters<typeof createChannelEdge>[0]["revokeSession"]
+  >;
+} {
+  const { identityUrl, env } = options;
   const keys = keyRegistryFromEnv({
     WASLA_SERVICE_AUTH_KEYS: env.WASLA_SERVICE_AUTH_KEYS,
     WASLA_SERVICE_AUTH_ACTIVE_KID: env.WASLA_SERVICE_AUTH_ACTIVE_KID,
@@ -61,24 +73,8 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
     keys,
     scopes: CHANNEL_SESSION_EDGE_SCOPES,
   });
-  /** موقّعٌ بدرجةِ صلاحيةِ حلِّ الهويةِ — لجسرِ الويبِ عندَ أولِ لقاءٍ. */
-  const resolveSigner = createServiceRequestSigner({
-    serviceName: "customer-bot",
-    audience: "identity",
-    keys,
-    scopes: CHANNEL_IDENTITY_SCOPES,
-  });
-
-  const edge = createChannelEdge({
-    surface: {
-      actorType: "customer",
-      botToken: env.CUSTOMER_BOT_TOKEN ?? "",
-      requestSigner: sessionSigner,
-      waslaPublicIdOf: async () => "",
-    },
-    // ── إصدارُ الجلسةِ: نداءٌ حقيقيٌّ إلى identity بنفسِ عقدِ initData. ──────
-    // (كانَ رفضًا ثابتًا في هذا التركيبِ — جسرُ الويبِ يحتاجُهُ فعلًا، فصارَ
-    // نداءً موقَّعًا حقيقيًّا بدرجةِ صلاحيةِ `identity:session:issue`.)
+  return {
+    sessionSigner,
     issueSession: async (body) => {
       const response = await fetch(`${identityUrl}/identity/sessions`, {
         method: "POST",
@@ -168,6 +164,53 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
         | null;
       return { revoked: payload?.revoked === true };
     },
+  };
+}
+
+/**
+ * تركيبُ الحدّ على تطبيقِ البوتِ القائمِ.
+ *
+ * **لا يُفعّلُ التركيبُ شيئًا حيًّا:** `WASLA_EDGE_ENABLED` غيرُ مضبوطٍ في
+ * الإنتاجِ، وقائمةُ السماحِ الحاليةُ كلّها `production_open=false` عمدًا
+ * (CLM-0521). فالتركيبُ هنا يُسجّلُ العقدَ لا الفتحَ.
+ */
+export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
+  const app = buildBotApp(BOT, overrides);
+  const env = (overrides?.env ?? process.env) as Record<string, string | undefined>;
+  const identityUrl = overrides?.identityServiceUrl ?? env.IDENTITY_SERVICE_URL;
+  const coreUrl = overrides?.coreUrl ?? env.WASLA_CORE_URL;
+  const edgeEnabled =
+    overrides?.edgeEnabled ?? env.WASLA_EDGE_ENABLED === "true";
+  if (!edgeEnabled || !identityUrl) {
+    // معطّلٌ افتراضيًّا — ولا مسارَ يُسجَّلُ أصلًا (fail-closed).
+    return app;
+  }
+  const ports = buildCustomerBotSessionPorts({ identityUrl, env });
+
+  /** موقّعٌ بدرجةِ صلاحيةِ حلِّ الهويةِ — لجسرِ الويبِ عندَ أولِ لقاءٍ. */
+  const resolveSigner = createServiceRequestSigner({
+    serviceName: "customer-bot",
+    audience: "identity",
+    keys: keyRegistryFromEnv({
+      WASLA_SERVICE_AUTH_KEYS: env.WASLA_SERVICE_AUTH_KEYS,
+      WASLA_SERVICE_AUTH_ACTIVE_KID: env.WASLA_SERVICE_AUTH_ACTIVE_KID,
+    }),
+    scopes: CHANNEL_IDENTITY_SCOPES,
+  });
+
+  const edge = createChannelEdge({
+    surface: {
+      actorType: "customer",
+      botToken: env.CUSTOMER_BOT_TOKEN ?? "",
+      requestSigner: ports.sessionSigner,
+      waslaPublicIdOf: async () => "",
+    },
+    // ── إصدارُ الجلسةِ: نداءٌ حقيقيٌّ إلى identity بنفسِ عقدِ initData. ──────
+    // (كانَ رفضًا ثابتًا في هذا التركيبِ — جسرُ الويبِ يحتاجُهُ فعلًا، فصارَ
+    // نداءً موقَّعًا حقيقيًّا بدرجةِ صلاحيةِ `identity:session:issue`.)
+    issueSession: ports.issueSession,
+    exchangeSession: ports.exchangeSession,
+    revokeSession: ports.revokeSession,
     // ── جسرُ الويبِ (XR-6.1): التحقّقُ من رمزِ النواةِ عندَ مُصدِرِهِ. ──────
     // المصدرُ الوحيدُ لثقةِ الويبِ هو النواةُ (D-XR-9) — النداءُ هنا يمرِّرُ
     // الرمزَ كما هو ولا يوقِّعُهُ بسرِّ البوتِ ولا يخزِنُهُ.

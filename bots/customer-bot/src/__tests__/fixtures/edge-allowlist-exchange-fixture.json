@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "surface": "customer-mini-app",
+      "service": "customers",
+      "path": "/edge/test/customers/:waslaPublicId/profile",
+      "method": "GET",
+      "production_open": true,
+      "reason": "قائمة اختبار معزولة لمغلف اختبار الاستبدال حول createChannelEdge الحقيقي (CLM-0696) — ليست قائمة الإنتاج المحكومة"
+    }
+  ]
+}
