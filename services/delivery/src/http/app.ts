@@ -885,6 +885,7 @@ export function buildDeliveryHttpApp(deps: DeliveryHttpDeps): DeliveryHttpApp {
       {
         readPort: deps.readPort,
         writePort: deps.writePort,
+        reservationPort: deps.reservationPort,
         reservationStore: deps.reservationStore,
         newUuid,
         now,

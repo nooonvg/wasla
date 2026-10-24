@@ -530,7 +530,12 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
     // القيدَ الأحدَ عشريَّ.
     const last = upgrades[upgrades.length - 1];
     await db.query(`UPDATE store_orders SET fulfillment_state = 'assigned' WHERE public_id = 'WS-0000000034'`);
-    await expect(applySqlFile(db, last.down)).rejects.toThrow(/CLM-0689 rollback refused/u);
+    // الرفضُ مسمّى برسالتِهِ **وبرمزِ PostgreSQL القياسيِّ** معًا (23514 = check_violation)
+    // — لا نصًّا وحدَهُ. والحارسُ يمنعُ عباراتِ الملفِّ بعدَهُ فلا يُمسُّ القيدُ.
+    await expect(applySqlFile(db, last.down)).rejects.toMatchObject({
+      code: "23514",
+      message: expect.stringMatching(/CLM-0689 rollback refused/u),
+    });
     // والرفضُ تركَ كلَّ شيءٍ كما كانَ: القيدُ لا يزالُ اثنيَ عشريّاً والصفُّ في مكانهِ.
     const check = await db.query<{ check_clause: string }>(
       `SELECT check_clause FROM information_schema.table_constraints tc

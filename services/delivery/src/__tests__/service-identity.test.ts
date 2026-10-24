@@ -305,19 +305,38 @@ describe("حد التوصيل — الأفعال الأربعة الخطيرة �
     await app.close();
   });
 
-  it("رمز قراءةٍ لا يُلغي من assigned عبرَ مسارِ الانتقالِ العامِّ (§4.29) → 403؛ فسياسةُ العميلِ لا تُتجاوزُ برمزٍ ناقصٍ", async () => {
-    // البوّابةُ: «استقبالُ إلغاءِ CORE المؤكَّدِ ليسَ منحًا للعميلِ أمرَ الإلغاءِ» —
-    // وحدُّ التوصيلِ أصلاً لا يعرفُ العميلَ (لا مُصادقةَ داخلةً · §4.18): لا دخولَ
-    // إلا برمزِ خدمةٍ موقَّعٍ، ولا انتقالَ إلا بصلاحيّةِ `fulfillment:transition`.
-    // هذا يثبِتُ أنَّ الوسيلةَ الوحيدةَ لقطعِ طلبٍ منَ `assigned` هيَ مسارُ الإلغاءِ
-    // المخصَّصُ (بقرارِهِ وصلاحيّتِهِ) أو إسقاطُ CORE (بصلاحيّةِ الخدمةِ).
+  it("فصلُ الصلاحياتِ (§4.29): رمزُ قراءةٍ لا يُقدِّمُ انتقالًا إلى cancelled عبرَ المسارِ العامِّ → 403", async () => {
+    // هذا **فصلُ نطاقاتٍ مقيسٌ** لا إثباتًا شاملًا لهويّةِ العميلِ: حدُّ التوصيلِ لا
+    // يعرفُ العميلَ أصلًا (لا مُصادقةَ داخلةً · §4.18)، والتفويضُ قرارُ مُصدِرِ الرمزِ
+    // (M1-05). المُقاسُ هنا أنَّ الانتقالَ العامَّ لا يُنالُ إلا بصلاحيّةِ `fulfillment:
+    // transition` — فلا يبقى لمسارِ الانتقالِ دورٌ في تجاوزِ قرارِ الإلغاءِ المخصَّصِ.
     const { app, rawInject, keys } = harnessApp();
     const path = `${ORDERS}/${ORDER}/fulfillment-transition`;
     const response = await rawInject({
       method: "POST",
       url: path,
       headers: { ...idempotency(), ...signFor("POST", path, { keys, scopes: read }) },
-      payload: { to_state: "cancelled", from_state: "assigned" },
+      payload: { to_state: "cancelled" },
+    });
+    expect(response.statusCode).toBe(403);
+    expect(response.json().error_code).toBe(FORBIDDEN);
+    await app.close();
+  });
+
+  it("صلاحيّةُ الإلغاءِ المخصَّصةُ لا تفتحُ الانتقالَ العامَّ (§4.29) → 403 — صلاحيّةٌ لكلِّ خطرٍ", async () => {
+    // المُكمِّلُ للفصلِ: منادٍ يحملُ صلاحيّةَ الإلغاءِ **المخصَّصةَ** وحدَها لا يستطيعُ
+    // استعمالَ المسارِ العامِّ — فأمرُ الإلغاءِ يمرُّ بمسارِهِ وقرارِهِ (سياسةُ العميلِ
+    // وقائمةُ حالاتِهِ الصريحةُ) لا بمسارٍ أعمّ.
+    const { app, rawInject, keys } = harnessApp();
+    const path = `${ORDERS}/${ORDER}/fulfillment-transition`;
+    const response = await rawInject({
+      method: "POST",
+      url: path,
+      headers: {
+        ...idempotency(),
+        ...signFor("POST", path, { keys, scopes: [DELIVERY_SCOPES.storeOrderCancel] }),
+      },
+      payload: { to_state: "cancelled" },
     });
     expect(response.statusCode).toBe(403);
     expect(response.json().error_code).toBe(FORBIDDEN);

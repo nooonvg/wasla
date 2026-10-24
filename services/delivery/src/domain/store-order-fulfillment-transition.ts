@@ -34,6 +34,13 @@ export interface FulfillmentTransitionDecision {
    * apply unchanged).
    */
   readonly consumesInventory: boolean;
+  /**
+   * true when this edge releases the inventory reservation — every edge into
+   * `cancelled` (§4.29): cancellation frees the stock, symmetric with
+   * `delivered` consuming it. The caller guards on `inventoryState === "reserved"`
+   * (an order already `consumed` is terminal inventory-wise).
+   */
+  readonly releasesInventory: boolean;
 }
 
 const REASON_CODES: Record<string, FulfillmentReasonCode> = {
@@ -77,11 +84,15 @@ export function decideFulfillmentTransition(
   // §4.29: generalized to the destination — the graph only allows `delivered`
   // from the live courier states (`assigned` | `handed_to_courier`).
   const consumesInventory = toState === "delivered";
+  // §4.29: every edge into `cancelled` releases the reservation — إلغاءٌ بلا
+  // إفراجٍ يتركُ رفًّا محجوزًا لطلبٍ ميتٍ (مرآةُ مسارِ إلغاءِ العميلِ · §2.3).
+  const releasesInventory = toState === "cancelled";
 
   return {
     fromFulfillmentState: from,
     toFulfillmentState: toState,
     reasonCode,
     consumesInventory,
+    releasesInventory,
   };
 }

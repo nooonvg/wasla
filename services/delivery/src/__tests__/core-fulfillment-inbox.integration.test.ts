@@ -19,6 +19,8 @@ import { StoreOrderStore } from "../infrastructure/store-order-store.js";
 import { PgCoreFulfillmentInbox } from "../infrastructure/pg-core-fulfillment-inbox.js";
 import { consumeCoreFulfillmentEvent } from "../use-cases/consume-core-fulfillment.js";
 import { fulfillmentTransition } from "../use-cases/fulfillment-transition.js";
+import { deriveRequestFingerprint } from "../domain/idempotency.js";
+import type { IdempotencyIntent } from "../ports.js";
 import { placeStoreOrder } from "../use-cases/place-store-order.js";
 import {
   FakeCatalog,
@@ -107,7 +109,9 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
       writePort: store,
       readPort: store,
       reservationPort: new FakeReservationPort(),
-      reservationStore: new FakeReservationStore(),
+      // الدفترُ الحقيقيُّ (DB) لا الزائفةُ: إفراجُ §4.29 يقرأُ الحجوزاتِ النشطةَ
+      // من الدفترِ — فتُخزَّنُ عندَ الحجزِ حيثَ يُقرؤُ الإفراجُ.
+      reservationStore: store,
       ...ids(),
     };
     const result = await placeStoreOrder(deps, placement, "integration");
@@ -131,7 +135,13 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
   const consumeDeps = () => ({
     inbox,
     orders: store,
-    transition: { readPort: store, writePort: store, ...ids() },
+    transition: {
+      readPort: store,
+      writePort: store,
+      reservationPort: new FakeReservationPort(),
+      reservationStore: store,
+      ...ids(),
+    },
   });
 
   it("الرحلةُ كاملةً: dispatched ← assigned (إسنادٌ لا استلامٌ) ثم completed بالتسليمِ والإثباتِ ← delivered", async () => {
@@ -487,13 +497,67 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     );
     expect(cancelled.kind).toBe("applied");
     expect(cancelled.kind === "applied" && cancelled.order.fulfillmentState).toBe("cancelled");
-    // §4.29 (قياسٌ لا افتراضٌ): مسارُ إلغاءِ CORE عبرَ الإسقاطِ لا يُفرِجُ الحجزَ المحليَّ —
-    // سلوكٌ **قائمٌ قبلَ هذهِ الرقعةِ** لكلِّ حالاتِ الإلغاءِ المقبولةِ (placed/confirmed/
-    // ready_for_delivery): الإفراجُ المحليُّ مسؤوليّةُ مسارِ إلغاءِ MARKET نفسِهِ
-    // (cancelStoreOrder · يُفرِجُ قبلَ صدى CORE)، وإلغاءُ CORE الصادرُ بلا مسارٍ محليٍّ
-    // سابقٍ يتركُ الحجزَ `reserved` — فجوةٌ معلَنةٌ تُسوّى معَ سلكِ XR-4.3/4.4 لا تُخفى هنا.
+    // §4.29 (الإفراجُ المقيسُ): كلُّ حافّةٍ إلى `cancelled` — ومنها إلغاءُ CORE من
+    // `assigned` — تُفرِجُ الحجزَ في المسارِ الواحدِ نفسِهِ (إعادةُ استخدامٍ لجزءِ
+    // مسارِ إلغاءِ العميلِ): المخزونُ `released` لا `reserved`، والحدثُ في الصندوقِ.
     const afterCancel = await store.getOrderByPublicId(order.publicId);
-    expect(afterCancel?.inventoryState).toBe("reserved");
+    expect(afterCancel?.inventoryState).toBe("released");
+    // والحجوزاتُ النشطةُ في الدفترِ انتهت.
+    const activeReservations = await store.loadActiveReservations(afterCancel!.orderId);
+    expect(activeReservations).toHaveLength(0);
+    // وحدثُ الإفراجِ في الصندوقِ (نفسُ معاملةِ الانعكاسِ).
+    const releasedRows = await pool.query(
+      `SELECT event_type FROM delivery_outbox WHERE event_type = 'store_order.inventory_released' AND aggregate_id = $1`,
+      [afterCancel!.orderId],
+    );
+    expect(releasedRows.rowCount).toBe(1);
+  });
+
+  it("إيصالٌ معامليٌّ تاريخيٌّ (نافذةُ الانهيارِ بالمعنى القديمِ): dispatched التزمَ قديمًا إلى handed_to_courier وصندوقُ الاستهلاكِ لم يُكتبْ — إعادةُ الإرسالِ تجدُ الإيصالَ فتُسجِّلُ applied بلا انتقالٍ جديدٍ ولا تراجعٍ (§4.29)", async () => {
+    // هذهِ هيَ النافذةُ الأخطرُ: الانتهيارُ بعدَ التزامِ الانتقالِ وقبلَ إيصالِ
+    // الصندوقِ — والإيصالُ المرتبطُ بالحدثِ (`core-fulfillment:${eventId}:v1`) مكتوبٌ
+    // **بالمعنى القديمِ**: وجهةُ الإسقاطِ كانتَ `handed_to_courier`. بعدَ الرقعةِ،
+    // إعادةُ الإرسالِ تجدُ الإيصالَ المعامليَّ قبلَ أيِّ إسقاطٍ فتُسجِّلُ الحسمَ
+    // وتُجيبُ applied — لا انتقالَ جديدَ ولا إعادةَ تصنيفٍ ولا تراجعًا رغمَ تغيُّرِ
+    // وجهةِ الإسقاطِ الجديدةِ إلى `assigned`.
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const oldEventId = crypto.randomUUID();
+    const intent: IdempotencyIntent = {
+      key: `core-fulfillment:${oldEventId}:v1`,
+      route: "POST /store-orders/{orderPublicId}/fulfillment-transition",
+      fingerprint: deriveRequestFingerprint(
+        "POST /store-orders/{orderPublicId}/fulfillment-transition",
+        order.publicId,
+        { event_type: "core.fulfillment.dispatched" },
+      ),
+      responseStatus: 200,
+      buildResponseBody: () => ({ kind: "applied", event_type: "core.fulfillment.dispatched" }),
+    };
+    // الانتهيارُ المُحاكى بالمعنى القديمِ: الانتقالُ التزمَ (handed_to_courier)
+    // والإيصالُ المعامليُّ مكتوبٌ، وصندوقُ الاستهلاكِ لم يُكتبْ بعدُ.
+    const legacy = await fulfillmentTransition(
+      { readPort: store, writePort: store, ...ids() },
+      order.publicId,
+      "handed_to_courier",
+      null,
+      "old-world-crash-window",
+      intent,
+    );
+    expect(legacy.kind).toBe("applied");
+    const receipt = await store.findIdempotentResponse(intent.key);
+    expect(receipt).not.toBeNull();
+    // إعادةُ الإرسالِ بعدَ الرقعةِ: الإيصالُ المعامليُّ يُجيبُ قبلَ الإسقاطِ.
+    const replay = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(oldEventId, "core.fulfillment.dispatched", {
+        ...basePayload(order.publicId),
+        job_reference: "move-job-old-crash",
+        dispatched_at: "2026-10-22T10:10:00.000Z",
+      }),
+    );
+    expect(replay.kind).toBe("applied");
+    const still = await store.getOrderByPublicId(order.publicId);
+    expect(still?.fulfillmentState).toBe("handed_to_courier");
   });
 
   it("إيصالٌ تاريخيٌّ بمعنى الرقعةِ القديمةِ: dispatched طُبِّق قديمًا إلى handed_to_courier — إعادةُ إرسالِهِ بعدَ الرقعةِ duplicate بلا تراجعٍ (§4.29)", async () => {

@@ -17,6 +17,7 @@ import { DeliveryError } from "../domain/errors.js";
 import {
   storeOrderFulfillmentStateChangedEvent,
   storeOrderInventoryConsumedEvent,
+  storeOrderInventoryReleasedEvent,
   type DeliveryDomainEvent,
   type EventContext,
 } from "../domain/events.js";
@@ -27,6 +28,7 @@ import type {
   FulfillmentTransitionWrite,
   IdempotencyIntent,
   IdempotentReplay,
+  InventoryReservationPort,
   InventoryReservationStore,
   StoreOrderReadPort,
   StoreOrderWritePort,
@@ -40,6 +42,8 @@ export interface FulfillmentTransitionDeps {
   readonly readPort: StoreOrderReadPort;
   readonly writePort: StoreOrderWritePort;
   readonly reservationStore?: InventoryReservationStore;
+  /** Required by the `cancelled` edge when the order holds a live reservation. */
+  readonly reservationPort?: InventoryReservationPort;
   readonly newUuid: () => string;
   readonly now: () => string;
 }
@@ -144,5 +148,53 @@ export async function fulfillmentTransition(
     inventoryConsume,
   };
 
-  return deps.writePort.fulfillmentTransition(write);
+  const result = await deps.writePort.fulfillmentTransition(write);
+  if (result.kind !== "applied") return result;
+
+  // ── §4.29: إفراجُ الحجزِ عندَ الإلغاءِ ─────────────────────────────────
+  // كلُّ حافّةٍ إلى `cancelled` تُفرِجُ الحجزَ — إعادةُ استخدامٍ للجزءِ المناسبِ
+  // من مسارِ إلغاءِ العميلِ (cancelStoreOrder · المراجعةُ 10/N · §2.3) لا
+  // اختراعٌ: إلغاءٌ بلا إفراجٍ يتركُ رفًّا محجوزًا لطلبٍ ميتٍ. والمحفوظُ بعدَ
+  // `consumed` لا يُفرَّجُ (خصمٌ نهائيٌّ لا يُستردُّ). وإن فشلَ الإفراجُ بعدَ
+  // نجاحِ الكتابةِ فالطلبُ مُلغًى والحجزُ تنقضي صلاحيّتُهُ عندَ السوقِ أو يُسوّى
+  // لاحقًا — سماحيّاتُ مسارِ الإلغاءِ القائمِ نفسُهُ.
+  if (decision.releasesInventory && order.inventoryState === "reserved") {
+    if (!deps.reservationPort || !deps.reservationStore) {
+      throw new DeliveryError(
+        "DELIVERY_MARKETPLACE_UNAVAILABLE",
+        "لا منفذَ حجزِ مخزونٍ مُركَّبٌ — الإفراجُ عنِ الحجزِ لا يُتخطّى (ADR-026 §2.3 · §4.29)",
+        { traceId: traceId ?? undefined },
+      );
+    }
+    const reservations = await deps.reservationStore.loadActiveReservations(order.orderId);
+    if (reservations.length > 0) {
+      const first = reservations[0];
+      await deps.reservationPort.release({
+        orderPublicId: order.publicId,
+        storeSlug: order.storeSlug,
+        reservationRef: first.marketplaceReservationRef,
+        items: reservations.map((r) => ({ productId: r.productId, quantity: r.quantityReserved })),
+      });
+      await deps.reservationStore.releaseReservations(order.orderId);
+      const mirrored = await deps.writePort.mirrorInventoryState({
+        orderId: order.orderId,
+        expectedVersion: result.order.version,
+        fromInventoryState: "reserved",
+        toInventoryState: "released",
+        inventoryRef: first.marketplaceReservationRef,
+        reasonCode: "INVENTORY_RELEASED",
+        events: [
+          storeOrderInventoryReleasedEvent(
+            result.order,
+            { eventId: deps.newUuid(), occurredAt: deps.now(), traceId } satisfies EventContext,
+            { reservation_ref: first.marketplaceReservationRef },
+          ),
+        ],
+        traceId,
+      });
+      if (mirrored.kind === "applied") return { kind: "applied" as const, order: mirrored.order };
+    }
+  }
+
+  return result;
 }
