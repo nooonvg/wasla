@@ -733,6 +733,71 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     expect(settled?.inventoryState).toBe("released");
   });
 
+  it("استئنافُ التسويةِ (و): سباقٌ محددٌ — محاولةٌ أخرى تُكمِلُ التسويةَ قبلَ مساعدِنا: النتيجةُ المعادةُ تحملُ released ونسخةَ ما بعدَ التسويةِ لا اللقطةَ القديمةَ (§4.29)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    // غلافٌ حولَ المخزنِ الحقيقيِّ: الانتقالُ يلتزمُ (cancelled · v6 · reserved)
+    // ثمّ يُكمِلُ الغلافُ التسويةَ **بنفسِهِ** قبلَ أن يُعيدَ نتيجةَ applied القديمةَ —
+    // فحينَ يقرأُ مساعدُ التسويةِ الطلبَ يجدُهُ released فيُجيبُ not_needed بطلبٍ
+    // طازجٍ: والعائدُ للخارجِ هوَ هذا الطازجُ (v7 · released) لا اللقطةُ القديمةُ.
+    const port = new FakeReservationPort();
+    const wrapper = new Proxy(store, {
+      get(target: typeof store, prop: string, _receiver: unknown): unknown {
+        if (prop === "fulfillmentTransition") {
+          const bound = Reflect.get(target, prop, target) as (write: unknown) => Promise<unknown>;
+          return async (write: unknown) => {
+            const result = (await bound.call(target, write)) as { kind: string; order?: { orderId: string; version: number; publicId: string } };
+            if (result.kind === "applied" && result.order && result.order.version >= 6) {
+              // «محاولةٌ أخرى» أكمَلَتِ التسويةَ قبلَ عودةِ النتيجةِ.
+              await port.release();
+              await store.settleInventoryRelease({
+                orderId: result.order.orderId,
+                expectedVersion: result.order.version,
+                fromInventoryState: "reserved",
+                toInventoryState: "released",
+                inventoryRef: "fake-reservation-ref",
+                reasonCode: "INVENTORY_RELEASED",
+                events: [],
+                traceId: null,
+              });
+            }
+            return result;
+          };
+        }
+        const value = Reflect.get(target, prop, target);
+        return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    });
+    const eventId = crypto.randomUUID();
+    const result = await consumeCoreFulfillmentEvent(
+      {
+        inbox,
+        orders: store,
+        transition: {
+          readPort: store,
+          writePort: wrapper as unknown as typeof store,
+          reservationPort: port,
+          reservationStore: store,
+          ...ids(),
+        },
+      },
+      coreEnvelope(eventId, "core.fulfillment.cancelled", {
+        ...basePayload(order.publicId),
+        reason: "customer_changed_mind",
+        cancelled_at: "2026-10-22T10:20:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+    );
+    expect(result.kind).toBe("applied");
+    // النتيجةُ الخارجيّةُ تحملُ ما بعدَ التسويةِ: released ونسخةً بعدَ الإفراجِ —
+    // لا لقطةَ `applied` القديمةَ (v6 · reserved).
+    expect(result.kind === "applied" && result.order.inventoryState).toBe("released");
+    expect(result.kind === "applied" && result.order.version).toBeGreaterThanOrEqual(7);
+    const settled = await store.getOrderByPublicId(order.publicId);
+    expect(settled?.inventoryState).toBe("released");
+  });
+
   it("استئنافُ التسويةِ (جـ): السوقُ يرفضُ الإفراجَ (released: false) — لا حسمَ نهائيَّ صامتًا، الحدثُ يبقى حيًّا (§4.29)", async () => {
     const order = await walkToReadyForDelivery(await placedOrder());
     const refusing = new FakeReservationPort();

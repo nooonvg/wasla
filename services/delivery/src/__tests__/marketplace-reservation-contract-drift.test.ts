@@ -74,6 +74,28 @@ describe("delivery → marketplace reservation bodies match the published contra
     expect(Object.keys(bodies[0]).sort()).toEqual(schema.properties.sort());
   });
 
+  it("§4.29: 409 (تعارضُ بصمةِ مفتاحِ التماثُلِ) لا يُقبَلُ إفراجًا — رفضٌ مسمًّى لا نجاحٌ صامتٌ", async () => {
+    // معالجُ السوقِ يُجيبُ 409 لحمولةٍ مختلفةٍ بالمفتاحِ نفسِهِ — وهذا لا يُثبِتُ
+    // إفراجًا فقبولُهُ كانَ نجاحًا صامتًا كاذبًا (الإصلاحُ مُقاسٌ هنا).
+    const { port } = capturingPort(409, { error: { code: "MARKETPLACE_IDEMPOTENCY_KEY_REUSED" } });
+    await expect(
+      port.release({ ...REQ, reservationRef: "delivery-reserve:WS-5000000011:v1" }),
+    ).rejects.toMatchObject({
+      code: "DELIVERY_MARKETPLACE_UNAVAILABLE",
+      httpStatus: 503,
+    });
+  });
+
+  it("§4.29: 404 (متجرٌ أو صنفٌ غيرُ موجودٍ) لا يُقبَلُ إفراجًا — رفضٌ مسمًّى لا نجاحٌ صامتٌ", async () => {
+    const { port } = capturingPort(404, { error: { code: "STORE_NOT_FOUND" } });
+    await expect(
+      port.release({ ...REQ, reservationRef: "delivery-reserve:WS-5000000011:v1" }),
+    ).rejects.toMatchObject({
+      code: "DELIVERY_MARKETPLACE_UNAVAILABLE",
+      httpStatus: 503,
+    });
+  });
+
   it("release sends exactly the contract's properties — no `reservation_ref`", async () => {
     const { port, bodies } = capturingPort(200, { reservation_ref: "delivery-release:WS-5000000011:v1", items: [] });
     const result = await port.release({ ...REQ, reservationRef: "delivery-reserve:WS-5000000011:v1" });
