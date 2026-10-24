@@ -17,8 +17,8 @@ import type { Pool } from "pg";
 import { PG_ENABLED, resetData, setupPostgres } from "./pg-harness.js";
 import { StoreOrderStore } from "../infrastructure/store-order-store.js";
 import { PgCoreFulfillmentInbox } from "../infrastructure/pg-core-fulfillment-inbox.js";
-import { consumeCoreFulfillmentEvent } from "../use-cases/consume-core-fulfillment.js";
 import { fulfillmentTransition } from "../use-cases/fulfillment-transition.js";
+import { consumeCoreFulfillmentEvent } from "../use-cases/consume-core-fulfillment.js";
 import { DeliveryError } from "../domain/errors.js";
 import { deriveRequestFingerprint } from "../domain/idempotency.js";
 import type { IdempotencyIntent } from "../ports.js";
@@ -767,35 +767,54 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
         return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
       },
     });
-    const eventId = crypto.randomUUID();
-    const result = await consumeCoreFulfillmentEvent(
-      {
-        inbox,
-        orders: store,
-        transition: {
-          readPort: store,
-          writePort: wrapper as unknown as typeof store,
-          reservationPort: port,
-          reservationStore: store,
-          ...ids(),
-        },
+    // الاستدعاءُ **مباشرٌ لحالةِ الاستخدامِ** لا عبرَ المستهلكِ — مسارُ المستهلكِ
+    // يُعيدُ قراءةَ الطلبِ لاحقًا فيمكنُ أن ينجحَ حتى لو أعادتِ الحالةُ القديمةَ؛
+    // هنا النتيجةُ المعادةُ من fulfillmentTransition نفسِها هي المفحوصةُ.
+    const staleVersion = { value: -1 };
+    const recordingWrapper = new Proxy(wrapper as object, {
+      get(target: object, prop: string | symbol, receiver: object): unknown {
+        if (prop === "fulfillmentTransition") {
+          const inner = Reflect.get(target, prop, target) as (write: unknown) => Promise<unknown>;
+          return async (write: unknown) => {
+            const result = (await inner(write)) as { kind: string; order?: { version: number } };
+            if (result.kind === "applied" && result.order) staleVersion.value = result.order.version;
+            return result;
+          };
+        }
+        const value = Reflect.get(target, prop, receiver);
+        return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
       },
-      coreEnvelope(eventId, "core.fulfillment.cancelled", {
-        ...basePayload(order.publicId),
-        reason: "customer_changed_mind",
-        cancelled_at: "2026-10-22T10:20:00.000Z",
-        settlement_state: "none",
-        captured_minor: null,
-        financial_decision_required: false,
-      }),
+    });
+    const result = await fulfillmentTransition(
+      {
+        readPort: store,
+        writePort: recordingWrapper as unknown as typeof store,
+        reservationPort: port,
+        reservationStore: store,
+        ...ids(),
+      },
+      order.publicId,
+      "cancelled",
+      null,
+      null,
+      {
+        key: `direct-cancel-${crypto.randomUUID()}`,
+        route: "POST /store-orders/{orderPublicId}/fulfillment-transition",
+        fingerprint: "a".repeat(64),
+        responseStatus: 200,
+        buildResponseBody: () => ({ kind: "applied" }),
+      },
     );
     expect(result.kind).toBe("applied");
-    // النتيجةُ الخارجيّةُ تحملُ ما بعدَ التسويةِ: released ونسخةً بعدَ الإفراجِ —
-    // لا لقطةَ `applied` القديمةَ (v6 · reserved).
+    // النتيجةُ الخارجيّةُ تحملُ ما بعدَ التسويةِ: released — ونسختُها ليست
+    // «رقمًا ثابتًا» بل المعادلةُ المسجَّلةُ: نسخةُ اللقطةِ القديمةِ + 1 = نسخةُ
+    // ما بعدَ التسويةِ في قاعدةِ البياناتِ.
     expect(result.kind === "applied" && result.order.inventoryState).toBe("released");
-    expect(result.kind === "applied" && result.order.version).toBeGreaterThanOrEqual(7);
     const settled = await store.getOrderByPublicId(order.publicId);
     expect(settled?.inventoryState).toBe("released");
+    expect(staleVersion.value).toBeGreaterThan(0);
+    expect(result.kind === "applied" && result.order.version).toBe(staleVersion.value + 1);
+    expect(result.kind === "applied" && result.order.version).toBe(settled?.version);
   });
 
   it("استئنافُ التسويةِ (جـ): السوقُ يرفضُ الإفراجَ (released: false) — لا حسمَ نهائيَّ صامتًا، الحدثُ يبقى حيًّا (§4.29)", async () => {
