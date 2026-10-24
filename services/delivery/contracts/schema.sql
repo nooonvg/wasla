@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS store_orders (
     -- الحالةُ المتعامدةُ الأولى: التنفيذُ (قرارُ هذه الخدمةِ · ADR-026 §3.1)
     fulfillment_state  TEXT        NOT NULL CHECK (fulfillment_state IN (
                                      'draft','placed','confirmed','picking','picked',
-                                     'ready_for_delivery','handed_to_courier',
+                                     'ready_for_delivery','assigned','handed_to_courier',
                                      'delivered','cancelled','rejected','failed')),
 
     -- الحالةُ المتعامدةُ الثانية: الدفعُ (مرآةُ نيّةٍ خارجيّةٍ · ADR-026 §3.2)

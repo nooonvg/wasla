@@ -28,6 +28,7 @@ import type {
   FulfillmentTransitionOutcome,
   FulfillmentTransitionWrite,
   InventoryMirrorWrite,
+  InventorySettleReleaseWrite,
   InventoryReservationPort,
   InventoryReservationStore,
   MirrorInventoryOutcome,
@@ -59,6 +60,8 @@ export class FakeStoreOrderStore implements StoreOrderReadPort, StoreOrderWriteP
   readonly tasks = new Map<string, DeliveryTask>();
   readonly outbox: DeliveryDomainEvent[] = [];
   readonly idempotencyKeys = new Map<string, StoredIdempotentResponse>();
+  /** §4.29: الدفترُ المرتبطُ (اختياريٌّ) — لتقليدِ ذرّيّةِ التسويةِ في الذاكرةِ. */
+  linkedReservationLedger?: FakeReservationStore;
   private sequence = 5_000_000_001;
 
   seed(order: StoreOrder, task?: DeliveryTask): void {
@@ -167,6 +170,34 @@ export class FakeStoreOrderStore implements StoreOrderReadPort, StoreOrderWriteP
   }
 
   /** التأكيدُ في الذاكرةِ — والبوّابةُ تُقرَأُ هنا ثانيةً كما تُقرَأُ تحتَ القُفلِ. */
+  /**
+   * §4.29: تسويةُ الإفراجِ في الذاكرةِ — الدفترُ (إنْ رُبِطَ) والانعكاسُ معًا:
+   * الزائفُ يُقلِّدُ ذرّيّةَ المحوّلِ الحقيقيِّ (لا حالةَ منتصفٍ بينَ الدفترِ والانعكاسِ).
+   */
+  async settleInventoryRelease(write: InventorySettleReleaseWrite): Promise<MirrorInventoryOutcome> {
+    const entry = this.requireOrder(write.orderId, write.expectedVersion);
+    if (entry.inventoryState !== write.fromInventoryState) {
+      throw new DeliveryError("DELIVERY_CONCURRENT_UPDATE", "تغيَّرَت حالةُ المخزونِ بينَ القرارِ والكتابةِ");
+    }
+    if (this.linkedReservationLedger) {
+      for (const r of this.linkedReservationLedger.rows.values()) {
+        if (r.orderId === write.orderId && r.status === "active") {
+          this.linkedReservationLedger.rows.set(r.reservationId, { ...r, status: "released" });
+        }
+      }
+    }
+    const settled: StoreOrder = {
+      ...entry,
+      inventoryState: write.toInventoryState as StoreOrder["inventoryState"],
+      inventoryRef: write.inventoryRef,
+      version: entry.version + 1,
+    };
+    this.orders.set(settled.publicId, settled);
+    this.outbox.push(...write.events);
+    this.updateIdempotencyResponseBody(settled);
+    return { kind: "applied", order: settled };
+  }
+
   async confirmOrder(write: ConfirmationWrite): Promise<ConfirmOrderOutcome> {
     const replay = this.resolveKey(write.idempotency);
     if (replay !== null) return replay;
@@ -343,7 +374,21 @@ export class FakeReservationPort implements InventoryReservationPort {
     return this.reserveResult;
   }
 
+  /** §4.29: حقنُ إخفاقاتِ إفراجِ السوقِ لقياسِ الاستئنافِ — لا تُستعمَلُ إلا في الاختباراتِ. */
+  releaseCalls = 0;
+  failNextReleases = 0;
+  refuseReleases = false;
+
   async release(): Promise<{ released: boolean }> {
+    this.releaseCalls += 1;
+    if (this.failNextReleases > 0) {
+      this.failNextReleases -= 1;
+      throw new DeliveryError(
+        "DELIVERY_MARKETPLACE_UNAVAILABLE",
+        "السوقُ تعذَّرَ (حقنُ اختبارٍ) — الإفراجُ قابلٌ للاستئنافِ",
+      );
+    }
+    if (this.refuseReleases) return { released: false };
     return { released: true };
   }
 }

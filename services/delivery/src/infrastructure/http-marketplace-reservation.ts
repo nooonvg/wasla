@@ -132,12 +132,15 @@ export class HttpMarketplaceReservationPort implements InventoryReservationPort 
       return { released: true };
     }
 
-    // Idempotent: a second release is a no-op
-    if (res.status === 409 || res.status === 404) {
-      return { released: true };
-    }
-
-    throw unavailable(`marketplace_error_status:${res.status}`);
+    // §4.29 (قيسٌ لا تعليقٌ): إعادةُ الإفراجِ المشروعةُ — المفتاحُ نفسُهُ والحمولةُ
+    // نفسُها — يُجيبُها معالجُ السوقِ **بالردِّ المخزَّنِ نفسِهِ** (200/201 عبرَ
+    // ReplayedResponse)، فلا حاجةَ لقبولِ 409/404:
+    //   - 409 = تعارضُ بصمةِ مفتاحِ التماثُلِ (حمولةٌ مختلفةٌ بالمفتاحِ نفسِهِ) —
+    //     رفضٌ **لا يُثبِتُ إفراجًا** فقبولُهُ نجاحٌ صامتٌ كاذبٌ.
+    //   - 404 = متجرٌ أو صنفٌ غيرُ موجودٍ — لا يُثبِتُ إفراجًا أيضًا.
+    // وكلاهما الآنَ فشلٌ مسمًّى قابلٌ للإعادةِ (503 بحالةِ الردِّ) — التسويةُ تبقى
+    // مرئيّةً والمشغِّلُ يقرِّرُ، لا نجاحٌ مُدَّعًى.
+    throw unavailable(`marketplace_release_error_status:${res.status}`);
   }
 
   private async doFetch(

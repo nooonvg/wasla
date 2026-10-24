@@ -26,15 +26,26 @@ function idempotencyHeaders(): Record<string, string> {
   return { "idempotency-key": `ft-test-key-${String(idempotencyCounter).padStart(6, "0")}` };
 }
 
-function buildApp(options: { store?: FakeStoreOrderStore; catalog?: FakeCatalog | null } = {}) {
+function buildApp(
+  options: {
+    store?: FakeStoreOrderStore;
+    catalog?: FakeCatalog | null;
+    reservationPort?: FakeReservationPort;
+    reservationStore?: FakeReservationStore;
+  } = {},
+) {
   const store = options.store ?? new FakeStoreOrderStore();
   const catalog = options.catalog === null ? undefined : (options.catalog ?? new FakeCatalog());
+  const reservationStore = options.reservationStore ?? new FakeReservationStore();
+  // §4.29: ربطُ الدفترِ بالمخزنِ الزائفِ — التسويةُ تُفرِجُ الدفترَ والانعكاسَ معًا
+  // كما يفعلُ المحوّلُ الحقيقيُّ في معاملتِهِ الواحدةِ.
+  store.linkedReservationLedger = reservationStore;
   const app = createSignedDeliveryApp({
     readPort: store,
     writePort: store,
     catalogPort: catalog,
-    reservationPort: new FakeReservationPort(),
-    reservationStore: new FakeReservationStore(),
+    reservationPort: options.reservationPort ?? new FakeReservationPort(),
+    reservationStore,
     newUuid: uuidSequence(),
     now: () => NOW,
   });
@@ -265,6 +276,69 @@ describe("fulfillment-transition HTTP route (review 11/N)", () => {
     expect(res1.statusCode).toBe(200);
     expect(res2.statusCode).toBe(200);
     expect(res2.headers["idempotent-replay"]).toBe("true");
+    await app.close();
+  });
+
+  it("§4.29: إعادةُ نداءِ الإلغاءِ بعدَ فشلِ الإفراجِ — الجسمُ المعادُ يُقرأُ بعدَ التسويةِ (النسخةُ بعدَ الإفراجِ لا قبلَهُ)", async () => {
+    const store = new FakeStoreOrderStore();
+    const reservationStore = new FakeReservationStore();
+    const flaky = new FakeReservationPort();
+    flaky.failNextReleases = 1;
+    const { app } = buildApp({ store, reservationStore, reservationPort: flaky });
+    const order = seedConfirmedOrder(store);
+    reservationStore.saveReservations(order.orderId, [
+      {
+        reservationId: "resv-http-1",
+        orderId: order.orderId,
+        storeSlug: order.storeSlug,
+        productId: order.items[0].productId,
+        sku: order.items[0].sku,
+        quantityReserved: order.items[0].quantity,
+        unitPriceMinorUnits: order.items[0].unitPriceMinorUnits,
+        marketplaceReservationRef: order.inventoryRef ?? "fake-reservation-ref",
+        status: "active",
+        reservedAt: NOW,
+        traceId: null,
+      },
+    ]);
+    // المشيُ إلى ready_for_delivery: 2 → 5.
+    for (const to of ["picking", "picked", "ready_for_delivery"]) {
+      const res = await app.fastify.inject({
+        method: "POST",
+        url: `/store-orders/${order.publicId}/fulfillment-transition`,
+        headers: idempotencyHeaders(),
+        payload: { to_state: to },
+      });
+      expect(res.statusCode).toBe(200);
+    }
+    // الإلغاءُ بالمفتاحِ نفسِهِ: الانتقالُ يلتزمُ (cancelled · v6) ثمّ إفراجُ السوقِ
+    // يفشلُ — 503 لا نجاحًا صامتًا، والطلبُ ملغًى محجوزًا.
+    const key = "ft-release-resume-key-001";
+    const first = await app.fastify.inject({
+      method: "POST",
+      url: `/store-orders/${order.publicId}/fulfillment-transition`,
+      headers: { "idempotency-key": key },
+      payload: { to_state: "cancelled" },
+    });
+    expect(first.statusCode).toBe(503);
+    const afterFirst = store.orders.get(order.publicId);
+    expect(afterFirst?.fulfillmentState).toBe("cancelled");
+    expect(afterFirst?.inventoryState).toBe("reserved");
+    // الإعادةُ بالمفتاحِ نفسِهِ: replayed — والتسويةُ تُستأنفُ قبلَ الجوابِ، والجسمُ
+    // المعادُ يُقرأُ **بعدَ التسويةِ**: نسختُهُ 7 (بعدَ الإفراجِ) لا 6 (لقطةُ ما
+    // قبلَهُ) — الدليلُ على أنَّ الجوابَ ليسَ اللقطةَ القديمةَ المخزَّنةَ.
+    const second = await app.fastify.inject({
+      method: "POST",
+      url: `/store-orders/${order.publicId}/fulfillment-transition`,
+      headers: { "idempotency-key": key },
+      payload: { to_state: "cancelled" },
+    });
+    expect(second.statusCode).toBe(200);
+    const body = second.json();
+    expect(body.fulfillment_state).toBe("cancelled");
+    expect(body.version).toBe(7);
+    const settled = store.orders.get(order.publicId);
+    expect(settled?.inventoryState).toBe("released");
     await app.close();
   });
 });

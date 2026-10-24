@@ -86,7 +86,7 @@ describe("state machines vs ADR-026 §3 — the binding reference, edge by edge"
     const doc = toKeySet(adrFulfillment);
     expect([...code].sort()).toEqual([...doc].sort());
     expect(FULFILLMENT_TRANSITIONS).toHaveLength(adrFulfillment.length);
-    expect(adrFulfillment.length).toBe(14); // ADR §3.1 header: 11 states · 14 transitions
+    expect(adrFulfillment.length).toBe(18); // ADR §3.1 header: 12 states · 18 transitions (§4.29)
   });
 
   it("payment mirror matches the ADR exactly, in both directions", () => {

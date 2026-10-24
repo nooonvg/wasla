@@ -64,6 +64,13 @@
       "when": 1792686400000,
       "tag": "0008_core_egress_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792700000000,
+      "tag": "0009_assigned_state",
+      "breakpoints": true
     }
   ]
 }

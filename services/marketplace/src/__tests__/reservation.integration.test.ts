@@ -251,6 +251,60 @@ describe.skipIf(!PG_ENABLED)("مسارُ الحجزِ والإفراجِ فوق 
     expect(inventory.json().quantity_on_hand).toBe(10);
   });
 
+  it("إعادةُ الإفراجِ بالمفتاحِ والحمولةِ نفسيهما تُعيدُ الجوابَ المحفوظَ وتُعيدُ المخزونَ مرةً واحدةً فقط (§4.29)", async () => {
+    // احجز أوّلاً
+    await app.inject({
+      method: "POST",
+      url: `/stores/${SLUG}/inventory/reserve`,
+      headers: write(),
+      payload: {
+        order_public_id: "ORDER-006",
+        items: [{ product_id: productId, quantity: 2 }],
+        idempotency_key: "reserve-key-006",
+      },
+    });
+    // مفتاحُ التماثُلِ منَ الترويسةِ (envelope) — الإعادةُ الحرفيّةُ تتطلَّبُ
+    // الترويسةَ نفسَها والمفتاحَ نفسَهُ (كما في اختبارِ الحجزِ أعلاه).
+    const headers = write();
+    const payload = {
+      order_public_id: "ORDER-006",
+      items: [{ product_id: productId, quantity: 2 }],
+      idempotency_key: "release-key-006",
+    };
+    // أفرج
+    const first = await app.inject({
+      method: "POST",
+      url: `/stores/${SLUG}/inventory/release`,
+      headers,
+      payload,
+    });
+    expect(first.statusCode, first.body).toBe(200);
+    // الرصيدُ عادَ (8 = 10 − 2 + 2)
+    const afterFirst = await app.inject({ method: "GET", url: `/products/${productId}/inventory` });
+    expect(afterFirst.json().quantity_on_hand).toBe(10);
+    // أعد الإفراجَ بالمفتاحِ والحمولةِ نفسيهما: الردُّ المخزَّنُ نفسُهُ (200) —
+    // والمخزونُ لا يُعادُ مرتينِ.
+    const second = await app.inject({
+      method: "POST",
+      url: `/stores/${SLUG}/inventory/release`,
+      headers,
+      payload,
+    });
+    expect(second.statusCode, second.body).toBe(200);
+    expect(second.body).toBe(first.body);
+    const afterSecond = await app.inject({ method: "GET", url: `/products/${productId}/inventory` });
+    expect(afterSecond.json().quantity_on_hand).toBe(10);
+    // ودفترُ التعديلاتِ: صفُّ reservation_release واحدٌ لا اثنانِ.
+    const ledger = await app.inject({
+      method: "GET",
+      url: `/products/${productId}/inventory?include_ledger=true`,
+    });
+    const releaseRows = ledger
+      .json()
+      .adjustments.filter((a: { reason_code?: string }) => a.reason_code === "reservation_release");
+    expect(releaseRows).toHaveLength(1);
+  });
+
   it("منتجٌ لا يخصُّ المتجرَ يُعاد 404", async () => {
     const response = await app.inject({
       method: "POST",

@@ -11,17 +11,22 @@
  * ## الخريطةُ (XR-4 · «core.fulfillment.* (closed) → store_order delivered / failed»)
  *
  * - `created` — CORE قبلَ العملَ: **ملاحظةٌ** لا انتقالَ (الطلبُ مُوضَعٌ أصلًا).
- * - `dispatched` — عُيِّنَ ساعٍ (مهمةُ MOVE): `→ handed_to_courier` من
- *   `ready_for_delivery` فقط (حافّةُ `COURIER_ACCEPTED` القائمة).
+ * - `dispatched` — **إسنادٌ لا استلامٌ** (D-XR-31): MOVE قَبِلَ مهمّةَ التنفيذِ —
+ *   `→ assigned` من `ready_for_delivery` فقط (ADR-026 §4.29). لا يُنتجُ
+ *   `handed_to_courier` بعدَ اليومَ: الحدثُ لا يُثبتُ الاستلامَ الفيزيائيَّ،
+ *   وتلكَ الحالةُ تبقى للمسارِ المحليِّ القديمِ ولحدثِ الاستلامِ المستقبليِّ (XR-4.3).
  * - `completed(outcome=completed)` — الإغلاقُ بالتسليم: `→ delivered` من
- *   `handed_to_courier` فقط، **وبإثباتِ تسليمٍ** (بوّابةُ §2.4 لا تُستثنى
- *   لأحدٍ — لو لم يُقدَّمِ الإثباتُ فالجوابُ `proof_missing` مسمّى، لأنَّ
- *   الإثباتَ يأتي معَ الرحلةِ في XR-4.3 لا معَ الحدثِ).
- * - `completed(outcome=failed)` — الإغلاقُ بالفشلِ: `→ failed` من
- *   `handed_to_courier` (حافّةُ `DELIVERY_ATTEMPTS_EXHAUSTED` القائمة).
+ *   `assigned` أو `handed_to_courier`، **وبإثباتِ تسليمٍ** (بوّابةُ §2.4 لا
+ *   تُستثنى لأحدٍ — لو لم يُقدَّمِ الإثباتُ فالجوابُ `proof_missing` مسمّى،
+ *   لأنَّ الإثباتَ يأتي معَ الرحلةِ في XR-4.3 لا معَ الحدثِ).
+ * - `completed(outcome=failed)` — الإغلاقُ بالفشلِ: `→ failed` من `assigned`
+ *   أو `handed_to_courier` (حافّةُ `DELIVERY_ATTEMPTS_EXHAUSTED` القائمة).
  * - `cancelled` — الإغلاقُ بالإلغاءِ: `→ cancelled` من الحالاتِ التي تسمحُها
- *   الآلةُ (placed/confirmed/ready_for_delivery — «آخرُ نقطةٍ يملكُ فيها
- *   العميلُ قرارَهُ»)؛ فما بعدَها `out_of_order` مسمّى.
+ *   الآلةُ (placed/confirmed/ready_for_delivery/**assigned**)؛ فما بعدَها
+ *   `out_of_order` مسمّى. وأُضيفَ `assigned` لأنَّ CORE يُغلقُ بالإلغاءِ من
+ *   كافّةِ الحالاتِ المفتوحةِ (dispatched منها) — **استقبالُ إلغاءٍ مؤكَّدٍ
+ *   منَ CORE ليسَ منحًا للعميلِ صلاحيّةَ إصدارِ أمرِ الإلغاءِ** (سياسةُ العميلِ
+ *   لم تتغيّر: آخرُ نقطةٍ `ready_for_delivery`).
  * - `executed_after_cancellation` — **لا يحرِّكُ شيئًا** عمدًا: عملٌ نُفِّذَ بعدَ
  *   إلغاءٍ والمالُ تحرّكَ — رايةُ `financial_decision_required` تُرفَعُ في
  *   السجلِّ ولا يُحكَمُ هنا (قرارُ المالكِ B-20/B-30 — XR-4.4).
@@ -52,11 +57,16 @@ export type CoreFulfillmentProjection =
       readonly reason: string;
     };
 
-/** الحالاتُ التي يملكُ فيها العميلُ إلغاءَ طلبِهِ (آلةُ الحالةِ القائمة). */
+/**
+ * الحالاتُ التي يُطبَّقُ منها إغلاقُ CORE بالإلغاءِ. `assigned` مضافةٌ (§4.29):
+ * CORE يُغلقُ بالإلغاءِ من كافّةِ الحالاتِ المفتوحةِ (dispatched منها) —
+ * استقبالُ قرارِ CORE ليسَ سياسةَ إلغاءِ العميلِ.
+ */
 const CANCELLABLE_FROM: readonly FulfillmentState[] = [
   "placed",
   "confirmed",
   "ready_for_delivery",
+  "assigned",
 ];
 
 /**
@@ -72,7 +82,9 @@ export function projectCoreFulfillmentEvent(
       return { kind: "observed", note: "core_accepted_fulfillment" };
 
     case "core.fulfillment.dispatched":
-      return transitionOrOutOfOrder(currentFulfillmentState, "handed_to_courier", false);
+      // إسنادٌ لا استلامٌ (D-XR-31 · §4.29): MOVE قَبِلَ المهمّةَ — لا يُثبتُ
+      // أنَّ البضاعةَ صارت في يدِ الساعي.
+      return transitionOrOutOfOrder(currentFulfillmentState, "assigned", false);
 
     case "core.fulfillment.completed":
       return event.payload.outcome === "completed"

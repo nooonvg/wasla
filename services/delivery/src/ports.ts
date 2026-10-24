@@ -438,6 +438,22 @@ export interface InventoryMirrorWrite {
   readonly traceId?: string | null;
 }
 
+/**
+ * §4.29: تسويةُ إفراجِ إلغاءٍ — الدفترُ **والانعكاسُ** والحدثُ في معاملةٍ محليّةٍ واحدةٍ
+ * (بعدَ نجاحِ إفراجِ السوقِ): `reserved → released` + إنهاءُ الحجوزاتِ النشطةِ + حدثُ
+ * `store_order.inventory_released` — فلا حالةَ منتصفٍ مشروعةٍ بينَ الدفترِ والانعكاسِ.
+ */
+export interface InventorySettleReleaseWrite {
+  readonly orderId: string;
+  readonly expectedVersion: number;
+  readonly fromInventoryState: string;
+  readonly toInventoryState: string;
+  readonly inventoryRef: string;
+  readonly reasonCode: string;
+  readonly events: readonly DeliveryDomainEvent[];
+  readonly traceId: string | null;
+}
+
 export interface MirrorInventoryOutcome {
   readonly kind: "applied";
   readonly order: StoreOrder;
@@ -550,8 +566,9 @@ export interface FulfillmentTransitionWrite {
   readonly traceId: string | null;
   readonly idempotency?: IdempotencyIntent;
   /**
-   * When the transition is `handed_to_courier → delivered`, the inventory
-   * consume is written in the SAME transaction: `reserved → consumed` + the
+   * When the transition goes into `delivered` (from `assigned` or
+   * `handed_to_courier` — §4.29), the inventory consume is written in the
+   * SAME transaction: `reserved → consumed` + the
    * `store_order.inventory_consumed` outbox event + the reservations ledger
    * update. Null for all other transitions (no inventory side-effect).
    */
@@ -607,6 +624,8 @@ export interface StoreOrderWritePort {
    * a `state_kind = 'inventory'` ledger row, and the outbox event (review 10/N).
    */
   mirrorInventoryState(write: InventoryMirrorWrite): Promise<MirrorInventoryOutcome>;
+  /** §4.29: الدفترُ والانعكاسُ والحدثُ في معاملةٍ واحدةٍ — تسويةُ إفراجِ الإلغاءِ. */
+  settleInventoryRelease(write: InventorySettleReleaseWrite): Promise<MirrorInventoryOutcome>;
   /**
    * ONE transaction: lock, version check, `fulfillment_state` update, a
    * `state_kind = 'fulfillment'` ledger row, the outbox event — and, when
