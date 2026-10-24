@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-24T14:29:52Z
-الالتزام: 5ca6362496828ab4d6b3842d9c021309cec5b8f4  الفرع: fix/edge-proxy-routing  شجرةٌ مُعدَّلةٌ (1 ملفّاً)
+التاريخ (UTC): 2026-10-24T14:31:30Z
+الالتزام: 36ec1db4b986c037f68bea944d513e1590faab9c  الفرع: fix/edge-proxy-routing  شجرةٌ مُعدَّلةٌ (2 ملفّاً)
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.8
 القفل: pnpm-lock.yaml · 5132 سطراً · sha256 7c19b6942ae4d532…
 

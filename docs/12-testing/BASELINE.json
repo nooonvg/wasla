@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-24T14:29:52Z",
+  "generated_at": "2026-10-24T14:31:30Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "5ca6362496828ab4d6b3842d9c021309cec5b8f4",
+    "commit": "36ec1db4b986c037f68bea944d513e1590faab9c",
     "branch": "fix/edge-proxy-routing",
     "dirty": true,
-    "dirty_files": 1,
-    "dirty_reason": "",
-    "tracked_files": 3666
+    "dirty_files": 2,
+    "dirty_reason": "CLM-0695: ملفات الدليل والأساس لهذه الدفعة قبل إيداعها الثاني",
+    "tracked_files": 3668
   },
   "env": {
     "node": "v20.20.2",
