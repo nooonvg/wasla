@@ -157,6 +157,8 @@ export const DELIVERY_ERROR_CODES = [
   "DELIVERY_INELIGIBLE",
   "DELIVERY_MARKETPLACE_UNAVAILABLE",
   "DELIVERY_DISPATCH_UNAVAILABLE",
+  "DELIVERY_INVENTORY_RELEASE_REFUSED",
+  "DELIVERY_INVENTORY_SETTLEMENT_INCONSISTENT",
   "DELIVERY_CONCURRENT_UPDATE",
   // المراجعةُ 6/N: الحدُّ الأخيرُ لطبقةِ HTTP — خطأٌ غيرُ مُصنَّفٍ لا يجوزُ أن
   // يخرجَ بجسمٍ خارجَ `ErrorResponse` ولا أن يستعيرَ كوداً يعني شيئاً آخرَ
@@ -217,6 +219,8 @@ export const DELIVERY_ERROR_CODE_CLASS: Record<DeliveryErrorCode, DeliveryErrorC
   DELIVERY_INELIGIBLE: "conflict",
   DELIVERY_MARKETPLACE_UNAVAILABLE: "dependency_unavailable",
   DELIVERY_DISPATCH_UNAVAILABLE: "dependency_unavailable",
+  DELIVERY_INVENTORY_RELEASE_REFUSED: "dependency_unavailable",
+  DELIVERY_INVENTORY_SETTLEMENT_INCONSISTENT: "conflict",
   DELIVERY_CONCURRENT_UPDATE: "conflict",
   DELIVERY_INTERNAL_ERROR: "internal",
   DELIVERY_IDEMPOTENCY_KEY_REUSED: "conflict",

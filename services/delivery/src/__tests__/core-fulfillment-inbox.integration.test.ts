@@ -19,6 +19,7 @@ import { StoreOrderStore } from "../infrastructure/store-order-store.js";
 import { PgCoreFulfillmentInbox } from "../infrastructure/pg-core-fulfillment-inbox.js";
 import { consumeCoreFulfillmentEvent } from "../use-cases/consume-core-fulfillment.js";
 import { fulfillmentTransition } from "../use-cases/fulfillment-transition.js";
+import { DeliveryError } from "../domain/errors.js";
 import { deriveRequestFingerprint } from "../domain/idempotency.js";
 import type { IdempotencyIntent } from "../ports.js";
 import { placeStoreOrder } from "../use-cases/place-store-order.js";
@@ -131,13 +132,13 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     return current;
   }
 
-  const consumeDeps = () => ({
+  const consumeDeps = (reservationPort: FakeReservationPort = new FakeReservationPort()) => ({
     inbox,
     orders: store,
     transition: {
       readPort: store,
       writePort: store,
-      reservationPort: new FakeReservationPort(),
+      reservationPort,
       reservationStore: store,
       ...ids(),
     },
@@ -557,6 +558,181 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
     expect(replay.kind).toBe("applied");
     const still = await store.getOrderByPublicId(order.publicId);
     expect(still?.fulfillmentState).toBe("handed_to_courier");
+  });
+
+  it("استئنافُ التسويةِ (أ): إفراجُ السوقِ يفشلُ بعدَ التزامِ الإلغاءِ — إعادةُ الحدثِ تُستأنفُ الإفراجَ ولا تُكرِّرُ الانتقالَ ولا الأثرَ (§4.29)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const flaky = new FakeReservationPort();
+    flaky.failNextReleases = 1;
+    const eventId = crypto.randomUUID();
+    // التطبيقُ: الانتقالُ يلتزمُ (cancelled) ثمّ إفراجُ السوقِ يفشلُ — الحدثُ
+    // يبقى حيًّا قابلًا للإعادةِ (خطأٌ لا حسمٌ).
+    const first = await consumeCoreFulfillmentEvent(
+      consumeDeps(flaky),
+      coreEnvelope(eventId, "core.fulfillment.cancelled", {
+        ...basePayload(order.publicId),
+        reason: "customer_changed_mind",
+        cancelled_at: "2026-10-22T10:20:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+    );
+    expect(first.kind).not.toBe("applied");
+    const afterFirst = await store.getOrderByPublicId(order.publicId);
+    expect(afterFirst?.fulfillmentState).toBe("cancelled");
+    expect(afterFirst?.inventoryState).toBe("reserved");
+    // إعادةُ الحدثِ نفسِهِ: الإيصالُ المعامليُّ يُجيبُ — والتسويةُ **تُستأنفُ** قبلَ
+    // الحسمِ: الإفراجُ يكتملُ والانتقالُ لا يتكرَّرُ.
+    const second = await consumeCoreFulfillmentEvent(
+      consumeDeps(flaky),
+      coreEnvelope(eventId, "core.fulfillment.cancelled", {
+        ...basePayload(order.publicId),
+        reason: "customer_changed_mind",
+        cancelled_at: "2026-10-22T10:20:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+    );
+    expect(second.kind).toBe("applied");
+    const settled = await store.getOrderByPublicId(order.publicId);
+    expect(settled?.inventoryState).toBe("released");
+    // والأثرُ لا يتكرَّرُ: حدثُ إفراجٍ واحدٌ وحافةُ إلغاءٍ واحدةٌ في الدفترِ.
+    const releasedRows = await pool.query(
+      `SELECT count(*)::int AS n FROM delivery_outbox
+        WHERE event_type = 'store_order.inventory_released' AND aggregate_id = $1`,
+      [settled!.orderId],
+    );
+    expect(releasedRows.rows[0].n).toBe(1);
+    const cancelledEdges = await pool.query(
+      `SELECT count(*)::int AS n FROM store_order_transitions
+        WHERE order_id = $1 AND state_kind = 'fulfillment' AND to_state = 'cancelled'`,
+      [settled!.orderId],
+    );
+    expect(cancelledEdges.rows[0].n).toBe(1);
+  });
+
+  it("استئنافُ التسويةِ (ب): إفراجُ السوقِ ينجحُ والكتابةُ المحليّةُ تنهارُ — الإعادةُ تتقاربُ إلى released بلا فقدٍ ولا تكرارِ أثرٍ (§4.29)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    // غلافٌ حولَ المخزنِ الحقيقيِّ يُسقِطُ settleInventoryRelease مرةً واحدةً —
+    // محاكاةُ انهيارٍ بعدَ نجاحِ الإفراجِ الخارجيِّ وقبلَ اكتمالِ الكتابةِ المحليّةِ.
+    const flakySettle = { armed: true };
+    const wrappedWrite = new Proxy(store, {
+      get(target: typeof store, prop: string, _receiver: unknown): unknown {
+        if (prop === "settleInventoryRelease") {
+          const bound = Reflect.get(target, prop, target) as (write: unknown) => unknown;
+          return async (write: unknown) => {
+            if (flakySettle.armed) {
+              flakySettle.armed = false;
+              throw new DeliveryError("DELIVERY_DATABASE_UNAVAILABLE", "انهيارٌ مُحاكى بعدَ الإفراجِ");
+            }
+            return bound.call(target, write);
+          };
+        }
+        const value = Reflect.get(target, prop, target);
+        return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    });
+    const port = new FakeReservationPort();
+    const depsWithFlakyWrite = {
+      inbox,
+      orders: store,
+      transition: {
+        readPort: store,
+        writePort: wrappedWrite as unknown as typeof store,
+        reservationPort: port,
+        reservationStore: store,
+        ...ids(),
+      },
+    };
+    const eventId = crypto.randomUUID();
+    const payload = {
+      ...basePayload(order.publicId),
+      reason: "customer_changed_mind",
+      cancelled_at: "2026-10-22T10:20:00.000Z",
+      settlement_state: "none",
+      captured_minor: null,
+      financial_decision_required: false,
+    };
+    const first = await consumeCoreFulfillmentEvent(
+      depsWithFlakyWrite,
+      coreEnvelope(eventId, "core.fulfillment.cancelled", payload),
+    );
+    expect(first.kind).not.toBe("applied");
+    // الإفراجُ الخارجيُّ نجحَ (السوقَ نُوديَ) والكتابةُ المحليّةُ انهارتْ — الحجزُ
+    // باقٍ في الدفترِ (الذرّيّةُ) فالإعادةُ تُعيدُ المحاولةَ كلَّها.
+    expect(port.releaseCalls).toBe(1);
+    const second = await consumeCoreFulfillmentEvent(
+      depsWithFlakyWrite,
+      coreEnvelope(eventId, "core.fulfillment.cancelled", payload),
+    );
+    expect(second.kind).toBe("applied");
+    const settled = await store.getOrderByPublicId(order.publicId);
+    expect(settled?.inventoryState).toBe("released");
+    // نداءُ السوقِ تكرَّرَ (إفراجٌ مُتماثِلٌ لا أثرٌ) والحدثُ واحدٌ لا يتضاعفُ.
+    expect(port.releaseCalls).toBe(2);
+    const releasedRows = await pool.query(
+      `SELECT count(*)::int AS n FROM delivery_outbox
+        WHERE event_type = 'store_order.inventory_released' AND aggregate_id = $1`,
+      [settled!.orderId],
+    );
+    expect(releasedRows.rows[0].n).toBe(1);
+  });
+
+  it("استئنافُ التسويةِ (جـ): السوقُ يرفضُ الإفراجَ (released: false) — لا حسمَ نهائيَّ صامتًا، الحدثُ يبقى حيًّا (§4.29)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const refusing = new FakeReservationPort();
+    refusing.refuseReleases = true;
+    const eventId = crypto.randomUUID();
+    const payload = {
+      ...basePayload(order.publicId),
+      reason: "customer_changed_mind",
+      cancelled_at: "2026-10-22T10:20:00.000Z",
+      settlement_state: "none",
+      captured_minor: null,
+      financial_decision_required: false,
+    };
+    const first = await consumeCoreFulfillmentEvent(
+      consumeDeps(refusing),
+      coreEnvelope(eventId, "core.fulfillment.cancelled", payload),
+    );
+    expect(first.kind).not.toBe("applied");
+    const second = await consumeCoreFulfillmentEvent(
+      consumeDeps(refusing),
+      coreEnvelope(eventId, "core.fulfillment.cancelled", payload),
+    );
+    // الرفضُ مسمًّى وقابلٌ للإعادةِ: لا applied ولا duplicate — الحدثُ حيٌّ.
+    expect(second.kind).not.toBe("applied");
+    expect(second.kind).not.toBe("duplicate");
+    const row = await inbox.find(eventId);
+    expect(row === null || !["applied", "observed", "poisoned"].includes(row.consumedStatus)).toBe(true);
+    const still = await store.getOrderByPublicId(order.publicId);
+    expect(still?.fulfillmentState).toBe("cancelled");
+    expect(still?.inventoryState).toBe("reserved");
+  });
+
+  it("استئنافُ التسويةِ (د): طلبٌ ملغًى reserved بلا حجوزاتٍ نشطةٍ — خطأٌ مسمًّى لا نجاحٌ صامتٌ (§4.29)", async () => {
+    const order = await walkToReadyForDelivery(await placedOrder());
+    // الحالةُ الغريبةُ: دفترُ الحجوزاتِ فارغٌ والحالةُ reserved — لا يُفسَّرُ
+    // التحريرُ صمتًا.
+    await pool.query(`DELETE FROM delivery_inventory_reservations WHERE order_id = $1`, [order.orderId]);
+    const eventId = crypto.randomUUID();
+    const payload = {
+      ...basePayload(order.publicId),
+      reason: "customer_changed_mind",
+      cancelled_at: "2026-10-22T10:20:00.000Z",
+      settlement_state: "none",
+      captured_minor: null,
+      financial_decision_required: false,
+    };
+    const result = await consumeCoreFulfillmentEvent(
+      consumeDeps(),
+      coreEnvelope(eventId, "core.fulfillment.cancelled", payload),
+    );
+    expect(result.kind).not.toBe("applied");
+    const row = await inbox.find(eventId);
+    expect(row?.lastError ?? "").toContain("SETTLEMENT_INCONSISTENT");
   });
 
   it("إيصالٌ تاريخيٌّ بمعنى الرقعةِ القديمةِ: dispatched طُبِّق قديمًا إلى handed_to_courier — إعادةُ إرسالِهِ بعدَ الرقعةِ duplicate بلا تراجعٍ (§4.29)", async () => {

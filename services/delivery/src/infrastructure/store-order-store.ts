@@ -82,6 +82,7 @@ import type {
   FulfillmentTransitionOutcome,
   FulfillmentTransitionWrite,
   InventoryMirrorWrite,
+  InventorySettleReleaseWrite,
   InventoryReservationStore,
   MirrorInventoryOutcome,
   MirrorPaymentOutcome,
@@ -644,6 +645,58 @@ export class StoreOrderStore
       reservedAt: r.reserved_at,
       traceId: r.trace_id,
     }));
+  }
+
+  /**
+   * §4.29: تسويةُ إفراجِ إلغاءٍ — **معاملةٌ محليّةٌ واحدةٌ**: الحجوزاتُ النشطةُ
+   * تُنهى، وحالةُ المخزونِ تُنعكِسُ `reserved → released`، والحدثُ يُكتبُ في الصندوقِ،
+   * وردودُ التماثُلِ تُعادُ كتابتُها — كلُّ ذلكَ ذرّيٌّ فلا حالةَ منتصفٍ بينَ الدفترِ
+   * والانعكاسِ (استئنافُ الفشلِ يعيدُ المحاولةَ كلَّها لا نصفَها).
+   */
+  async settleInventoryRelease(write: InventorySettleReleaseWrite): Promise<MirrorInventoryOutcome> {
+    return this.inTransaction(async (client) => {
+      const current = await lockOrder(client, write.orderId, write.expectedVersion);
+      if (current.inventory_state !== write.fromInventoryState) {
+        throw new DeliveryError(
+          "DELIVERY_CONCURRENT_UPDATE",
+          "تغيَّرَت حالةُ المخزونِ بينَ القرارِ والكتابةِ — أعِد المحاولةَ",
+          { details: { expected: write.fromInventoryState, actual: String(current.inventory_state) } },
+        );
+      }
+      await client.query(
+        `UPDATE store_orders
+            SET inventory_state = $2,
+                inventory_ref = $3,
+                version = version + 1,
+                updated_at = now()
+          WHERE order_id = $1`,
+        [write.orderId, write.toInventoryState, write.inventoryRef],
+      );
+      await client.query(
+        `UPDATE delivery_inventory_reservations
+            SET status = 'released', released_at = now()
+          WHERE order_id = $1 AND status = 'active'`,
+        [write.orderId],
+      );
+      await client.query(
+        `INSERT INTO store_order_transitions (
+           order_id, state_kind, from_state, to_state, reason_code,
+           actor_type, actor_ref, trace_id
+         ) VALUES ($1,'inventory',$2,$3,$4,'system',NULL,$5)`,
+        [write.orderId, write.fromInventoryState, write.toInventoryState, write.reasonCode, write.traceId ?? null],
+      );
+      await appendOutbox(client, write.events, write.traceId ?? null);
+      const order = await readOrderAfterWrite(client, write.orderId);
+      // وردودُ التماثُلِ المخزَّنةُ تُعادُ كتابتُها كما في المرآةِ: الإعادةَ تُجيبُ
+      // بالطلبِ بعدَ التسويةِ لا باللقطةِ قبلَها (نمطُ M5-13M نفسُهُ).
+      await client.query(
+        `UPDATE delivery_idempotency_keys
+            SET response_body = $2
+          WHERE response_body->>'order_id' = $1`,
+        [write.orderId, JSON.stringify(toStoreOrderResponse(order))],
+      );
+      return { kind: "applied", order };
+    });
   }
 
   async releaseReservations(orderId: string): Promise<number> {

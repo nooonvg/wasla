@@ -51,7 +51,7 @@ import { createHash } from "node:crypto";
 import { DeliveryError } from "../domain/errors.js";
 import { deriveRequestFingerprint } from "../domain/idempotency.js";
 import type { IdempotencyIntent } from "../ports.js";
-import { fulfillmentTransition, type FulfillmentTransitionDeps } from "./fulfillment-transition.js";
+import { fulfillmentTransition, settleCancellationInventory, type FulfillmentTransitionDeps } from "./fulfillment-transition.js";
 
 /** نتيجةُ استهلاكِ حدثٍ واحدٍ — كلُّ احتمالٍ مسمّى. */
 export type CoreFulfillmentConsumeResult =
@@ -175,6 +175,16 @@ export async function consumeCoreFulfillmentEvent(
       await deps.inbox.recordRetryable(envelope.event_id, "receipt_fingerprint_mismatch");
       return { kind: "error", error: "receipt_fingerprint_mismatch" };
     }
+    // §4.29: الإيصالُ يُثبِتُ وقوعَ الانتقالِ **لا اكتمالَ تسويةِ الإفراجِ** —
+    // استئنافُ التسويةِ قبلَ أيِّ حسمٍ نهائيٍّ: فشلُ الإفراجِ بعدَ الالتزامِ لا
+    // يُفقدُ بإجابةِ الإيصالِ بل يبقى مرئيًّا قابلًا للإعادةِ.
+    try {
+      await settleCancellationInventory(deps.transition, order.publicId, envelope.correlation_id ?? null);
+    } catch (error) {
+      const message = error instanceof DeliveryError ? error.code : "settlement_failed";
+      await deps.inbox.recordRetryable(envelope.event_id, `settlement:${message}`);
+      return { kind: "error", error: `settlement:${message}` };
+    }
     await deps.inbox.recordTerminal({
       eventId: envelope.event_id,
       eventType: event.kind,
@@ -208,6 +218,15 @@ export async function consumeCoreFulfillmentEvent(
     // يُكتبُ الآنَ. ولا يُعلنُ «خارجَ الترتيبِ» أبدًا لما وقعَ فعلًا — حتى
     // حينَ يُسقِطُهُ الإسقاطُ خارجَ الترتيبِ (من الحالةِ نفسِها إلى نفسِها) فذلكَ
     // عينُ «الأثرُ قائمٌ».
+    // §4.29: وكالإيصالِ — الأثرُ القائمُ لا يعني اكتمالَ تسويةِ الإفراجِ:
+    // الاستئنافُ قبلَ الحسمِ النهائيِّ.
+    try {
+      await settleCancellationInventory(deps.transition, order.publicId, envelope.correlation_id ?? null);
+    } catch (error) {
+      const message = error instanceof DeliveryError ? error.code : "settlement_failed";
+      await deps.inbox.recordRetryable(envelope.event_id, `settlement:${message}`);
+      return { kind: "error", error: `settlement:${message}` };
+    }
     await deps.inbox.recordTerminal({
       eventId: envelope.event_id,
       eventType: event.kind,
@@ -275,7 +294,8 @@ export async function consumeCoreFulfillmentEvent(
     }
     // سباقُ حالةٍ (تغيّرتِ الحالةُ بينَ القراءةِ والتطبيقِ) = قابلٌ للإعادةِ:
     // إعادةُ الإرسالِ تُعيدُ الإسقاطَ على الحالةِ الجديدةِ فلا يُفقدُ شيءٌ.
-    const message = error instanceof Error ? error.message : "transition_failed";
+    // والفشلُ داخلَ التسويةِ (§4.29) يُسمّى بكودِهِ الثابتِ لا برسالتِهِ.
+    const message = error instanceof DeliveryError ? error.code : error instanceof Error ? error.message : "transition_failed";
     await deps.inbox.recordRetryable(envelope.event_id, `transition_conflict:${message}`);
     return {
       kind: "out_of_order",
