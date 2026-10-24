@@ -260,8 +260,12 @@ export async function fulfillmentTransition(
   // فشلُ أيِّ خطوةٍ بعدَ التزامِ الانتقالِ لا يُفقدُ الإفراجَ (إعادةُ المحاولةِ
   // تُستأنفُهُ منَ الإيصالِ نفسِهِ) ولا تُكرِّرُ أثرًا وقعَ.
   if (decision.releasesInventory && order.inventoryState === "reserved") {
+    // §4.29: والطلبُ المعادُ في **الحالتينِ** — `settled` و`not_needed` كلاهما يحملُ
+    // قراءةً طازجةً بعدَ التسويةِ: فإذا أكملتْ محاولةٌ أخرى التسويةَ قبلَ مساعدِنا
+    // رجعَ `not_needed` بطلبٍ حالتُهُ `released` — وإعادتُهُ أصدقُ من إعادةِ لقطةِ
+    // ما قبلَ التسويةِ (`result`) بحالةِ `reserved`.
     const settlement = await settleCancellationInventory(deps, publicId, traceId);
-    if (settlement.kind === "settled") return { kind: "applied" as const, order: settlement.order };
+    return { kind: "applied" as const, order: settlement.order };
   }
 
   return result;
