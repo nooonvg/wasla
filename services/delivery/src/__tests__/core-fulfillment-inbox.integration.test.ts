@@ -25,7 +25,6 @@ import { placeStoreOrder } from "../use-cases/place-store-order.js";
 import {
   FakeCatalog,
   FakeReservationPort,
-  FakeReservationStore,
   CUSTOMER_REF,
   PRODUCT_A,
   PRODUCT_B,
