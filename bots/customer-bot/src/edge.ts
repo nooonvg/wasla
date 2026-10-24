@@ -15,7 +15,7 @@
  */
 
 import { buildBotApp, type BotApp, type BotRuntimeOverrides } from "@wasla/bot-runtime";
-import { createChannelEdge, EdgeSessionRejectedError } from "@wasla/channel-edge";
+import { createChannelEdge, EdgeSessionRejectedError, type EdgeUpstream } from "@wasla/channel-edge";
 import { CHANNEL_SESSION_EDGE_SCOPES, CHANNEL_IDENTITY_SCOPES } from "@wasla/bot-runtime";
 import { createServiceRequestSigner, keyRegistryFromEnv } from "@wasla/service-auth";
 
@@ -29,6 +29,18 @@ export interface CustomerBotEdgeOverrides extends BotRuntimeOverrides {
   readonly coreUrl?: string;
   /** مفتاحُ التفعيلِ — لا يُقرأُ من جسمِ الطلبِ ولا الترويساتِ. */
   readonly edgeEnabled?: boolean;
+  /**
+   * مسارُ قائمةِ السماحِ — اختياريٌّ للاختبارِ المعزولِ فقط؛ الافتراضيُّ
+   * الملفُّ المحكومُ (`packages/channel-edge/allowlist/customer-mini-app.json`
+   * · حارسُ الفحصِ 28) ولا يُقرأُ من جسمِ الطلبِ ولا من الترويساتِ.
+   */
+  readonly edgeAllowlistUrl?: string;
+  /**
+   * وجهاتُ التوجيهِ — اختياريٌّ للاختبارِ المعزولِ فقط؛ الافتراضيُّ **لا
+   * وجهاتَ** (لا منحَ لبوتِ العميلِ على جمهورِ أيِّ خدمةٍ بعدُ · M1-05) ففتحُ
+   * أيِّ مدخلٍ إنتاجيٍّ يتطلّبُ وصلَ وجهةٍ موقِّعٍ مصرَّحٍ أوّلًا.
+   */
+  readonly edgeUpstreams?: Readonly<Record<string, EdgeUpstream>>;
 }
 
 /**
@@ -229,7 +241,12 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
     // أيِّ مدخلٍ يتطلّبُ أوّلًا وصلَ `upstreams.<service>` بعنوانِها وموقّعِها
     // المصرَّحِ — وإلّا فشلَ التركيبُ بخطأِ تهيئةٍ صريحٍ (لا وجهةَ احتياطيةَ
     // إلى الهويةِ ولا تخطيًا صامتًا).
-    allowlistUrl: "packages/channel-edge/allowlist/customer-mini-app.json",
+    allowlistUrl:
+      overrides?.edgeAllowlistUrl ??
+      "packages/channel-edge/allowlist/customer-mini-app.json",
+    ...(overrides?.edgeUpstreams !== undefined
+      ? { upstreams: overrides.edgeUpstreams }
+      : {}),
     enabled: true,
     allowedOrigins: [],
   });
