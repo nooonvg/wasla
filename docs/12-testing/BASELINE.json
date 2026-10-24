@@ -1,13 +1,13 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-24T17:21:09Z",
+  "generated_at": "2026-10-24T17:55:15Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "7365370f16817fd96e0c0382ff7dd75d8daba0e2",
+    "commit": "d02d911423a896ff946dc26ef52b97bf0f1ce80e",
     "branch": "fix/partner-contract-experiment",
     "dirty": false,
     "dirty_files": 0,
-    "dirty_reason": "ملفا اختبار تجربة العقد لشريحة ب.2 (CLM-0698) — الآن متتبعة بعد الإيداع",
+    "dirty_reason": "",
     "tracked_files": 3675
   },
   "env": {
