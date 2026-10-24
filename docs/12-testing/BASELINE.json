@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-24T05:20:57Z",
+  "generated_at": "2026-10-24T14:29:52Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "db2bc86f8b59cc2d338d486774bde80c6b90bf5b",
-    "branch": "stage-zero/clm-0688-ecosystem-revisions-split",
-    "dirty": false,
-    "dirty_files": 0,
+    "commit": "5ca6362496828ab4d6b3842d9c021309cec5b8f4",
+    "branch": "fix/edge-proxy-routing",
+    "dirty": true,
+    "dirty_files": 1,
     "dirty_reason": "",
-    "tracked_files": 3661
+    "tracked_files": 3666
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 592,
+    "test_files_tracked": 594,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 29,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-23T150000Z-clm-0684-item-1-5-pwa/raw/verify-full.txt",
-    "tests_passed": 6331,
-    "test_files_executed": 446,
+    "source": "docs/12-testing/ci-evidence/2026-10-24T133000Z-clm-0694-edge-proxy-fix/raw/verify-full.txt",
+    "tests_passed": 6439,
+    "test_files_executed": 454,
     "governance_suite_cases": 696,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:139b749072fd1879b658667b9646bed76670663fcbe528352eb88f81db98bd5c",
+  "fingerprint": "sha256:8f4deedb31663c2c82aeb50c877a8494ca5ccaab7a42652d87c398c08c8083df",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
