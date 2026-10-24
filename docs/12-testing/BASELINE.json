@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-23T16:07:52Z",
+  "generated_at": "2026-10-24T05:20:57Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "dcb9d206d1d3fd3cce65c180744b0cca0c53e03e",
-    "branch": "stage-zero/clm-0684-item-1-5-pwa",
-    "dirty": true,
-    "dirty_files": 1,
-    "dirty_reason": "إعادةُ توليدِ BASELINE.json نفسِهِ — الملفُّ الوحيدُ المُعدَّلُ عندَ التوليدِ",
-    "tracked_files": 3655
+    "commit": "db2bc86f8b59cc2d338d486774bde80c6b90bf5b",
+    "branch": "stage-zero/clm-0688-ecosystem-revisions-split",
+    "dirty": false,
+    "dirty_files": 0,
+    "dirty_reason": "",
+    "tracked_files": 3661
   },
   "env": {
     "node": "v20.20.2",
@@ -19,7 +19,7 @@
   },
   "lock": {
     "path": "pnpm-lock.yaml",
-    "sha256": "af701df54f4ca78dd5b1ba0bd596a2f9acd2340c0fe3e7b0fafdd1eceb1695a8",
+    "sha256": "7c19b6942ae4d532175321e158bccdcf5e7fe7f2fc59435015bfaaa3352941ce",
     "lines": 5132
   },
   "static": {
@@ -41,6 +41,6 @@
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:b84e155ad7e740a6664ebef4c913ddabf88fe78063ecbaf219e800a264940ec4",
+  "fingerprint": "sha256:139b749072fd1879b658667b9646bed76670663fcbe528352eb88f81db98bd5c",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
