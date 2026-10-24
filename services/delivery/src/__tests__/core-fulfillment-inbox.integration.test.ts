@@ -596,6 +596,9 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
       }),
     );
     expect(second.kind).toBe("applied");
+    // النتيجةُ المعادةُ نفسُها تحملُ ما بعدَ التسويةِ (لا اللقطةَ قبلَها) —
+    // فحصُ الحالةِ في الجوابِ لا في قراءةٍ لاحقةٍ وحدَها.
+    expect(second.kind === "applied" && second.order.inventoryState).toBe("released");
     const settled = await store.getOrderByPublicId(order.publicId);
     expect(settled?.inventoryState).toBe("released");
     // والأثرُ لا يتكرَّرُ: حدثُ إفراجٍ واحدٌ وحافةُ إلغاءٍ واحدةٌ في الدفترِ.
@@ -668,6 +671,7 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
       coreEnvelope(eventId, "core.fulfillment.cancelled", payload),
     );
     expect(second.kind).toBe("applied");
+    expect(second.kind === "applied" && second.order.inventoryState).toBe("released");
     const settled = await store.getOrderByPublicId(order.publicId);
     expect(settled?.inventoryState).toBe("released");
     // نداءُ السوقِ تكرَّرَ (إفراجٌ مُتماثِلٌ لا أثرٌ) والحدثُ واحدٌ لا يتضاعفُ.
@@ -678,6 +682,55 @@ describe.skipIf(!PG_ENABLED)("core fulfillment inbox — PostgreSQL", () => {
       [settled!.orderId],
     );
     expect(releasedRows.rows[0].n).toBe(1);
+  });
+
+  it("استئنافُ التسويةِ (هـ): جوابُ replayed من فحصِ التماثُلِ داخلَ معاملةِ الكتابةِ لا يتجاوزُ التسويةَ (§4.29)", async () => {
+    // سباقٌ محددٌ: الفحصُ الابتدائيُّ لا يجدُ إيصالًا، ثمّ يجيبُ محوّلُ الكتابةِ
+    // `replayed` من فحصِهِ الداخليِّ (التزامٌ متزامنٌ بينَ الفحصينِ). هذا الجوابُ
+    // كانَ سيتجاوزُ التسويةَ — والآن يمرُّ عبرَها: الإلغاءُ المحجوزُ يُسوَّى رغمَهُ.
+    const order = await walkToReadyForDelivery(await placedOrder());
+    const writePortReturningReplayed = new Proxy(store, {
+      get(target: typeof store, prop: string, _receiver: unknown): unknown {
+        if (prop === "fulfillmentTransition") {
+          const bound = Reflect.get(target, prop, target) as (write: unknown) => Promise<unknown>;
+          return async (write: unknown) => {
+            // الانتقالُ يلتزمُ فعلًا (والإيصالُ يُخزَّنُ) — لكنّ الجوابَ للنمطِ
+            // السباقيِّ: replayed.
+            await bound.call(target, write);
+            return { kind: "replayed", status: 200, body: null };
+          };
+        }
+        const value = Reflect.get(target, prop, target);
+        return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    });
+    const eventId = crypto.randomUUID();
+    const result = await consumeCoreFulfillmentEvent(
+      {
+        inbox,
+        orders: store,
+        transition: {
+          readPort: store,
+          writePort: writePortReturningReplayed as unknown as typeof store,
+          reservationPort: new FakeReservationPort(),
+          reservationStore: store,
+          ...ids(),
+        },
+      },
+      coreEnvelope(eventId, "core.fulfillment.cancelled", {
+        ...basePayload(order.publicId),
+        reason: "customer_changed_mind",
+        cancelled_at: "2026-10-22T10:20:00.000Z",
+        settlement_state: "none",
+        captured_minor: null,
+        financial_decision_required: false,
+      }),
+    );
+    // الجوابُ replayed (سباقُ التزامٍ) — والتسويةُ لم تتخطَّهُ: الإفراجُ وقعَ.
+    expect(result.kind).toBe("applied");
+    expect(result.kind === "applied" && result.order.inventoryState).toBe("released");
+    const settled = await store.getOrderByPublicId(order.publicId);
+    expect(settled?.inventoryState).toBe("released");
   });
 
   it("استئنافُ التسويةِ (جـ): السوقُ يرفضُ الإفراجَ (released: false) — لا حسمَ نهائيَّ صامتًا، الحدثُ يبقى حيًّا (§4.29)", async () => {

@@ -152,7 +152,9 @@ export async function fulfillmentTransition(
     // الإلغاءُ المحجوزُ يُستأنفُ تسويتُهُ حتى على الإعادةِ (الفشلُ بعدَ الالتزامِ
     // لا يُفقدُ الإفراجَ: التسويةَ لا الانتقالَ يُعادُ).
     await settleCancellationInventory(deps, publicId, traceId);
-    return replay;
+    // وبعدَ التسويةِ يُعادُ قراءةُ الردِّ المخزَّنِ نفسِهِ: التسويةُ أعادت كتابتَهُ
+    // (النسخةُ بعدَ الإفراجِ) فلا يُعادُ الجوابُ القديمُ بلقطةِ ما قبلَها.
+    return (await resolveIdempotentReplay(deps.readPort, idempotency, traceId)) ?? replay;
   }
 
   const order = await deps.readPort.getOrderByPublicId(publicId);
@@ -245,7 +247,13 @@ export async function fulfillmentTransition(
   };
 
   const result = await deps.writePort.fulfillmentTransition(write);
-  if (result.kind !== "applied") return result;
+  if (result.kind !== "applied") {
+    // §4.29: فحصُ التماثُلِ **داخلَ معاملةِ الكتابةِ** قد يُجيبُ `replayed` حتى
+    // بعدَ أن وجدَ الفحصُ الابتدائيُّ لا إيصالَ (التزامٌ متزامنٌ بينَ الفحصينِ) —
+    // وهذا الجوابُ يمرُّ عبرَ التسويةِ أيضًا لا يتجاوزُها.
+    await settleCancellationInventory(deps, publicId, traceId);
+    return (await resolveIdempotentReplay(deps.readPort, idempotency, traceId)) ?? result;
+  }
 
   // ── §4.29: إفراجُ الحجزِ عندَ الإلغاءِ ─────────────────────────────────
   // كلُّ حافّةٍ إلى `cancelled` تُفرِجُ الحجزَ — بتسويةٍ **قابلةٍ للاستئنافِ**:

@@ -178,8 +178,11 @@ export async function consumeCoreFulfillmentEvent(
     // §4.29: الإيصالُ يُثبِتُ وقوعَ الانتقالِ **لا اكتمالَ تسويةِ الإفراجِ** —
     // استئنافُ التسويةِ قبلَ أيِّ حسمٍ نهائيٍّ: فشلُ الإفراجِ بعدَ الالتزامِ لا
     // يُفقدُ بإجابةِ الإيصالِ بل يبقى مرئيًّا قابلًا للإعادةِ.
+    let settledOrder = order;
     try {
-      await settleCancellationInventory(deps.transition, order.publicId, envelope.correlation_id ?? null);
+      // §4.29: والطلبُ المعادُ هو ما بعدَ التسويةِ لا اللقطةُ قبلَها.
+      const settlement = await settleCancellationInventory(deps.transition, order.publicId, envelope.correlation_id ?? null);
+      settledOrder = settlement.order;
     } catch (error) {
       const message = error instanceof DeliveryError ? error.code : "settlement_failed";
       await deps.inbox.recordRetryable(envelope.event_id, `settlement:${message}`);
@@ -192,7 +195,7 @@ export async function consumeCoreFulfillmentEvent(
       consumedStatus: "applied",
       lastError: null,
     });
-    return { kind: "applied", order };
+    return { kind: "applied", order: settledOrder };
   }
 
   // 5) الإسقاطُ: قرارٌ نقيٌّ منَ الآلةِ القائمةِ.
@@ -220,8 +223,11 @@ export async function consumeCoreFulfillmentEvent(
     // عينُ «الأثرُ قائمٌ».
     // §4.29: وكالإيصالِ — الأثرُ القائمُ لا يعني اكتمالَ تسويةِ الإفراجِ:
     // الاستئنافُ قبلَ الحسمِ النهائيِّ.
+    let settledOrder = order;
     try {
-      await settleCancellationInventory(deps.transition, order.publicId, envelope.correlation_id ?? null);
+      // §4.29: والطلبُ المعادُ هو ما بعدَ التسويةِ لا اللقطةُ قبلَها.
+      const settlement = await settleCancellationInventory(deps.transition, order.publicId, envelope.correlation_id ?? null);
+      settledOrder = settlement.order;
     } catch (error) {
       const message = error instanceof DeliveryError ? error.code : "settlement_failed";
       await deps.inbox.recordRetryable(envelope.event_id, `settlement:${message}`);
@@ -234,7 +240,7 @@ export async function consumeCoreFulfillmentEvent(
       consumedStatus: "applied",
       lastError: null,
     });
-    return { kind: "applied", order };
+    return { kind: "applied", order: settledOrder };
   }
 
   if (decision.kind === "out_of_order") {
