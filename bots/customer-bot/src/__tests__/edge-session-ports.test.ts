@@ -7,13 +7,15 @@
  */
 
 import { FakeIdentityBootstrap, MockChannelAdapter } from "@wasla/channel-core";
-import { keyRegistryFromEnv, verifyServiceToken } from "@wasla/service-auth";
+import { createServiceRequestSigner, keyRegistryFromEnv, verifyServiceToken } from "@wasla/service-auth";
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildAppWithEdge } from "../edge.js";
+import { buildAppWithEdge, buildCustomerBotSessionPorts } from "../edge.js";
+import { createChannelEdge } from "@wasla/channel-edge";
+import { buildApp } from "../server.js";
 
 // تركيبُ الحدِّ يقرأُ قائمةَ السماحِ بمسارٍ نسبيٍّ من جذرِ المستودعِ (كما في
 // CI) — فاختبارُ الحزمةِ يضبطُ جذرَ العملِ إلى الجذرِ لا إلى مجلدِ الحزمةِ.
@@ -35,6 +37,14 @@ const ENV = {
 const TEST_KEYS = keyRegistryFromEnv({
   WASLA_SERVICE_AUTH_KEYS: ENV.WASLA_SERVICE_AUTH_KEYS,
   WASLA_SERVICE_AUTH_ACTIVE_KID: ENV.WASLA_SERVICE_AUTH_ACTIVE_KID,
+});
+
+/** مُوقِّعُ `customers` للاختبارِ المعزولِ — الدورُ المُعلَنُ في المصفوفةِ (e2e-harness). */
+const customersUpstreamSigner = createServiceRequestSigner({
+  serviceName: "e2e-harness",
+  audience: "customers",
+  keys: TEST_KEYS,
+  scopes: ["customers:profile:read"],
 });
 
 interface CapturedCall {
@@ -192,6 +202,138 @@ describe("تركيبُ البوتِ — منافذُ الجلسةِ عبرَ ا�
         },
       );
       expect(issuePrincipal.serviceName).toBe("customer-bot");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("الاستبدالُ عبرَ مغلفٍّ حولَ createChannelEdge الحقيقيِّ بمنافذِ الإنتاجِ نفسِها: النداءانِ موقَّعانِ والمعاملُ معوَّضٌ والاستعلامُ محفوظٌ والتوقيعانِ يتحققانِ", async () => {
+    // المغلفُّ: منافذُ الإنتاجِ الحقيقيةُ (buildCustomerBotSessionPorts — النداءاتُ
+    // الموقَّعةُ إلى identity كما في التركيبِ لا نسخةً) + createChannelEdge الحقيقيُّ
+    // بقائمةِ سماحٍ ووجهةِ اختبارٍ معزولةٍ. الإنتاجُ ثابتٌ — لا حقنَ في التركيبِ.
+    const captured: CapturedCall[] = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
+      captured.push({
+        url: String(input),
+        method: String(init?.method ?? "GET"),
+        headers: (init?.headers ?? {}) as Record<string, string>,
+        ...(init?.body !== undefined ? { body: String(init.body) } : {}),
+      });
+      // نداءُ الاستبدالِ إلى identity يُجابُ بجلسةٍ صالحةٍ؛ نداءُ الخدمةِ يُجابُ بالملفِ.
+      if (String(input).includes("/identity/sessions/exchange")) {
+        return new Response(
+          JSON.stringify({
+            assertion: "assertion-exchange-test",
+            wasla_public_id: "CUS-456",
+            actor_type: "customer",
+            audience: ["customers"],
+            expires_at: "2026-12-31T23:59:59Z",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(
+        JSON.stringify({ profile: { wasla_public_id: "CUS-456" } }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch;
+
+    try {
+      const ports = buildCustomerBotSessionPorts({
+        identityUrl: "http://identity.test",
+        env: ENV,
+      });
+      // تطبيقُ البوتِ الحقيقيُّ بلا حدٍّ (buildApp لا buildAppWithEdge) — والمغلفُّ
+      // يطبِّقُ الحدَّ الحقيقيَّ عليه: لا استيرادَ fastify عابرًا للحزمِ.
+      const bot = buildApp({
+        env: ENV,
+        channel: new MockChannelAdapter(),
+        identity: new FakeIdentityBootstrap("WS-1000"),
+        logger: false,
+      });
+      const edge = createChannelEdge({
+        surface: {
+          actorType: "customer",
+          botToken: ENV.CUSTOMER_BOT_TOKEN,
+          requestSigner: ports.sessionSigner,
+          waslaPublicIdOf: async () => "",
+        },
+        issueSession: ports.issueSession,
+        exchangeSession: ports.exchangeSession,
+        revokeSession: ports.revokeSession,
+        allowlistUrl: join(
+          dirname(fileURLToPath(import.meta.url)),
+          "fixtures/edge-allowlist-exchange-fixture.json",
+        ),
+        upstreams: {
+          customers: {
+            baseUrl: "http://customers.test",
+            requestSigner: customersUpstreamSigner,
+          },
+        },
+        enabled: true,
+        allowedOrigins: ["https://apps.wasla.test"],
+      });
+      edge.apply(bot.app);
+      await bot.app.ready();
+
+      const response = await bot.app.inject({
+        method: "GET",
+        url: "/edge/test/customers/CUS-456/profile?include=places",
+        headers: {
+          origin: "https://apps.wasla.test",
+          authorization: "Bearer a-live-session-token",
+        },
+      });
+
+      // الوكيلُ أجابَ — لا 401 من علةِ الترويسةِ ولا 500.
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ profile: { wasla_public_id: "CUS-456" } });
+
+      // نداءانِ: الاستبدالُ (identity · منفذُ الإنتاجِ الحقيقيُّ) ثمَّ الخدمةُ.
+      expect(captured).toHaveLength(2);
+      expect(captured[0].url).toBe("http://identity.test/identity/sessions/exchange");
+      // مسارُ المدخلِ يُمرَّرُ كما هو (المعاملُ معوَّضٌ والاستعلامُ محفوظٌ).
+      expect(captured[1].url).toBe(
+        "http://customers.test/edge/test/customers/CUS-456/profile?include=places",
+      );
+
+      // توقيعُ الاستبدالِ حقيقيٌّ ويتحققُ — منفذُ الإنتاجِ نفسُه: الجمهورُ `identity`
+      // والدورُ `customer-bot` والربطُ بالطريقةِ والمسارِ وجسمُ الطلبِ بالرمزِ والجمهورِ.
+      const exchangePrincipal = verifyServiceToken(
+        String(captured[0].headers["x-wasla-service-auth"]),
+        {
+          audience: "identity",
+          method: "POST",
+          path: "/identity/sessions/exchange",
+          keys: TEST_KEYS,
+          now: new Date(),
+        },
+      );
+      expect(exchangePrincipal.serviceName).toBe("customer-bot");
+      expect(JSON.parse(captured[0].body ?? "{}")).toEqual({
+        session_token: "a-live-session-token",
+        audience: ["customers"],
+      });
+
+      // توقيعُ نداءِ الخدمةِ حقيقيٌّ ويتحققُ على المسارِ الخامِّ معَ استعلامِهِ —
+      // و`obo` يحملُ هويةَ الجلسةِ (CUS-456) وتأكيدُ المستخدمِ يُمرَّرُ كما عُهِدَ.
+      const backendPrincipal = verifyServiceToken(
+        String(captured[1].headers["x-wasla-service-auth"]),
+        {
+          audience: "customers",
+          method: "GET",
+          path: "/edge/test/customers/CUS-456/profile?include=places",
+          keys: TEST_KEYS,
+          now: new Date(),
+        },
+      );
+      expect(backendPrincipal.serviceName).toBe("e2e-harness");
+      expect(backendPrincipal.onBehalfOfPublicId).toBe("CUS-456");
+      expect(captured[1].headers["X-Wasla-User-Assertion"]).toBe(
+        "assertion-exchange-test",
+      );
     } finally {
       globalThis.fetch = originalFetch;
     }
