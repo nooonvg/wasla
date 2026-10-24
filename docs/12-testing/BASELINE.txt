@@ -1,7 +1,7 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-24T05:20:57Z
-الالتزام: db2bc86f8b59cc2d338d486774bde80c6b90bf5b  الفرع: stage-zero/clm-0688-ecosystem-revisions-split  شجرةٌ نظيفةٌ
+التاريخ (UTC): 2026-10-24T14:31:30Z
+الالتزام: 36ec1db4b986c037f68bea944d513e1590faab9c  الفرع: fix/edge-proxy-routing  شجرةٌ مُعدَّلةٌ (2 ملفّاً)
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.8
 القفل: pnpm-lock.yaml · 5132 سطراً · sha256 7c19b6942ae4d532…
 
@@ -9,18 +9,18 @@
   packages                   74
   packages_with_typecheck    70
   packages_with_test         74
-  test_files_tracked         592
+  test_files_tracked         594
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          29
   risks_not_closed           27
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-23T150000Z-clm-0684-item-1-5-pwa/raw/verify-full.txt):
-  tests_passed               6331
-  test_files_executed        446
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-24T133000Z-clm-0694-edge-proxy-fix/raw/verify-full.txt):
+  tests_passed               6439
+  test_files_executed        454
   governance_suite_cases     696
   governance_suite_failed    1
   verify_overall             failed
 
-البصمة: sha256:139b749072fd1879b658667b9646bed76670663fcbe528352eb88f81db98bd5c
+البصمة: sha256:8f4deedb31663c2c82aeb50c877a8494ca5ccaab7a42652d87c398c08c8083df
 المرجع: docs/12-testing/BASELINE_FORMAT.md

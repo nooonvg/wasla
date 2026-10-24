@@ -7,4 +7,5 @@
  */
 
 export * from "./types.js";
-export { createChannelEdge } from "./create-channel-edge.js";
+export { createChannelEdge, EdgeSessionRejectedError } from "./create-channel-edge.js";
+export type { EdgeUpstream } from "./create-channel-edge.js";

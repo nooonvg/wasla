@@ -15,7 +15,7 @@
  */
 
 import { buildBotApp, type BotApp, type BotRuntimeOverrides } from "@wasla/bot-runtime";
-import { createChannelEdge } from "@wasla/channel-edge";
+import { createChannelEdge, EdgeSessionRejectedError } from "@wasla/channel-edge";
 import { CHANNEL_SESSION_EDGE_SCOPES, CHANNEL_IDENTITY_SCOPES } from "@wasla/bot-runtime";
 import { createServiceRequestSigner, keyRegistryFromEnv } from "@wasla/service-auth";
 
@@ -106,11 +106,67 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
         session_id: String(payload.session_id ?? ""),
       };
     },
-    exchangeSession: async () => {
-      throw new Error("لا يُستدعى في هذا التركيبِ");
+    // ── استبدالُ الجلسةِ: نداءٌ حقيقيٌّ موقَّعٌ إلى identity (ADR-069 §2.1). ────
+    // رفضُ الجلسةِ المتوقعُ (مجهولةٌ أو منتهيةٌ · 401/403 من identity) يُعلَنُ
+    // بـ`EdgeSessionRejectedError` فيردُّ الحدُّ 401 مسمًّى — لا استثناءً عامًّا
+    // يتحولُ 500 عندَ المسارِ.
+    exchangeSession: async (body) => {
+      const response = await fetch(`${identityUrl}/identity/sessions/exchange`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...sessionSigner("POST", "/identity/sessions/exchange"),
+        },
+        body: JSON.stringify(body),
+      });
+      if (response.status === 401 || response.status === 403) {
+        throw new EdgeSessionRejectedError(
+          `identity sessions/exchange returned ${response.status}`,
+        );
+      }
+      if (response.status !== 200) {
+        throw new Error(`identity sessions/exchange returned ${response.status}`);
+      }
+      const payload = (await response.json().catch(() => null)) as
+        | { assertion?: unknown; wasla_public_id?: unknown; actor_type?: unknown; audience?: unknown; expires_at?: unknown }
+        | null;
+      if (!payload || typeof payload.assertion !== "string" || typeof payload.wasla_public_id !== "string") {
+        throw new Error("identity sessions/exchange returned an malformed payload");
+      }
+      const actorType = String(payload.actor_type ?? "");
+      if (actorType !== "customer" && actorType !== "driver") {
+        throw new Error("identity sessions/exchange returned unknown actor_type");
+      }
+      return {
+        assertion: payload.assertion,
+        wasla_public_id: payload.wasla_public_id,
+        actor_type: actorType,
+        audience: Array.isArray(payload.audience) ? payload.audience.map(String) : [],
+        expires_at: String(payload.expires_at ?? ""),
+      };
     },
-    revokeSession: async () => {
-      throw new Error("لا يُستدعى في هذا التركيبِ");
+    // ── سحبُ الجلسةِ: نداءٌ حقيقيٌّ موقَّعٌ — مسارُ الخروجِ مسجَّلٌ فلا يبقى ──
+    // منفذُهُ استثناءً ثابتًا. الجلسةُ المجهولةُ (404 من identity) نتيجةٌ
+    // متوقعةٌ لا خطأٌ: تُعلَنُ { revoked: false } فيردُّ الحدُّ 401 مسمًّى.
+    revokeSession: async (body) => {
+      const response = await fetch(`${identityUrl}/identity/sessions/revoke`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...sessionSigner("POST", "/identity/sessions/revoke"),
+        },
+        body: JSON.stringify(body),
+      });
+      if (response.status === 404) {
+        return { revoked: false };
+      }
+      if (response.status !== 200) {
+        throw new Error(`identity sessions/revoke returned ${response.status}`);
+      }
+      const payload = (await response.json().catch(() => null)) as
+        | { revoked?: unknown }
+        | null;
+      return { revoked: payload?.revoked === true };
     },
     // ── جسرُ الويبِ (XR-6.1): التحقّقُ من رمزِ النواةِ عندَ مُصدِرِهِ. ──────
     // المصدرُ الوحيدُ لثقةِ الويبِ هو النواةُ (D-XR-9) — النداءُ هنا يمرِّرُ
@@ -167,8 +223,12 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
           },
         }
       : {}),
-    identityUrl,
-    requestSigner: sessionSigner,
+    // ── وجهاتُ التوجيهِ: لا شيءَ موصولًا اليومَ عمدًا ─────────────────────
+    // قائمةُ السماحِ كلُّها مغلقةٌ (`production_open=false` · CLM-0521)، ولا منحَ
+    // لبوتِ العميلِ على جمهورِ أيِّ خدمةٍ من خدماتِها بعدُ (مصفوفةُ M1-05). ففتحُ
+    // أيِّ مدخلٍ يتطلّبُ أوّلًا وصلَ `upstreams.<service>` بعنوانِها وموقّعِها
+    // المصرَّحِ — وإلّا فشلَ التركيبُ بخطأِ تهيئةٍ صريحٍ (لا وجهةَ احتياطيةَ
+    // إلى الهويةِ ولا تخطيًا صامتًا).
     allowlistUrl: "packages/channel-edge/allowlist/customer-mini-app.json",
     enabled: true,
     allowedOrigins: [],
