@@ -1,3 +1,14 @@
+# 2026-10-24 — CLM-0690 — حجزٌ ثانٍ: اختبار E2E لمسار الإسناد عبر HTTP (تكملة CLM-0689)
+
+- **Work Item(s):** M0-54 (حجزٌ ثانٍ على الفرعِ نفسِهِ وفقَ WORK_CLAIM_RULE §6 — عملٌ نشأ بعدَ بدءِ كتابةِ CLM-0689).
+- **Kind:** test — برهانُ مسارِ §4.29 على السلكِ الحقيقيِّ: `confirmed → assigned → delivered` عبرَ HTTP معَ بوّابةِ الإثباتِ والخصمِ النهائيِّ في الصندوقِ.
+- **Units:** `packages/delivery-e2e/src/__tests__/phase13-exit-gate.e2e.test.ts`.
+- **Status:** Released — مدموج معَ CLM-0689 على `main`: مقيسٌ عبرَ HTTP حقيقيٍّ **21/21**.
+- **Change:** +1 اختبارِ E2E لمسارِ الإسنادِ (النظيرُ الحيُّ لاختبارِ المسارِ المحليِّ القديمِ المحفوظِ).
+- **Tests:** E2E عبرَ HTTP حقيقيٍّ **21/21** · `tsc` نظيفٌ.
+- **Risks:** لا خطرٍ جديدٍ.
+- **No-Test-Reason:** N/A — اختُبِرَ فعليًا.
+
 # 2026-10-24 — CLM-0689 — البند 0.4: فصل الإسناد عن الاستلام في إسقاط core.fulfillment.dispatched (حالة assigned)
 
 - **Work Item(s):** M0-54 (المرحلة صفر · البند 0.4 من خطة المراجعة الشاملة 2026-10-24 — تفسير قرار D-XR-31 المراجعة 11: dispatched = إسنادٌ لا تسليم).
@@ -5,7 +16,7 @@
 - **Units:** `packages/contracts/delivery/src/{index,events-types,api-types}.ts` · `services/delivery/contracts/{events.json,schema.sql,api.openapi.yml}` · `services/delivery/src/db/schema.ts` · `services/delivery/drizzle/0009_assigned_state{,.down}.sql` + `meta/_journal.json` · `src/domain/{state-machine,core-fulfillment-projection,store-order-fulfillment-transition,store-order-cancellation}.ts` · `src/http/app.ts` + `src/ports.ts` (تعليقان) · `packages/delivery-e2e/src/__tests__/phase13-exit-gate.e2e.test.ts` (اختبار مسار الإسناد عبر HTTP) · ADR-026 §1/§3.1/§4.29 · دليل CLM-0689.
 - **Status:** Released — مدموج على `main`: الحالة `assigned` نافذة في آلة الوفاء وفي إسقاط CORE (12 حالةً · 18 انتقالًا · هجرة 0009) ومقيسٌ على PostgreSQL حقيقية (639 وحدةً + 180 تكاملًا).
 - **Change:** +4 حوافّ (ready_for_delivery→assigned · assigned→delivered/failed/cancelled) · +كودا سببٍ (MOVE_JOB_ACCEPTED · CORE_FULFILLMENT_CANCELLED) · هجرةُ 0009 تُوسِّعُ CHECK إلى 12 حالةً (رفيقُ الترجعِ يرفضُ صراحةً إن وُجِدَ صفٌّ assigned) · `consumesInventory` تعمَّمَت بالوجهةِ (delivered) · حافةُ الاستلامِ الفيزيائيِّ المستقبليّةُ **لم تُضَف عمدًا** (expectedActor توثيقٌ لا تحققٌ — تُؤجَّلُ إلى XR-4.3) · `handed_to_courier` للمسارِ المحليِّ القديمِ كما هو ولا سجلَّ يُعادُ تصنيفُه.
-- **Tests:** مقيسةٌ على PostgreSQL 18 حقيقيةٍ محليًا (وCI يعيدُ القياسَ): وحداتُ الخدمةِ **639/639** · تكاملٌ **180/180** · E2E عبر HTTP حقيقيٍّ **21/21** (منها 3 اختباراتٍ جديدةً: الخصمُ مرةً واحدةً معَ إعادةِ الإرسالِ · الإلغاءُ منَ assigned يُطبَّقُ · المسارُ المحليُّ القديمُ لا يتغيّرُ وdispatched عليه مسمّى) · عقودُ 29/29 · `tsc` نظيفٌ · برهانُ الترقيةِ معَ بياناتٍ يشملُ 0009.
+- **Tests:** مقيسةٌ على PostgreSQL 18 حقيقيةٍ محليًا (وCI يعيدُ القياسَ): وحداتُ الخدمةِ **639/639** · تكاملٌ **180/180** · E2E عبر HTTP حقيقيٍّ **21/21** (منها 3 اختباراتٍ جديدةً: الخصمُ مرةً واحدةً معَ إعادةِ الإرسالِ · الإلغاءُ منَ assigned يُطبَّقُ · المسارُ المحليُّ القديمُ لا يتغيّرُ وdispatched عليه مسمّى) · إيصالٌ تاريخيٌّ بمعنى الرقعةِ القديمةِ يُجيبُ duplicate بلا تراجعٍ · رفيقُ ترجعِ 0009 يرفضُ صراحةً إن وُجِدَ صفٌّ في assigned ولا يُعيدُ تصنيفَهُ · رمزُ قراءةٍ لا يُلغي من assigned عبرَ المسارِ العامِّ (403) · قياسٌ مُعلَنٌ: إلغاءُ CORE عبرَ الإسقاطِ يتركُ الحجزَ `reserved` (سلوكٌ قائمٌ قبلَ الرقعةِ لكلِّ حالاتِ الإلغاءِ — يُسوَّى معَ XR-4.3/4.4) · عقودُ 29/29 · `tsc` نظيفٌ · برهانُ الترقيةِ معَ بياناتٍ يشملُ 0009.
 - **Risks:** RISK-0034 (open · مراجعةٌ 2026-11-06 لا تمسُّ هذا البندَ). لا خطرٍ جديدٍ: القيدُ يُوسَّعُ فقط ولا صفَّ يُعادُ كتابتُهُ.
 - **No-Test-Reason:** N/A — اختُبِرَ فعليًا (انظر Tests).
 
