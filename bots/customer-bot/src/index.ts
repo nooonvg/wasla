@@ -21,7 +21,7 @@
 
 export { BOT, buildApp, type CustomerBotOverrides } from "./server.js";
 
-export { buildAppWithEdge, type CustomerBotEdgeOverrides } from "./edge.js";
+export { buildAppWithEdge, buildCustomerBotSessionPorts, type CustomerBotEdgeOverrides } from "./edge.js";
 
 export {
   CUSTOMER_ORDERS_COMMAND,

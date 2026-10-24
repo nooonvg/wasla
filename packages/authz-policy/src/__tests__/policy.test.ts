@@ -153,6 +153,32 @@ describe("رفضٌ بالدورِ (role negative)", () => {
     ).toThrow(AuthzPolicyError);
   });
 
+  it("حدٌّ تعاقديٌّ مسجَّلٌ (شريحةُ ب.2 · M0-55): customer-bot لا يملكُ جمهورَ marketplace بعدُ", () => {
+    // ليسَ فشلًا بل **تسجيلُ الحدِّ التعاقديِّ** لتجربةِ عقدِ شريحةِ الشريكِ
+    // (docs/11-partners/B2_PARTNER_MINI_APP_SLICE.md §3.2): نجاحُ التجربةِ بمنافذِ
+    // الإنتاجِ لا يعني ملكَ customer-bot نداءَ marketplace — تلكَ منحةُ إنتاجٍ
+    // تُتَّخذُ بقرارٍ تقنيٍّ عبرَ مسارِ الحوكمةِ. فإذا يوماً مُنِحَ، سقطَ هذا
+    // الاختبارُ — فيُحدَّثُ معَ المنحةِ لا يُحذفُ.
+    const decision = evaluateScopeRequest({
+      role: "customer-bot",
+      audience: "marketplace",
+      scopes: ["marketplace:staff:read"],
+    });
+    expect(decision.allowed).toBe(false);
+    if (!decision.allowed) {
+      // رفضُ الجمهورِ أقوى من رفضِ الصلاحيةِ: لا سطرَ لـcustomer-bot على
+      // marketplace في المصفوفةِ أصلًا — الحدُّ على مستوى الجمهورِ كاملًا.
+      expect(decision.error.code).toBe("AUDIENCE_NOT_GRANTED");
+    }
+    expect(() =>
+      assertScopeRequest({
+        role: "customer-bot",
+        audience: "marketplace",
+        scopes: ["marketplace:staff:read"],
+      }),
+    ).toThrow(AuthzPolicyError);
+  });
+
   it("الرفضُ يُسمّي الصلاحيّةَ المُخالِفةَ وحدَها لا كلَّ المطلوبِ", () => {
     const decision = evaluateScopeRequest({
       role: "negotiations",

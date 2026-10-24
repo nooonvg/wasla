@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-24T14:31:30Z",
+  "generated_at": "2026-10-24T17:21:09Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "36ec1db4b986c037f68bea944d513e1590faab9c",
-    "branch": "fix/edge-proxy-routing",
-    "dirty": true,
-    "dirty_files": 2,
-    "dirty_reason": "CLM-0695: ملفات الدليل والأساس لهذه الدفعة قبل إيداعها الثاني",
-    "tracked_files": 3668
+    "commit": "7365370f16817fd96e0c0382ff7dd75d8daba0e2",
+    "branch": "fix/partner-contract-experiment",
+    "dirty": false,
+    "dirty_files": 0,
+    "dirty_reason": "ملفا اختبار تجربة العقد لشريحة ب.2 (CLM-0698) — الآن متتبعة بعد الإيداع",
+    "tracked_files": 3675
   },
   "env": {
     "node": "v20.20.2",
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 594,
+    "test_files_tracked": 596,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 29,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-24T133000Z-clm-0694-edge-proxy-fix/raw/verify-full.txt",
-    "tests_passed": 6439,
-    "test_files_executed": 454,
+    "source": "docs/12-testing/ci-evidence/2026-10-24T164500Z-clm-0698-partner-contract-experiment/raw/verify-full.txt",
+    "tests_passed": 6353,
+    "test_files_executed": 449,
     "governance_suite_cases": 696,
     "governance_suite_failed": 1,
     "verify_overall": "failed"
   },
-  "fingerprint": "sha256:8f4deedb31663c2c82aeb50c877a8494ca5ccaab7a42652d87c398c08c8083df",
+  "fingerprint": "sha256:080c9aacb89a9393736920132e12951b3cc424cc0e9c038f79d0c29d4f3e6a1e",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
