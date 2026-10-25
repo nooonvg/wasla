@@ -43,6 +43,13 @@
       "when": 1790236800000,
       "tag": "0005_order_request_engine_id",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793064000000,
+      "tag": "0006_core_account_deletion_inbox",
+      "breakpoints": true
     }
   ]
 }

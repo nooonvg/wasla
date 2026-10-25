@@ -125,6 +125,14 @@ export interface CoreIntrospectPort {
 export interface CoreCurrentSession {
   /** مُعرّفُ جلسةِ النواةِ — يُشتقُّ منهُ البصمةُ (منعُ الإعادةِ 1:1). */
   readonly session_id: string;
+  /**
+   * مُعرّفُ هويةِ جيلِ حسابِ النواةِ (CLM-0701) — يُمرَّرُ إلى تسويةِ الهويّةِ
+   * فيُصبحُ مفتاحَ الحسمِ بينَ أجيالِ الحسابِ: الجيلُ المُحجّرُ لا يُدخَلُ،
+   * والجيلُ الجديدُ على القناةِ نفسِها يأخذُ هويّةً جديدةً لا إرثَ الجيلِ القديمِ.
+   * النواةُ تُعيدُهُ دائماً في جلساتِها المصادَقةِ؛ غيابُهُ = جسرٌ قديمٌ
+   * يعملُ بالمسارِ القديمِ (لا جيلً يُحسمُ بهِ شيءٌ).
+   */
+  readonly identity_id?: string;
   /** روابطُ قنواتِ الهويةِ — منها يُقرأُ رابطُ تيليجرامِ (`tg-<معرّف>`). */
   readonly channel_links?: readonly CoreChannelLink[];
 }
@@ -147,6 +155,8 @@ export interface ResolveIdentityRequest {
   readonly telegram_username?: string;
   readonly telegram_first_name?: string;
   readonly telegram_language_code?: string;
+  /** جيلُ حسابِ النواةِ صاحبِ القناةِ (CLM-0701) — مفتاحُ الحسمِ بينَ الأجيالِ؛ حذفُهُ يُبقي المسارَ القديمَ. */
+  readonly core_identity_id?: string;
 }
 
 /** ردُّ `POST /identity/resolve` — الجزءُ الذي يقرأُهُ الجسرُ. */
@@ -346,8 +356,13 @@ function applySessionRoutes(
       }
       // 4) تسويةُ الهويةِ عندَ البوتِ نفسِهِ: من دخلَ الويبَ أولَ مرةٍ يُنشأُ كما
       // يُنشأُ من كلّمَ البوتَ أولَ مرةٍ — نفسُ الفعلِ (`/identity/resolve`) لا
-      // فعلٌ موازٍ يُنتجُ نظامَ مستخدمينَ ثانيًا.
-      await options.resolveIdentity!({ telegram_user_id: telegramUserId });
+      // فعلٌ موازٍ يُنتجُ نظامَ مستخدمينَ ثانيًا. ومعَ جيلِ النواةِ (CLM-0701):
+      // المُعرّفُ هو مفتاحُ الحسمِ — الجيلُ المُحجّرُ يُرفَضُ، والجيلُ الجديدُ
+      // على القناةِ نفسِها يُنشأُ لهُ هويّةٌ جديدةٌ ويُنقَلُ إليها الرابطُ.
+      await options.resolveIdentity!({
+        telegram_user_id: telegramUserId,
+        ...(core.identity_id === undefined ? {} : { core_identity_id: core.identity_id }),
+      });
       // 5) بصمةُ الجلسةِ: sha256 لمُعرّفِ جلسةِ النواةِ — جلسةُ نواةٍ واحدةٌ =
       // جلسةُ سوقٍ واحدةٌ (منعُ الإعادةِ بقيدِ القاعدةِ الفريدِ نفسِهِ الذي يحرسُ
       // initData)، وصيغةُ الـ64 محرفًا hex هي عقدُ عمودِ البصمةِ في identity.

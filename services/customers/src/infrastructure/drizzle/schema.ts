@@ -359,3 +359,46 @@ export const customerOutbox = pgTable(
       .where(sql`${table.publishedAt} IS NULL`),
   ],
 );
+
+// ---------------------------------------------------------------------------
+// 6) core_account_deletion_inbox — صندوقُ حذفِ حسابِ النواةِ (CLM-0701)
+//    استثناءُ ADR-076 المؤرّخُ 2026-10-25 (identity) — هذا الجدولُ ملكُ الزبائنِ.
+//    نمطُ صندوقِ XR-3.5: الإغلاقُ المفردُ بمفتاحِ الحدثِ وكلُّ رفضٍ مسمّى،
+//    وdisposition يُسجّلُ التصرّفَ الصريحَ لكلِّ فئةِ بياناتٍ.
+// ---------------------------------------------------------------------------
+
+export const coreAccountDeletionInbox = pgTable(
+  "core_account_deletion_inbox",
+  {
+    eventId: uuid("event_id").primaryKey(),
+    eventType: text("event_type").notNull(),
+    coreIdentityId: text("core_identity_id"),
+    consumedStatus: text("consumed_status").notNull(),
+    lastError: text("last_error"),
+    attemptCount: integer("attempt_count").notNull(),
+    disposition: text("disposition"),
+    consumedAt: timestamp("consumed_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => [
+    check(
+      "core_account_deletion_inbox_event_type_check",
+      sql`char_length(${table.eventType}) BETWEEN 3 AND 96`,
+    ),
+    check(
+      "core_account_deletion_inbox_status_check",
+      sql`${table.consumedStatus} IN ('pending','applied','observed','poisoned','error')`,
+    ),
+    check(
+      "core_account_deletion_inbox_attempt_count_check",
+      sql`${table.attemptCount} >= 1`,
+    ),
+    index("ix_core_account_deletion_inbox_retryable")
+      .on(table.updatedAt)
+      .where(sql`${table.consumedStatus} IN ('pending', 'error')`),
+  ],
+);

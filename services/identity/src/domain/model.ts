@@ -45,6 +45,28 @@ export type RecoveryStatus =
   | "completed"
   | "rejected";
 
+/**
+ * ربطُ جيلِ حسابِ CORE بهويّةِ MARKET — استثناءُ ADR-076 المؤرّخُ 2026-10-25
+ * (دورةُ حياةِ الحذفِ · CLM-0701).
+ *
+ * الجيلُ هو الوحدةُ: حسابُ CORE الواحدُ (بمعرّفِهِ `identity_id`) يُربَطُ بهويّةِ
+ * MARKET واحدةٍ، وإعادةُ التسجيلِ بنفسِ القناةِ بعدَ حذفٍ تُنشئُ جيلاً جديداً
+ * (النواةُ تحرّر المفتاحَ بترحيلِها 0024) فيحصلُ على هويّةِ MARKET جديدةٍ
+ * فارغةٍ لا ميراثَ فيها — البياناتُ لا تُورَّثُ بينَ الأجيالِ.
+ */
+export interface CoreIdentityBinding {
+  /** معرّفُ هويةِ النواةِ (identity_id في النواة) — مفتاحُ الجيل. */
+  readonly coreIdentityId: string;
+  readonly userInternalUuid: string;
+  readonly waslaPublicId: string;
+  readonly boundAt: string;
+  /** لحظةُ تولّي جيلٍ أحدثَ الهويّةَ — أو null ما دامَ الجيلُ صاحبَها. */
+  readonly supersededAt: string | null;
+  /** الجيلُ الأحدثُ الذي تولّى الهويّةَ — أو null. */
+  readonly supersededByCoreIdentityId: string | null;
+}
+
+
 /** The core Wasla user (identity_users row). */
 export interface User {
   readonly internalUuid: string;

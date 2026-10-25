@@ -38,6 +38,10 @@
 | `IDENTITY_ASSERTION_INVALID_REQUEST` | `validation_error` | طلب إصدار تأكيد مشوَّه | POST /identity/assertions بلا `telegram_user_id` صحيح أو بفاعل/جمهور غير صالح شكلياً (ADR-060 · CLM-0440) |
 | `IDENTITY_ASSERTION_FORBIDDEN` | `forbidden` | المنادي لا يُصدَر له هذا الفاعل أو هذا الجمهور | customer-bot يطلب `driver`، أو جمهور خارج القائمة المغلقة للفاعل (ADR-060 · CLM-0440) |
 | `IDENTITY_ASSERTION_UNAVAILABLE` | `service_unavailable` | لا مفتاح توقيع Ed25519 مُهيّأ | `WASLA_USER_ASSERTION_SIGNING_KEY` غير مضبوط — حال الإنتاج حتى قرار P3 (ADR-060 · CLM-0440) |
+| `IDENTITY_CORE_BINDING_UNAVAILABLE` | `not_found` | لا ربطَ لهذا الجيلِ بهويّةٍ | قراءةُ ربطِ جيلِ نواةٍ غيرِ مرصودٍ (CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25) |
+| `IDENTITY_LINK_NOT_FOUND` | `not_found` | لا رابطَ بهذا المعرّفِ | نقلُ رابطِ قناةٍ لا وجودَ لهُ عندَ تعييرِ مالكِهِ (CLM-0701) |
+| `IDENTITY_CORE_BINDING_EXISTS` | `conflict` | الجيلُ مرصودٌ بربطٍ سابقٍ | إعادةُ ربطِ جيلٍ مربوطٍ من قبلُ (CLM-0701) |
+| `IDENTITY_CORE_GENERATION_DELETED` | `forbidden` | جيلُ حسابِ النواةِ محذوفٌ | resolve لجيلٍ مرصودٍ محذوفٍ — رفضٌ صريحٌ لا تحويلٌ ولا إنشاءٌ (CLM-0701) |
 | `IDENTITY_INTERNAL_ERROR` | `service_unavailable` | خطأ داخلي غير متوقع | خطأ غير مُصنّف (degraded) |
 
 ---

@@ -1217,6 +1217,32 @@ export const OPERATION_BINDINGS: readonly OperationBinding[] = [
     evidence: "services/identity/src/http/app.ts:SESSION_ACTOR_BY_CALLER findSessionByTokenHash revokeSession",
     note: "`none`: السحبُ برموزِ الجلسةِ نفسِها — من يملكُ الرمزَ يملكُ إبطالَهُ، وهذهِ ملكيّةٌ فطريّةٌ لا تحتاجُ إثباتَ مالكٍ. الرفضُ 404 لما لا وجودَ لهُ، والمُتماثلُ التكرارِ عندَ المستودعِ.",
   },
+
+  // ── CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): حياةُ أجيالِ حسابِ النواةِ ──
+  // عمليّتانِ تُصنَّفانِ `none` بقراءةِ الكودِ من app.ts: الفاعلُ في كلتاهما
+  // هوَ **خدمةُ الزبائنِ وحدَها** — مستهلِكُ حدثِ `core.identity.account.deleted`
+  // — والمنادِي يُشتقُّ من توقيعِ الخدمةِ (wsvc3) لا من جسمِ الطلبِ (I-03).
+  // الحارسُ ليسَ في الصلاحيّةِ بل في **الربطِ نفسِهِ**: حذفُ الجيلِ لا يمسُّ إلّا
+  // الهويّةَ المرصودةَ في `core_identity_bindings` لذلكَ الجيلِ حصراً، وقراءةُ
+  // الربطِ لا تُنشئُ شيئاً ولا تُعدِّلُ — قراءةٌ خالصةٌ لمصدرِ الحقيقةِ الوحيدِ.
+  {
+    audience: "identity",
+    method: "GET",
+    path: "/identity/core-bindings/:coreIdentityId",
+    dimension: "owner",
+    strength: "none",
+    evidence: "services/identity/src/http/app.ts:IDENTITY_SCOPES.coreBindingRead deps.coreBindings.findByCoreIdentityId",
+    note: "`none`: حاملُ `identity:core-binding:read` (مستهلِكُ حذفِ حسابِ النواةِ في خدمةِ الزبائنِ وحدَهُ) يقرأُ ربطَ جيلِ نواةٍ بهويّةِ MARKET — فلا ملكيّةَ يُثبِتُها الرمزُ: الثقةُ في توقيعِ الخدمةِ المناديةِ وفي مصداقيّةِ حدثِ الحذفِ الذي دفعَ القراءةَ. والقراءةُ من الجدولِ رصيداً لا تُنشئُ ربطاً ولا تُحوِّلُهُ (التحويلُ في `resolve` حصراً).",
+  },
+  {
+    audience: "identity",
+    method: "POST",
+    path: "/identity/core-deletion",
+    dimension: "owner",
+    strength: "none",
+    evidence: "services/identity/src/http/app.ts:IDENTITY_SCOPES.coreDeletionWrite applyCoreAccountDeletion deps.coreBindings",
+    note: "`none`: حاملُ `identity:core-deletion:write` (مستهلِكُ حذفِ حسابِ النواةِ وحدَهُ) يطبّقُ حذفَ جيلٍ — والحارسُ **جدولُ الربطِ نفسُهُ**: الحذفُ لا يقعُ إلّا على الهويّةِ المرصودةِ لذلكَ الجيلِ في `core_identity_bindings`، فلا يقدرُ المنادي على حذفِ هويّةٍ خارجَ نطاقِ الجيلِ المذكورِ في الحدثِ. والترتيبُ مفروضٌ بتصميمِ المستهلِكِ: تنقيةُ بياناتِ الزبونِ أوّلاً ثمّ الحذفُ، والتسجيلُ `core_account_deletions` يوثِّقُ الجيلَ والهويّةَ والزمنَ.",
+  },
   // ── partners (CLM-0444 · RISK-0059) ────────────────────────────
   // ثماني عمليّاتٍ مُصنَّفةٌ `none` بقراءةِ الكودِ من app.ts:
   // health/ready مفتوحانِ بلا صلاحيّةٍ؛ والبقيّةُ مُصنَّفةٌ بصلاحيّةٍ بلا مُنتَفِعٍ.

@@ -61,9 +61,17 @@ export const PRODUCTION_GRANTS: Readonly<Record<Role, readonly Grant[]>> = {
   customers: [
     {
       audience: "identity",
-      scopes: ["identity:user:read"],
-      reason: "قراءةُ هويّةِ العميلِ عندَ ربطِ طلبٍ بصاحبِه.",
-      evidence: ["CUSTOMERS_IDENTITY_SCOPES"],
+      scopes: [
+        "identity:user:read",
+        // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): مستهلِكُ حدثِ حذفِ
+        // حسابِ النواةِ في خدمةِ الزبائنِ يقرأُ ربطَ الجيلِ ثمّ يطبّقُ الحذفَ على
+        // الهويّةِ — قراءةُ الربطِ وتطبيقُ الحذفِ، لا شيءَ آخرَ في النطاقِ.
+        "identity:core-binding:read",
+        "identity:core-deletion:write",
+      ],
+      reason:
+        "قراءةُ هويّةِ العميلِ عندَ ربطِ طلبٍ بصاحبِهِ، ومستهلِكُ حذفِ حسابِ النواةِ (CLM-0701): قراءةُ ربطِ الجيلِ المحذوفِ ثمّ تطبيقُ الحذفِ على هويّتِهِ بعدَ تنقيةِ بياناتِ الزبونِ.",
+      evidence: ["CUSTOMERS_IDENTITY_SCOPES", "CUSTOMERS_IDENTITY_DELETION_SCOPES"],
     },
     {
       audience: "orders",

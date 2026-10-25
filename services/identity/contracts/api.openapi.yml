@@ -327,6 +327,71 @@ paths:
         '409': {$ref: '#/components/responses/Conflict'}
         '503': {$ref: '#/components/responses/ServiceUnavailable'}
 
+  /identity/core-bindings/{coreIdentityId}:
+    get:
+      tags: [CoreBindings]
+      summary: قراءة ربط جيل حساب CORE بهوية MARKET
+      description: |
+        CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25. قراءةٌ فقط: يجيبُ ربطَ الجيلِ
+        (identity_id من النواة) بهويّةِ MARKET المقابلةِ، أو 404 إن لم يُربَطِ الجيلُ بعدُ.
+        يقرؤهُ مستهلكُ حدثِ `core.identity.account.deleted` في خدمةِ الزبائنِ ليصلَ إلى
+        `wasla_public_id` صاحبِ البياناتِ — لا يُنشئُ شيئاً ولا يُغيّرُ شيئاً.
+      operationId: getCoreIdentityBinding
+      security:
+        - ServiceAuth:
+            - identity:core-binding:read
+      parameters:
+        - name: coreIdentityId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: ربطُ الجيلِ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoreIdentityBinding'
+        '401':
+          $ref: '#/components/responses/AuthUnauthorized'
+        '403':
+          $ref: '#/components/responses/AuthForbidden'
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /identity/core-deletion:
+    post:
+      tags: [CoreBindings]
+      summary: تطبيق حذف جيل حساب CORE على هويّة MARKET
+      description: |
+        CLM-0701. يُطبّقُ حدثَ `core.identity.account.deleted`: تحجيرُ هويّةِ الجيلِ
+        (status=deleted) وإبطالُ كلّ جلساتِهِ — مُتماثلُ التكرارِ (تطبيقٌ ثانٍ لا يُغيّرُ
+        شيئاً). لا ربطَ للجيلِ ⇒ `applied: false` مع `reason: unbound` (لا يُطبّقُ شيءٌ
+        تخميناً — قابلٌ للإعادةِ عندَ وصولِ الربطِ). الجيلُ المحجّرُ لا يُعادُ ربطُهُ.
+      operationId: applyCoreAccountDeletion
+      security:
+        - ServiceAuth:
+            - identity:core-deletion:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyCoreDeletionRequest'
+      responses:
+        '200':
+          description: نتيجةُ التطبيقِ (مُتماثِلةُ التكرارِ)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplyCoreDeletionResponse'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401':
+          $ref: '#/components/responses/AuthUnauthorized'
+        '403':
+          $ref: '#/components/responses/AuthForbidden'
+
 components:
   securitySchemes:
     ServiceAuth:
@@ -401,6 +466,65 @@ components:
           type: string
           enum: [customer_bot, driver_bot, partner_bot]
           description: مصدر الدخول (لأغراض Audit)
+        core_identity_id:
+          type: string
+          minLength: 1
+          description: >
+            معرّفُ هويةِ النواةِ (identity_id) لجيلِ الحسابِ المصادَقِ عليهِ من
+            جسرِ الويب (XR-6.1) — حضورُهُ يفعّلُ التسويةَ الواعيةَ بالأجيالِ
+            (CLM-0701): جيلٌّ جديدٌ بعدَ حذفٍ يحصلُ على هويّةِ MARKET جديدةٍ
+            فارغةٍ، والجيلُ القديمُ يفقدُ رابطَ القناةِ. غيابُهُ = السلوكُ القديمُ
+            (إيجادٌ أو إنشاءٌ بلا ربطٍ).
+
+    CoreIdentityBinding:
+      type: object
+      description: ربطُ جيلِ حسابِ CORE بهويّةِ MARKET (CLM-0701 · استثناءُ ADR-076)
+      required: [core_identity_id, wasla_public_id, bound_at]
+      properties:
+        core_identity_id:
+          type: string
+        user_internal_uuid:
+          type: string
+          description: المعرّفُ الداخليُّ — لا يعبرُ استجابةً لغيرِ الخدماتِ (SECURITY_RULES §11)
+        wasla_public_id:
+          type: string
+        bound_at:
+          type: string
+          format: date-time
+        superseded_at:
+          type: string
+          format: date-time
+          nullable: true
+        superseded_by_core_identity_id:
+          type: string
+          nullable: true
+
+    ApplyCoreDeletionRequest:
+      type: object
+      required: [core_identity_id]
+      properties:
+        core_identity_id:
+          type: string
+          minLength: 1
+          description: جيلُ الحسابِ المحذوفُ في النواةِ (identity_id من الحدث)
+        deleted_at:
+          type: string
+          format: date-time
+          description: لحظةُ الحذفِ في النواةِ (من الحدثِ — للتدقيقِ)
+
+    ApplyCoreDeletionResponse:
+      type: object
+      required: [applied, wasla_public_id]
+      properties:
+        applied:
+          type: boolean
+          description: true إن كانَ الجيلُ مربوطاً فحُجِّرَت هويّتُهُ وأُبطلت جلساتُهُ (أو كانَ محجّراً سلفاً)
+        wasla_public_id:
+          type: string
+          description: الهويّةُ التي طاولها التطبيقُ — أو سلسلةٌ فارغةٌ إن لم يوجدْ ربطٌ
+        reason:
+          type: string
+          description: unbound إن لم يكنِ الجيلُ مربوطاً (لا يُطبَّقُ شيءٌ — قابلٌ للإعادةِ)
 
     IssueUserAssertionRequest:
       type: object

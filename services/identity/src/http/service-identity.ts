@@ -78,6 +78,15 @@ export const IDENTITY_SCOPES = {
   sessionIssue: "identity:session:issue",
   sessionExchange: "identity:session:exchange",
   sessionRevoke: "identity:session:revoke",
+  // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): قراءةُ ربطِ جيلِ حسابِ
+  // النواةِ بهويّةِ MARKET — للقنواتِ والجسورِ التي تحتاجُ معرفةَ «هل الجيلُ
+  // مربوطٌ ومَن صاحبُه». كتابةُ الربطِ ليست مساراً: تتمُّ داخلَ حلِّ الهويّةِ
+  // لا بطلبٍ خارجيٍّ مباشرٍ (الجيلُ يُربَطُ أولَ مرةٍ يظهرُ فيها مصادَقاً).
+  coreBindingRead: "identity:core-binding:read",
+  // CLM-0701: تطبيقُ حذفِ حسابِ النواةِ (تسطيحُ الجيلِ + سحبُ الجلساتِ).
+  // ليس «حذفاً عامّاً»: لا يمسُّ إلّا جيلاً مربوطاً، ولا يُستدعى إلّا من مستهلِكِ
+  // حدثِ الحذفِ بعدَ نجاحِ تنقيةِ بياناتِ العميلِ.
+  coreDeletionWrite: "identity:core-deletion:write",
 } as const;
 
 export type IdentityRouteConfig = ServiceIdentityRouteConfig;
