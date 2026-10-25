@@ -28,6 +28,10 @@ interface SessionState {
   initStatus: SessionInitStatus;
   initError: SessionInitError | null;
   setInitState: (status: SessionInitStatus, error?: SessionInitError | null) => void;
+  /** D-XR-13 (CLM-0699): الحسابُ حُذفَ عندَ النواةِ — الوداعُ حالةٌ في المخزنِ لا وميضُ شاشةِ دخولٍ. */
+  accountDeleted: boolean;
+  markAccountDeleted: () => void;
+  dismissAccountDeleted: () => void;
 }
 
 export const useSessionStore = create<SessionState>((set, get) => ({
@@ -49,5 +53,13 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   initError: null,
   setInitState: (status: SessionInitStatus, error: SessionInitError | null = null) => {
     set({ initStatus: status, initError: error });
+  },
+  // لا يُعادُ ضبطُهُ معَ الجلسةِ: يُوضَعُ عندَ حذفٍ ناجحٍ ويعيشُ حتى يبدأَ الشخصُ من جديدٍ.
+  accountDeleted: false,
+  markAccountDeleted: () => {
+    set({ accountDeleted: true });
+  },
+  dismissAccountDeleted: () => {
+    set({ accountDeleted: false });
   },
 }));

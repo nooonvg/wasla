@@ -1976,6 +1976,10 @@
           "mode": "indirect_literal"
         },
         {
+          "file": "apps/customer-mini-app/src/host/web-login.ts",
+          "mode": "direct"
+        },
+        {
           "file": "apps/admin-portal/playwright.config.ts",
           "mode": "direct"
         },
