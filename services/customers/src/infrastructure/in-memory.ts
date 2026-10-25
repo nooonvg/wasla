@@ -29,6 +29,8 @@ import type {
 } from "../domain/model.js";
 import type {
   Clock,
+  CoreAccountDeletionInboxRecord,
+  CoreAccountDeletionInboxStore,
   CreateDispatchJobInput,
   CustomerRepository,
   DispatchJobPort,
@@ -514,4 +516,82 @@ export class RecordingDispatchJob implements DispatchJobPort {
       orderPublicId: input.orderPublicId,
     };
   }
+}
+
+/**
+ * صندوقُ حذفِ حسابِ النواةِ في الذاكرةِ (CLM-0701) — لنفسِ قواعدِ الصندوقِ
+ * الدائمِ: الحسمُ النهائيُّ لا يُخفَّضُ إلى حالةٍ حيّةٍ، والفشلُ العابرُ يرفعُ
+ * عدّادَ المحاولاتِ ويُبقي الصفَّ حيًّا.
+ */
+export class InMemoryCoreAccountDeletionInbox
+  implements CoreAccountDeletionInboxStore
+{
+  private rows = new Map<string, CoreAccountDeletionInboxRecord>();
+
+  async find(eventId: string): Promise<CoreAccountDeletionInboxRecord | null> {
+    return this.rows.get(eventId) ?? null;
+  }
+
+  async recordTerminal(cmd: {
+    readonly eventId: string;
+    readonly eventType: string;
+    readonly coreIdentityId: string | null;
+    readonly consumedStatus: "applied" | "observed" | "poisoned";
+    readonly lastError: string | null;
+    readonly disposition: string | null;
+  }): Promise<void> {
+    const existing = this.rows.get(cmd.eventId);
+    if (existing !== undefined && isTerminalInboxStatus(existing.consumedStatus)) {
+      return; // صفٌّ نهائيٌّ لا يُخفَّضُ — عقدُ الصندوقِ.
+    }
+    const now = new Date().toISOString();
+    this.rows.set(cmd.eventId, {
+      eventId: cmd.eventId,
+      eventType: cmd.eventType,
+      coreIdentityId: cmd.coreIdentityId,
+      consumedStatus: cmd.consumedStatus,
+      lastError: cmd.lastError,
+      disposition: cmd.disposition,
+      attemptCount: existing === undefined ? 1 : existing.attemptCount,
+      consumedAt: existing === undefined ? now : existing.consumedAt,
+      updatedAt: now,
+    });
+  }
+
+  async recordRetryable(eventId: string, lastError: string): Promise<void> {
+    const existing = this.rows.get(eventId);
+    if (existing !== undefined && isTerminalInboxStatus(existing.consumedStatus)) {
+      return;
+    }
+    const now = new Date().toISOString();
+    if (existing === undefined) {
+      this.rows.set(eventId, {
+        eventId,
+        eventType: "core.identity.account.deleted",
+        coreIdentityId: null,
+        consumedStatus: "error",
+        lastError,
+        disposition: null,
+        attemptCount: 1,
+        consumedAt: now,
+        updatedAt: now,
+      });
+      return;
+    }
+    this.rows.set(eventId, {
+      ...existing,
+      consumedStatus: "error",
+      lastError,
+      attemptCount: existing.attemptCount + 1,
+      updatedAt: now,
+    });
+  }
+}
+
+function isTerminalInboxStatus(consumedStatus: string): boolean {
+  return (
+    consumedStatus === "applied" ||
+    consumedStatus === "observed" ||
+    consumedStatus === "poisoned"
+  );
 }

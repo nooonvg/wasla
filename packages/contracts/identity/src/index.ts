@@ -81,6 +81,24 @@ export type RevokeSessionRequest =
 export type RevokeSessionResponse =
   components["schemas"]["RevokeSessionResponse"];
 
+// --- CORE incarnation binding types (CLM-0701) -----------------------
+
+/**
+ * The durable binding between one authenticated CORE account generation and
+ * its MARKET identity. Superseded bindings stay visible for audit (the
+ * channel link is MOVED, never duplicated).
+ */
+export type CoreIdentityBinding =
+  components["schemas"]["CoreIdentityBinding"];
+
+/** Request body for `POST /identity/core-deletion` (CLM-0701). */
+export type ApplyCoreDeletionRequest =
+  components["schemas"]["ApplyCoreDeletionRequest"];
+
+/** Response of `POST /identity/core-deletion` (CLM-0701). */
+export type ApplyCoreDeletionResponse =
+  components["schemas"]["ApplyCoreDeletionResponse"];
+
 // --- Event contract types (from events.json) --------------------------
 import type {
   EventEnvelope,

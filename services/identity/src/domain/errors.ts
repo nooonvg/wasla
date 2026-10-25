@@ -35,6 +35,11 @@ export type IdentityErrorCode =
   | "IDENTITY_ASSERTION_INVALID_REQUEST"
   | "IDENTITY_ASSERTION_FORBIDDEN"
   | "IDENTITY_ASSERTION_UNAVAILABLE"
+  // أجيالُ حساباتِ النواةِ (CLM-0701 · استثناءُ ADR-076)
+  | "IDENTITY_CORE_BINDING_UNAVAILABLE"
+  | "IDENTITY_CORE_BINDING_EXISTS"
+  | "IDENTITY_CORE_GENERATION_DELETED"
+  | "IDENTITY_LINK_NOT_FOUND"
   | "IDENTITY_INTERNAL_ERROR";
 
 const HTTP_BY_CLASS: Record<IdentityErrorClass, number> = {
@@ -104,5 +109,16 @@ function classOf(code: IdentityErrorCode): IdentityErrorClass {
     case "IDENTITY_ASSERTION_UNAVAILABLE":
     case "IDENTITY_INTERNAL_ERROR":
       return "service_unavailable";
+    // أجيالُ حساباتِ النواةِ (CLM-0701): ربطٌ مفقودٌ = 404 لا 500 (قرارٌ
+    // قابلٌ للإعادةِ)، وربطٌ قائمٌ يُطلبُ ربطُهُ ثانيةً = 409 تعارضٌ مع واقعٍ
+    // مُسجّلٍ، وجيلٌّ محجّرٌ يطلبُ هويّةً = 403 (الرفضُ لا يتوقّفُ عندَ الواجهةِ
+    // بل عندَ الحقيقةِ)، والرابطُ المرادُ نقلُهُ غيرُ موجودٍ = 404.
+    case "IDENTITY_CORE_BINDING_UNAVAILABLE":
+    case "IDENTITY_LINK_NOT_FOUND":
+      return "not_found";
+    case "IDENTITY_CORE_BINDING_EXISTS":
+      return "conflict";
+    case "IDENTITY_CORE_GENERATION_DELETED":
+      return "forbidden";
   }
 }

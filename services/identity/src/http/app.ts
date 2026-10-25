@@ -22,10 +22,15 @@ import type {
   ExchangeSessionResponse,
   RevokeSessionRequest,
   RevokeSessionResponse,
+  ApplyCoreDeletionRequest,
 } from "@wasla/contracts-identity";
 
 import type { UseCaseDeps } from "../use-cases/resolve-telegram-identity.js";
 import { resolveTelegramIdentity } from "../use-cases/resolve-telegram-identity.js";
+import {
+  applyCoreAccountDeletion,
+  type ApplyCoreDeletionInput,
+} from "../use-cases/apply-core-account-deletion.js";
 import { getUser } from "../use-cases/get-user.js";
 import { addIdentityLink } from "../use-cases/add-identity-link.js";
 import { startRecovery } from "../use-cases/start-recovery.js";
@@ -169,6 +174,70 @@ export function createIdentityApp(
     const result = await resolveTelegramIdentity(deps, body);
     return reply.status(result.created ? 201 : 200).send(result);
   });
+
+  // GET /identity/core-bindings/:coreIdentityId — CLM-0701: أيُّ هويّةِ MARKET
+  // يملكُ جيلَ حسابِ النواةِ هذا؟ (القنواتُ والجسورُ فقط — نطاقُ قراءةٍ لا
+  // كتابةٍ، والربطُ نفسُهُ يتمُّ داخلَ حلِّ الهويّةِ لا بمسارٍ خارجيٍّ).
+  app.get(
+    "/identity/core-bindings/:coreIdentityId",
+    { config: scoped(IDENTITY_SCOPES.coreBindingRead) },
+    async (request, reply) => {
+      const { coreIdentityId } = request.params as { coreIdentityId: string };
+      if (deps.coreBindings === undefined) {
+        // مخزنُ الأجيالِ غيرَ مضبوطٍ — الجيلَ القديمُ يعملُ كأنَّ المسارَ غيرُ موجودٍ.
+        throw new IdentityError(
+          "IDENTITY_NOT_FOUND",
+          "core identity bindings are not configured on this deployment",
+        );
+      }
+      const binding = await deps.coreBindings.findByCoreIdentityId(coreIdentityId);
+      if (binding === null) {
+        throw new IdentityError(
+          "IDENTITY_NOT_FOUND",
+          "no MARKET identity is bound to this CORE generation",
+        );
+      }
+      return reply.status(200).send(binding);
+    },
+  );
+
+  // POST /identity/core-deletion — CLM-0701: تطبيقُ حدثِ حذفِ حسابِ النواةِ على
+  // هويّةِ الجيلِ المربوطةِ (تسطيحٌ + سحبُ الجلساتِ). لا يُستدعى إلّا من مستهلِكِ
+  // الحدثِ في خدمةِ الزبائنِ (بعدَ نجاحِ تنقيةِ بياناتِها) — لا من القنواتِ.
+  app.post(
+    "/identity/core-deletion",
+    { config: scoped(IDENTITY_SCOPES.coreDeletionWrite) },
+    async (request, reply) => {
+      const body = request.body as ApplyCoreDeletionRequest;
+      if (deps.coreBindings === undefined) {
+        throw new IdentityError(
+          "IDENTITY_INTERNAL_ERROR",
+          "core identity bindings are not configured on this deployment",
+        );
+      }
+      if (options.session === undefined) {
+        throw new IdentityError(
+          "IDENTITY_INTERNAL_ERROR",
+          "session repository is not configured on this deployment",
+        );
+      }
+      const input: ApplyCoreDeletionInput = {
+        coreIdentityId: body.core_identity_id,
+        ...(body.deleted_at === undefined ? {} : { deletedAt: body.deleted_at }),
+      };
+      const result = await applyCoreAccountDeletion(
+        {
+          repo: deps.repo,
+          sessions: options.session.sessions,
+          coreBindings: deps.coreBindings,
+          clock: options.session.clock,
+          traceId: request.id,
+        },
+        input,
+      );
+      return reply.status(200).send(result);
+    },
+  );
 
   // GET /identity/users/:waslaPublicId — read a user by Public ID.
   // ADR-060 P2 (CLM-0463): `asserted` — the caller's end-user assertion must

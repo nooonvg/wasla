@@ -178,6 +178,11 @@ export const ENFORCED_OPERATIONS: readonly EnforcedOperation[] = [
   { audience: "identity", method: "POST", path: "/identity/sessions", scopes: ["identity:session:issue"] },
   { audience: "identity", method: "POST", path: "/identity/sessions/exchange", scopes: ["identity:session:exchange"] },
   { audience: "identity", method: "POST", path: "/identity/sessions/revoke", scopes: ["identity:session:revoke"] },
+  // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): حياةُ أجيالِ حسابِ النواةِ —
+  // قراءةُ ربطِ الجيلِ بهويّةِ MARKET (للجسورِ والقنواتِ)، وتطبيقُ حذفِ الجيلِ
+  // (لِمُستهلِكِ الحدثِ في خدمةِ الزبائنِ بعدَ تنقيةِ بياناتِها).
+  { audience: "identity", method: "GET", path: "/identity/core-bindings/:coreIdentityId", scopes: ["identity:core-binding:read"] },
+  { audience: "identity", method: "POST", path: "/identity/core-deletion", scopes: ["identity:core-deletion:write"] },
   // ── marketplace ───────────────────────────────────────────────
   { audience: "marketplace", method: "GET", path: "/categories", scopes: ["marketplace:category:read"] },
   { audience: "marketplace", method: "POST", path: "/stores", scopes: ["marketplace:store:write"] },

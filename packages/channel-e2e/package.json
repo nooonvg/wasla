@@ -15,6 +15,7 @@
     "@wasla/channel-core": "workspace:*",
     "@wasla/contracts-channel": "workspace:*",
     "@wasla/customer-bot": "workspace:*",
+    "@wasla/customers-service": "workspace:*",
     "@wasla/driver-bot": "workspace:*",
     "@wasla/identity-service": "workspace:*",
     "@wasla/partner-bot": "workspace:*",

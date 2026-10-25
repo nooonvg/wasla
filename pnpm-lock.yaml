@@ -429,6 +429,9 @@ importers:
       '@wasla/customer-bot':
         specifier: workspace:*
         version: link:../../bots/customer-bot
+      '@wasla/customers-service':
+        specifier: workspace:*
+        version: link:../../services/customers
       '@wasla/driver-bot':
         specifier: workspace:*
         version: link:../../bots/driver-bot

@@ -243,3 +243,33 @@ export const identitySessions = pgTable(
       .where(sql`"identity_sessions"."init_data_hash" IS NOT NULL`),
   ],
 );
+
+/**
+ * core_identity_bindings — ربطُ أجيالِ حساباتِ النواةِ بهويّاتِ MARKET
+ * (CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25). الجيلُ مفتاحُهُ: حسابُ
+ * CORE واحدٌ برابطٍ واحدٍ، والإزاحةُ سجلٌّ لا محوٌ (التدقيقُ يبقى).
+ */
+export const coreIdentityBindings = pgTable(
+  "core_identity_bindings",
+  {
+    coreIdentityId: text("core_identity_id").primaryKey(),
+    userInternalUuid: uuid("user_internal_uuid").notNull(),
+    waslaPublicId: text("wasla_public_id").notNull(),
+    boundAt: timestamp("bound_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    supersededAt: timestamp("superseded_at", { withTimezone: true }),
+    supersededByCoreIdentityId: text("superseded_by_core_identity_id"),
+  },
+  (table) => [
+    foreignKey({
+      name: "core_identity_bindings_user_internal_uuid_fkey",
+      columns: [table.userInternalUuid],
+      foreignColumns: [identityUsers.internalUuid],
+    }).onDelete("restrict"),
+    index("ix_core_identity_bindings_user").on(
+      table.userInternalUuid,
+      sql`${table.boundAt} DESC`,
+    ),
+  ],
+);

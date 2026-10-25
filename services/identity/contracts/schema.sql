@@ -141,6 +141,28 @@ CREATE INDEX IF NOT EXISTS ix_identity_sessions_user
     ON identity_sessions (user_internal_uuid, issued_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────
+-- 7) core_identity_bindings — مفتاحُ أجيالِ حسابِ النواة (CLM-0701)
+--    استثناءُ ADR-076 المؤرّخُ 2026-10-25 (مُصرّحٌ به من المالك).
+--    الجيلُ الواحدُ يُربطُ بهويّةِ MARKET واحدةٍ فقط، والعلاقةُ سجلٌّ لا
+--    محوٌ (superseded_at/…_by تبقيانِ الأثرَ للتدقيقِ). الرابطُ المشتركُ
+--    (مثلَ telegram id) يُنقَلُ إلى جيلِ الحسابِ الحيِّ لا يُنسخُ — قيدُ
+--    (provider, external_id) الفريدُ يبقى سليماً في كلِّ لحظةٍ.
+-- ─────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS core_identity_bindings (
+    core_identity_id             TEXT        PRIMARY KEY,        -- جيلُ حسابِ CORE
+    user_internal_uuid           UUID        NOT NULL,
+    wasla_public_id              TEXT        NOT NULL,
+    bound_at                     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    superseded_at                TIMESTAMPTZ,                    -- مُزاح؟ أثِرُ التدقيقِ
+    superseded_by_core_identity_id TEXT,                          -- مَن أزاحه
+    FOREIGN KEY (user_internal_uuid) REFERENCES identity_users (internal_uuid)
+        ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS ix_core_identity_bindings_user
+    ON core_identity_bindings (user_internal_uuid, bound_at DESC);
+
+-- ─────────────────────────────────────────────────────────────────────
 -- updated_at trigger
 -- ─────────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION identity_set_updated_at() RETURNS TRIGGER AS $$

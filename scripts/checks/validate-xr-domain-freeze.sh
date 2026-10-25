@@ -18,12 +18,31 @@ cd "$(dirname "$0")/../.." || exit 1
 
 # shellcheck source=lib/xr-frozen-paths.sh
 source "scripts/checks/lib/xr-frozen-paths.sh"
+# الاستثناءاتُ المؤرَّخةُ الموثَّقةُ (كلُّ استثناءٍ قرارُ مالكٍ + تعديلُ ADR-076 مؤرَّخ)
+# shellcheck source=lib/xr-freeze-exceptions.sh
+source "scripts/checks/lib/xr-freeze-exceptions.sh"
 
 is_frozen() { # is_frozen <path>
   local p="$1" f
   for f in "${XR_FROZEN_PREFIXES[@]}"; do [[ "$p" == "$f"* ]] && return 0; done
   for f in "${XR_FROZEN_FILES[@]}"; do [[ "$p" == "$f" ]] && return 0; done
   return 1
+}
+
+# excepted <path> <messages> → يطبعُ معرّفَ الاستثناءِ إن كانَ المسارُ مستثنىً والوسمُ حاضراً
+# كلمةً مستقلّةً (XR-EX-<id>)، وإلّا لا يطبعُ شيئاً. الاستثناءُ لا يفتحُ النطاقَ:
+# يُعفي مساراتِ إيداعِهِ هو وحدَها، ويسقُطُ بنفسِهِ عندَ دمجِ المطالبةِ.
+excepted() { # excepted <path> <messages>
+  local p="$1" messages="$2" entry id prefix
+  while IFS='|' read -r id prefix; do
+    [[ -z "${id:-}" || -z "${prefix:-}" ]] && continue
+    [[ "$p" == "$prefix"* ]] || continue
+    if grep -Eq "(^|[^A-Za-z0-9_-])XR-EX-${id}([^A-Za-z0-9_-]|$)" <<<"$messages"; then
+      printf '%s' "$id"
+      return 0
+    fi
+  done < <(printf '%s\n' "${XR_FREEZE_EXCEPTIONS[@]}")
+  return 0
 }
 
 evaluate() { # evaluate <changes-name-status> <messages> → rc 0 ok / 1 violation
@@ -45,6 +64,12 @@ evaluate() { # evaluate <changes-name-status> <messages> → rc 0 ok / 1 violati
     fi
     if [[ -n "$exempt" ]]; then
       printf '  ✓ %s%s\n' "$exempt" "$path"
+      continue
+    fi
+    local claim
+    claim="$(excepted "$path" "$messages")"
+    if [[ -n "$claim" ]]; then
+      printf '  ✓ XR-EX-%s (documented exception)  %s\n' "$claim" "$path"
       continue
     fi
     printf '  ✗ [XR-FREEZE] %s %s — frozen by ADR-076 (XR-1). Removal, or a commit tagged XR-RETIRE / SECURITY, only.\n' "$status" "$path"
@@ -77,6 +102,11 @@ self_test() {
   check 0 "services/marketplace stays open" $'M\tservices/marketplace/src/a.ts' "feat"
   check 1 "SECURITYX is not the SECURITY tag" $'M\tservices/billing/src/a.ts' "SECURITYX"
   check 1 "SECURITY_RULES is not the SECURITY tag" $'M\tservices/billing/src/a.ts' "docs: SECURITY_RULES §11"
+  # الاستثناءُ المؤرَّخُ: وسمُ XR-EX-<id> كلمةً مستقلّةً يُعفي مسارَ استثناءِهِ هو
+  check 0 "documented exception passes for its own path" $'M\tservices/identity/src/i.ts' "feat: CLM-0701 XR-EX-CLM-0701"
+  check 1 "exception token does not open other frozen domains" $'M\tservices/dispatch/src/a.ts' "feat: XR-EX-CLM-0701"
+  check 1 "exception id without the XR-EX- prefix is not the token" $'M\tservices/identity/src/i.ts' "feat: CLM-0701"
+  check 1 "no token, no exception — identity stays frozen" $'M\tservices/identity/src/i.ts' "feat: lifecycle"
   if (( fails )); then printf '✗ xr-domain-freeze self-test: %d failure(s)\n' "$fails"; return 1; fi
   printf '✓ xr-domain-freeze self-test: all cases\n'
 }

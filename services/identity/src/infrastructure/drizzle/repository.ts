@@ -39,8 +39,12 @@ import type {
   RecordHistoryInput,
   CreateRecoveryInput,
   CreateSessionInput,
+  ReassignLinkInput,
   SessionRepository,
+  CoreIdentityBindingStore,
+  BindCoreIdentityInput,
 } from "../../ports.js";
+import type { CoreIdentityBinding } from "../../domain/model.js";
 
 import {
   identityUsers,
@@ -49,6 +53,7 @@ import {
   identityRecoveryRequests,
   identityOutbox,
   identitySessions,
+  coreIdentityBindings,
 } from "./schema.js";
 import type { Db } from "./db.js";
 
@@ -311,6 +316,131 @@ export class PostgresIdentityRepository implements IdentityRepository {
       throw new IdentityError("IDENTITY_NOT_FOUND", "user not found");
     }
     return mapUser(rows[0]);
+  }
+
+  async reassignLink(input: ReassignLinkInput): Promise<IdentityLink> {
+    // نقلُ الرابطِ لا نسخُهُ: القيدُ الفريدُ (provider, external_id) يبقى محفوظاً
+    // — جيلٌّ واحدٌ يملكُ القناةَ في كلِّ لحظةٍ (CLM-0701).
+    const rows = await this.db
+      .update(identityLinks)
+      .set({
+        userInternalUuid: input.toUserInternalUuid,
+        linkedAt: new Date(input.linkedAt),
+      })
+      .where(
+        and(
+          eq(identityLinks.provider, input.provider),
+          eq(identityLinks.externalId, input.externalId),
+        ),
+      )
+      .returning();
+    if (rows.length === 0) {
+      throw new IdentityError(
+        "IDENTITY_LINK_NOT_FOUND",
+        "the external identity link to reassign does not exist",
+      );
+    }
+    return mapLink(rows[0]);
+  }
+}
+
+// --- core identity bindings (CLM-0701 · استثناءُ ADR-076) ---
+
+/** ربطُ جيلٍّ واحدٍ في الصفِّ الواحدِ — لا صفوفٍ مكرّرةٍ أبداً. */
+function mapBinding(
+  row: typeof coreIdentityBindings.$inferSelect,
+): CoreIdentityBinding {
+  return {
+    coreIdentityId: row.coreIdentityId,
+    userInternalUuid: row.userInternalUuid,
+    waslaPublicId: row.waslaPublicId,
+    boundAt: row.boundAt.toISOString(),
+    supersededAt: row.supersededAt === null ? null : row.supersededAt.toISOString(),
+    supersededByCoreIdentityId: row.supersededByCoreIdentityId,
+  };
+}
+
+export class PostgresCoreIdentityBindingStore implements CoreIdentityBindingStore {
+  constructor(private readonly db: Db) {}
+
+  async findByCoreIdentityId(
+    coreIdentityId: string,
+  ): Promise<CoreIdentityBinding | null> {
+    const rows = await this.db
+      .select()
+      .from(coreIdentityBindings)
+      .where(eq(coreIdentityBindings.coreIdentityId, coreIdentityId))
+      .limit(1);
+    return rows[0] === undefined ? null : mapBinding(rows[0]);
+  }
+
+  async findLatestForUserInternalUuid(
+    userInternalUuid: string,
+  ): Promise<CoreIdentityBinding | null> {
+    // أحدثُ ربطٍّ غيرِ مُزاحٍّ (القديمُ يبقى للتدقيقِ لا للقرارِ).
+    const rows = await this.db
+      .select()
+      .from(coreIdentityBindings)
+      .where(
+        and(
+          eq(coreIdentityBindings.userInternalUuid, userInternalUuid),
+          isNull(coreIdentityBindings.supersededAt),
+        ),
+      )
+      .orderBy(desc(coreIdentityBindings.boundAt))
+      .limit(1);
+    return rows[0] === undefined ? null : mapBinding(rows[0]);
+  }
+
+  async bind(input: BindCoreIdentityInput): Promise<CoreIdentityBinding> {
+    const inserted = await this.db
+      .insert(coreIdentityBindings)
+      .values({
+        coreIdentityId: input.coreIdentityId,
+        userInternalUuid: input.userInternalUuid,
+        waslaPublicId: input.waslaPublicId,
+        boundAt: new Date(input.boundAt),
+      })
+      .onConflictDoNothing({ target: coreIdentityBindings.coreIdentityId })
+      .returning();
+    if (inserted.length === 0) {
+      throw new IdentityError(
+        "IDENTITY_CORE_BINDING_EXISTS",
+        "this CORE generation is already bound to a MARKET identity",
+      );
+    }
+    return mapBinding(inserted[0]);
+  }
+
+  async supersede(
+    coreIdentityId: string,
+    byCoreIdentityId: string,
+    supersededAt: string,
+  ): Promise<void> {
+    const rows = await this.db
+      .update(coreIdentityBindings)
+      .set({
+        supersededAt: new Date(supersededAt),
+        supersededByCoreIdentityId: byCoreIdentityId,
+      })
+      .where(
+        and(
+          eq(coreIdentityBindings.coreIdentityId, coreIdentityId),
+          isNull(coreIdentityBindings.supersededAt),
+        ),
+      )
+      .returning();
+    if (rows.length === 0) {
+      // لا ربطَ قائماً بغيرِ إزاحةٍ — خطأُ ترتيبٍ لا صمتٌ.
+      const existing = await this.findByCoreIdentityId(coreIdentityId);
+      if (existing !== null && existing.supersededAt !== null) {
+        return; // مُزاحٌ سلفاً — مُتماثِلُ التكرارِ.
+      }
+      throw new IdentityError(
+        "IDENTITY_CORE_BINDING_UNAVAILABLE",
+        "cannot supersede a binding that does not exist",
+      );
+    }
   }
 }
 

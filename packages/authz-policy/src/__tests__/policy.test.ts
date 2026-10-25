@@ -43,7 +43,10 @@ describe("جردُ العملياتِ المفروضةِ", () => {
     // CLM-0645 (G-S9.3): +1 — `GET /geo/zones/search` (scope `geography:zone:read`
     // already enforced, so the scope count below is unchanged). Total: 170.
     // CLM-0649 (G-S9.7): +1 — `GET /search/stores` (new scope `search:stores:read`). Total: 171.
-    expect(ENFORCED_OPERATIONS).toHaveLength(171);
+    // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): +2 —
+    // `GET /identity/core-bindings/:coreIdentityId` و`POST /identity/core-deletion`
+    // (صلاحيّتانِ جديدتانِ لقراءةِ الربطِ وتطبيقِ حذفِ الجيلِ). Total: 173.
+    expect(ENFORCED_OPERATIONS).toHaveLength(173);
     expect(new Set(ENFORCED_OPERATIONS.map((o) => o.audience)).size).toBe(18);
   });
 
@@ -52,7 +55,9 @@ describe("جردُ العملياتِ المفروضةِ", () => {
     // CLM-0444: +8 — partners scopes (was 125). Total: 133.
     // CLM-0519: +3 — identity session scopes (issue/exchange/revoke). Total: 136.
     // CLM-0649 (G-S9.7): +1 — `search:stores:read` (independent of products). Total: 137.
-    expect(allEnforcedScopes()).toHaveLength(137);
+    // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): +2 — `identity:core-binding:read`
+    // و`identity:core-deletion:write` (قراءةُ ربطِ الجيلِ وتطبيقُ حذفِهِ). Total: 139.
+    expect(allEnforcedScopes()).toHaveLength(139);
     for (const op of ENFORCED_OPERATIONS) {
       expect(op.scopes.length).toBeGreaterThan(0);
     }
@@ -504,7 +509,10 @@ describe("حدُّ الدعوى في هذهِ الدفعةِ", () => {
         (b.audience === "orders" && wave3Orders.has(`${b.method} ${b.path}`)),
     );
     // CLM-0649 (G-S9.7): +1 — `GET /search/stores` `none` بدليلٍ وسببٍ (37 → 38).
-    expect(wave3).toHaveLength(38);
+    // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): +2 — قراءةُ ربطِ جيلِ
+    // النواةِ وتطبيقُ حذفِهِ، `none` بدليلٍ وسببٍ — الفاعلُ خدمةُ الزبائنِ
+    // (مستهلِكُ الحدثِ) والحارسُ جدولُ الربطِ (38 → 40).
+    expect(wave3).toHaveLength(40);
     for (const b of wave3) {
       expect(b.strength).toBe("none");
       expect(b.evidence).toMatch(/^[^:]+\.ts:\S+ \S+/);
@@ -743,6 +751,9 @@ describe("قراءةُ أثرِ منحٍ قبلَ إعطائِه", () => {
     expect(enforcedScopesAt("identity")).toEqual([
       // ADR-060 · CLM-0440: إصدارُ تأكيدِ المستخدمِ النهائيِّ — يُضافُ ولا يُمحى ما قبلَهُ.
       "identity:assertion:issue",
+      // CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): حياةُ أجيالِ حسابِ النواةِ.
+      "identity:core-binding:read",
+      "identity:core-deletion:write",
       "identity:history:read",
       "identity:link:write",
       "identity:recovery:write",

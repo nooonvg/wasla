@@ -161,6 +161,19 @@ export async function verifySessionToken(
     );
   }
 
+  // هويةٌ محجّرةٌ (حُذفَ جيلُ حسابِها في النواةِ — CLM-0701) لا تُقبَلُ
+  // جلستُها ولو كانتْ الرموزُ صحيحةً وباقيةً داخلَ مدّتِها: الحذفُ يُبطلُ
+  // الوصولَ فوراً لا عندَ انتهاءِ المدّةِ. نفسُ الكودِ والنصّ المقصودانِ
+  // كي لا يُفصَحَ عن سببِ الرفضِ (تمييزُ «محجّر» عن «غيرِ موجود» يُخبِرُ
+  // المهاجمَ أنّ الرمزَ كانَ صحيحاً يوماً).
+  if (owner.status === "deleted") {
+    throw new AuthenticationError(
+      AuthErrorCode.UNAUTHENTICATED,
+      "رمزُ الجلسةِ غيرُ مقبول.",
+      { traceId: deps.traceId },
+    );
+  }
+
   // آخِرُ استعمالٍ يُسجَّل ولا يُنتظَر منه قرار: فشلُ الكتابةِ لا يجوز أن
   // يمنع طلباً مصادَقاً عليه.
   await deps.sessions.touchSession(session.id, now.toISOString()).catch(() => undefined);

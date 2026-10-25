@@ -283,6 +283,88 @@ export interface DispatchJobPort {
 }
 
 // ---------------------------------------------------------------------------
+// CORE account deletion (CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25)
+// ---------------------------------------------------------------------------
+
+/**
+ * منفذُ تطبيقِ حذفِ حسابِ النواةِ على حدِّ الهويّةِ — يُستدعى **بعدَ** نجاحِ
+ * تنقيةِ بياناتِ العميلِ لا قبلَها: الهويّةُ المحجّرةُ ببياناتٍ ناجيةٍ عيبٌ،
+ * والبياناتُ المنقّاةُ بهويّةٍ حيّةِ جلسةٍ عيبٌ. نداءانِ لا ثالثَ لهما:
+ * قراءةُ الربطِ (مفتاحُ جيلٍّ ← هويّةُ MARKET) ثمّ التطبيقُ.
+ */
+export interface IdentityDeletionPort {
+  /** جيلُ حسابِ النواةِ ← هويّةُ MARKET المربوطةُ (null = غيرُ مربوطٍ). */
+  findCoreBinding(
+    coreIdentityId: string,
+  ): Promise<CoreIdentityBindingSummary | null>;
+  /** تطبيقُ الحذفِ على الهويّةِ — مُتماثِلُ التكرارِ في الخدمةِ الأخرى. */
+  applyCoreDeletion(input: {
+    readonly coreIdentityId: string;
+    readonly deletedAt?: string;
+  }): Promise<ApplyCoreDeletionOutcome>;
+}
+
+/** ملخّصُ ربطِ جيلٍّ كما تحتاجُهُ خدمةُ الزبائنِ — لا شيءَ منَ الداخلِ. */
+export interface CoreIdentityBindingSummary {
+  readonly waslaPublicId: string;
+}
+
+/** جوابُ التطبيقِ كما يهمُّ المستهلِكَ — الحسمُ لا التفاصيلُ. */
+export interface ApplyCoreDeletionOutcome {
+  readonly applied: boolean;
+  readonly waslaPublicId: string;
+  readonly reason?: string;
+}
+
+/**
+ * صفُّ صندوقِ حذفِ حسابِ النواةِ المملوكِ لخدمةِ الزبائنِ — نمطُ صندوقِ
+ * البريدِ القائمِ (XR-3.5): الإغلاقُ المفردُ بمفتاحِ الحدثِ، وكلُّ رفضٍ
+ * مسمّى، والقرارُ النهائيُّ وحدَهُ يُغلقُ الصفَّ.
+ */
+export interface CoreAccountDeletionInboxRecord {
+  readonly eventId: string;
+  readonly eventType: string;
+  /** جيلُ حسابِ النواةِ المحذوفِ — مفتاحُ الحسمِ لا مرجعٌ شكليٌّ. */
+  readonly coreIdentityId: string | null;
+  readonly consumedStatus:
+    | "pending"
+    | "applied"
+    | "observed"
+    | "poisoned"
+    | "error";
+  readonly lastError: string | null;
+  readonly attemptCount: number;
+  /**
+   * التصرّفُ الصريحُ المُسجَّلُ لكلِّ فئةِ بياناتٍ (قرارُ المالكِ المعلّقُ
+   * مكتوبٌ لا مفترضٌ): ما نُقّيَ وما أُبقِيَ ولماذا.
+   */
+  readonly disposition: string | null;
+  readonly consumedAt: string;
+  readonly updatedAt: string;
+}
+
+/**
+ * صندوقُ استهلاكِ أحداثِ `core.identity.account.deleted` — مملوكٌ لخدمةِ
+ * الزبائنِ (نفسُ قواعدِ صندوقِ التوصيلِ في XR-3.5): الحسمُ النهائيُّ لا
+ * يُخفَّضُ إلى حالةٍ حيّةٍ، والفشلُ العابرُ يبقى مرئيًّا قابلًا للإعادةِ.
+ */
+export interface CoreAccountDeletionInboxStore {
+  /** يقرأُ صفَّ الحدثِ إن وُجِدَ (للإغلاقِ المفردِ قبلَ أيِّ أثرٍ). */
+  find(eventId: string): Promise<CoreAccountDeletionInboxRecord | null>;
+  /** يُسجِّلُ الحسمَ النهائيَّ (معَ التصرّفِ الصريحِ للبياناتِ). */
+  recordTerminal(cmd: {
+    readonly eventId: string;
+    readonly eventType: string;
+    readonly coreIdentityId: string | null;
+    readonly consumedStatus: "applied" | "observed" | "poisoned";
+    readonly lastError: string | null;
+    readonly disposition: string | null;
+  }): Promise<void>;
+  /** يُسجِّلُ فشلًا عابرًا قابلًا للإعادةِ — الصفُّ يبقى حيًّا. */
+  recordRetryable(eventId: string, lastError: string): Promise<void>;
+}
+
+// ---------------------------------------------------------------------------
 // Outbox
 // ---------------------------------------------------------------------------
 

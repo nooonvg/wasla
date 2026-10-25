@@ -32,6 +32,20 @@ export {
   CUSTOMERS_IDENTITY_SCOPES,
 } from "./infrastructure/http-identity-lookup.js";
 export type { HttpIdentityLookupOptions } from "./infrastructure/http-identity-lookup.js";
+// CLM-0701 (استثناءُ ADR-076): منفذُ حذفِ حسابِ النواةِ على حدِّ الهويّةِ
+// ومُستهلِكُ الحدثِ وصندوقُهُ — النقلُ مؤجّلٌ إلى XR-4.3 عمداً.
+export {
+  HttpIdentityDeletionPort,
+  CUSTOMERS_IDENTITY_DELETION_SCOPES,
+} from "./infrastructure/http-identity-deletion.js";
+export type { HttpIdentityDeletionOptions } from "./infrastructure/http-identity-deletion.js";
+export { PgCoreAccountDeletionInbox } from "./infrastructure/pg-core-account-deletion-inbox.js";
+export {
+  consumeCoreAccountDeletionEvent,
+  type ConsumeCoreAccountDeletionDeps,
+  type CoreAccountDeletionConsumeResult,
+  type CoreAccountDeletionEnvelope,
+} from "./use-cases/consume-core-account-deletion.js";
 export {
   CUSTOMERS_GEOGRAPHY_SCOPES,
   HttpGeographyPort,

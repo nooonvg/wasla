@@ -26,6 +26,7 @@ export {
   PostgresIdentityRepository,
   PostgresOutbox,
   PostgresSessionRepository,
+  PostgresCoreIdentityBindingStore,
 } from "./infrastructure/drizzle/repository.js";
 export { PostgresPublicIdSequence } from "./infrastructure/drizzle/public-id-sequence.js";
 
@@ -37,6 +38,11 @@ export type { IdentityErrorBody } from "./http/errors.js";
 
 export { resolveTelegramIdentity } from "./use-cases/resolve-telegram-identity.js";
 export type { UseCaseDeps } from "./use-cases/resolve-telegram-identity.js";
+export {
+  applyCoreAccountDeletion,
+  type ApplyCoreDeletionDeps,
+  type ApplyCoreDeletionInput,
+} from "./use-cases/apply-core-account-deletion.js";
 export { getUser } from "./use-cases/get-user.js";
 export { addIdentityLink } from "./use-cases/add-identity-link.js";
 export type { AddIdentityLinkInput } from "./use-cases/add-identity-link.js";

@@ -28,8 +28,12 @@ import type {
   RecordHistoryInput,
   CreateRecoveryInput,
   CreateSessionInput,
+  ReassignLinkInput,
   SessionRepository,
+  CoreIdentityBindingStore,
+  BindCoreIdentityInput,
 } from "../ports.js";
+import type { CoreIdentityBinding } from "../domain/model.js";
 
 export class SystemClock implements Clock {
   now(): string {
@@ -206,6 +210,28 @@ export class InMemoryIdentityRepository implements IdentityRepository {
     return updated;
   }
 
+  async reassignLink(input: ReassignLinkInput): Promise<IdentityLink> {
+    const idx = this.links.findIndex(
+      (l) => l.provider === input.provider && l.externalId === input.externalId,
+    );
+    if (idx === -1) {
+      throw new IdentityError(
+        "IDENTITY_LINK_NOT_FOUND",
+        "the external identity link to reassign does not exist",
+      );
+    }
+    const moved: IdentityLink = {
+      ...this.links[idx],
+      userInternalUuid: input.toUserInternalUuid,
+      linkedAt: input.linkedAt,
+    };
+    this.links[idx] = moved;
+    if (input.provider === "telegram") {
+      this.telegramIndex.set(input.externalId, input.toUserInternalUuid);
+    }
+    return moved;
+  }
+
   /** Test helper: generate and format the next public id. */
   async nextPublicId(seq: PublicIdSequence): Promise<string> {
     return formatWaslaPublicId(await seq.next());
@@ -275,5 +301,74 @@ export class InMemorySessionRepository implements SessionRepository {
     return [...this.sessions.values()]
       .filter((s) => s.userInternalUuid === userInternalUuid)
       .sort((a, b) => Date.parse(b.issuedAt) - Date.parse(a.issuedAt));
+  }
+}
+
+/**
+ * مخزنُ ربطِ الأجيالِ في الذاكرةِ (CLM-0701) — لنفسِ قواعدِ التفردِ في
+ * المستودعِ الدائمِ: جيلٌ واحدٌ برابطٍ واحدٍ، والإزاحةُ تُبقي الرابطَ القديمَ
+ * مرئياً للتدقيقِ لا تُمحوهُ.
+ */
+export class InMemoryCoreIdentityBindingStore implements CoreIdentityBindingStore {
+  private bindings = new Map<string, CoreIdentityBinding>();
+
+  async findByCoreIdentityId(
+    coreIdentityId: string,
+  ): Promise<CoreIdentityBinding | null> {
+    return this.bindings.get(coreIdentityId) ?? null;
+  }
+
+  async findLatestForUserInternalUuid(
+    userInternalUuid: string,
+  ): Promise<CoreIdentityBinding | null> {
+    let latest: CoreIdentityBinding | null = null;
+    for (const b of this.bindings.values()) {
+      if (
+        b.userInternalUuid === userInternalUuid &&
+        (latest === null || b.boundAt > latest.boundAt)
+      ) {
+        latest = b;
+      }
+    }
+    return latest;
+  }
+
+  async bind(input: BindCoreIdentityInput): Promise<CoreIdentityBinding> {
+    const existing = this.bindings.get(input.coreIdentityId);
+    if (existing !== undefined) {
+      throw new IdentityError(
+        "IDENTITY_CORE_BINDING_EXISTS",
+        "this CORE generation is already bound to a MARKET identity",
+      );
+    }
+    const binding: CoreIdentityBinding = {
+      coreIdentityId: input.coreIdentityId,
+      userInternalUuid: input.userInternalUuid,
+      waslaPublicId: input.waslaPublicId,
+      boundAt: input.boundAt,
+      supersededAt: null,
+      supersededByCoreIdentityId: null,
+    };
+    this.bindings.set(input.coreIdentityId, binding);
+    return binding;
+  }
+
+  async supersede(
+    coreIdentityId: string,
+    byCoreIdentityId: string,
+    supersededAt: string,
+  ): Promise<void> {
+    const existing = this.bindings.get(coreIdentityId);
+    if (existing === undefined) {
+      throw new IdentityError(
+        "IDENTITY_CORE_BINDING_UNAVAILABLE",
+        "cannot supersede a binding that does not exist",
+      );
+    }
+    this.bindings.set(coreIdentityId, {
+      ...existing,
+      supersededAt,
+      supersededByCoreIdentityId: byCoreIdentityId,
+    });
   }
 }

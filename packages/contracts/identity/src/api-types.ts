@@ -197,6 +197,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/identity/core-bindings/{coreIdentityId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * قراءة ربط جيل حساب CORE بهوية MARKET
+         * @description CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25. قراءةٌ فقط: يجيبُ ربطَ الجيلِ
+         *     (identity_id من النواة) بهويّةِ MARKET المقابلةِ، أو 404 إن لم يُربَطِ الجيلُ بعدُ.
+         *     يقرؤهُ مستهلكُ حدثِ `core.identity.account.deleted` في خدمةِ الزبائنِ ليصلَ إلى
+         *     `wasla_public_id` صاحبِ البياناتِ — لا يُنشئُ شيئاً ولا يُغيّرُ شيئاً.
+         */
+        get: operations["getCoreIdentityBinding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/identity/core-deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * تطبيق حذف جيل حساب CORE على هويّة MARKET
+         * @description CLM-0701. يُطبّقُ حدثَ `core.identity.account.deleted`: تحجيرُ هويّةِ الجيلِ
+         *     (status=deleted) وإبطالُ كلّ جلساتِهِ — مُتماثلُ التكرارِ (تطبيقٌ ثانٍ لا يُغيّرُ
+         *     شيئاً). لا ربطَ للجيلِ ⇒ `applied: false` مع `reason: unbound` (لا يُطبّقُ شيءٌ
+         *     تخميناً — قابلٌ للإعادةِ عندَ وصولِ الربطِ). الجيلُ المحجّرُ لا يُعادُ ربطُهُ.
+         */
+        post: operations["applyCoreAccountDeletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -215,6 +261,37 @@ export interface components {
              * @enum {string}
              */
             source?: "customer_bot" | "driver_bot" | "partner_bot";
+            /** @description معرّفُ هويةِ النواةِ (identity_id) لجيلِ الحسابِ المصادَقِ عليهِ من جسرِ الويب (XR-6.1) — حضورُهُ يفعّلُ التسويةَ الواعيةَ بالأجيالِ (CLM-0701): جيلٌّ جديدٌ بعدَ حذفٍ يحصلُ على هويّةِ MARKET جديدةٍ فارغةٍ، والجيلُ القديمُ يفقدُ رابطَ القناةِ. غيابُهُ = السلوكُ القديمُ (إيجادٌ أو إنشاءٌ بلا ربطٍ). */
+            core_identity_id?: string;
+        };
+        /** @description ربطُ جيلِ حسابِ CORE بهويّةِ MARKET (CLM-0701 · استثناءُ ADR-076) */
+        CoreIdentityBinding: {
+            core_identity_id: string;
+            /** @description المعرّفُ الداخليُّ — لا يعبرُ استجابةً لغيرِ الخدماتِ (SECURITY_RULES §11) */
+            user_internal_uuid?: string;
+            wasla_public_id: string;
+            /** Format: date-time */
+            bound_at: string;
+            /** Format: date-time */
+            superseded_at?: string | null;
+            superseded_by_core_identity_id?: string | null;
+        };
+        ApplyCoreDeletionRequest: {
+            /** @description جيلُ الحسابِ المحذوفُ في النواةِ (identity_id من الحدث) */
+            core_identity_id: string;
+            /**
+             * Format: date-time
+             * @description لحظةُ الحذفِ في النواةِ (من الحدثِ — للتدقيقِ)
+             */
+            deleted_at?: string;
+        };
+        ApplyCoreDeletionResponse: {
+            /** @description true إن كانَ الجيلُ مربوطاً فحُجِّرَت هويّتُهُ وأُبطلت جلساتُهُ (أو كانَ محجّراً سلفاً) */
+            applied: boolean;
+            /** @description الهويّةُ التي طاولها التطبيقُ — أو سلسلةٌ فارغةٌ إن لم يوجدْ ربطٌ */
+            wasla_public_id: string;
+            /** @description unbound إن لم يكنِ الجيلُ مربوطاً (لا يُطبَّقُ شيءٌ — قابلٌ للإعادةِ) */
+            reason?: string;
         };
         IssueUserAssertionRequest: {
             /** Format: int64 */
@@ -705,6 +782,58 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getCoreIdentityBinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coreIdentityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ربطُ الجيلِ */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoreIdentityBinding"];
+                };
+            };
+            401: components["responses"]["AuthUnauthorized"];
+            403: components["responses"]["AuthForbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    applyCoreAccountDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyCoreDeletionRequest"];
+            };
+        };
+        responses: {
+            /** @description نتيجةُ التطبيقِ (مُتماثِلةُ التكرارِ) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplyCoreDeletionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["AuthUnauthorized"];
+            403: components["responses"]["AuthForbidden"];
         };
     };
 }

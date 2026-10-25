@@ -18,6 +18,7 @@ import type {
   HistorySource,
   VerificationMethod,
   UserStatus,
+  CoreIdentityBinding,
 } from "./domain/model.js";
 import type {
   Session,
@@ -134,6 +135,57 @@ export interface IdentityRepository {
     userInternalUuid: string,
     status: UserStatus,
   ): Promise<User>;
+
+  /**
+   * نقلُ رابطٍ خارجيٍّ إلى هويّةٍ أخرى (CLM-0701 · استثناءُ ADR-076): جيلُ
+   * حسابٍّ جديدٌ تولّى القناةَ فيرثُ رابطَ تيليجرامِ — والجيلُ القديمُ يفقدُهُ.
+   * يجب أن يُخفِقَ إن لم يوجدِ الرابطُ (IDENTITY_LINK_NOT_FOUND).
+   */
+  reassignLink(input: ReassignLinkInput): Promise<IdentityLink>;
+}
+
+/** مُدخَلُ نقلِ رابطٍ خارجيٍّ إلى هويّةٍ أخرى. */
+export interface ReassignLinkInput {
+  readonly provider: LinkProvider;
+  readonly externalId: string;
+  readonly toUserInternalUuid: string;
+  /** لحظةُ النقلِ الجديدةُ (linked_at الجديدُ للرابطِ). */
+  readonly linkedAt: string;
+}
+
+/**
+ * مخزنُ ربطِ أجيالِ حساباتِ النواةِ بهويّاتِ MARKET (CLM-0701).
+ *
+ * منفذٌ مستقلٌ عن `IdentityRepository` عمداً: الربطُ سجلُّ ترجمةٍ بينَ
+ * نظامينِ (CORE↔MARKET) لا سجلَّ هويّةٍ داخليّاً — ووهمُهُ (fake) في
+ * الاختبارِ لا يحملُ مستودعَ المستخدمينَ كله.
+ */
+export interface CoreIdentityBindingStore {
+  /** ربطُ جيلٍّ بعينِهِ — أو null. */
+  findByCoreIdentityId(coreIdentityId: string): Promise<CoreIdentityBinding | null>;
+
+  /** آخرُ ربطٍّ لهويّةِ MARKET (المُزاحةُ تُعيدُ آخرَ ربطٍّ غيرِ مُزاحٍّ). */
+  findLatestForUserInternalUuid(
+    userInternalUuid: string,
+  ): Promise<CoreIdentityBinding | null>;
+
+  /** إنشاءُ ربطٍّ جديدٍ — يجب أن يُخفِقَ إن كانَ الجيلُ مربوطاً قبلُ. */
+  bind(input: BindCoreIdentityInput): Promise<CoreIdentityBinding>;
+
+  /** إزاحةُ ربطِ جيلٍّ قائمٍ: جيلٌّ أحدثُ تولّى الهويّةَ. */
+  supersede(
+    coreIdentityId: string,
+    byCoreIdentityId: string,
+    supersededAt: string,
+  ): Promise<void>;
+}
+
+/** مُدخَلُ ربطِ جيلِ حسابِ نواةٍ بهويّةِ MARKET. */
+export interface BindCoreIdentityInput {
+  readonly coreIdentityId: string;
+  readonly userInternalUuid: string;
+  readonly waslaPublicId: string;
+  readonly boundAt: string;
 }
 
 /**

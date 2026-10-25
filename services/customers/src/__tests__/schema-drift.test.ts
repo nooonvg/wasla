@@ -23,6 +23,7 @@ import { getTableColumns, getTableName } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import {
+  coreAccountDeletionInbox,
   customerOrderRequestStops,
   customerOrderRequests,
   customerOutbox,
@@ -62,7 +63,8 @@ type AnyTable =
   | typeof customerSavedPlaces
   | typeof customerOrderRequests
   | typeof customerOrderRequestStops
-  | typeof customerOutbox;
+  | typeof customerOutbox
+  | typeof coreAccountDeletionInbox;
 
 /** Column names of a Drizzle table, as they exist in Postgres. */
 function drizzleColumns(table: AnyTable): string[] {
@@ -75,6 +77,8 @@ const CASES = [
   { name: "customer_order_requests", table: customerOrderRequests },
   { name: "customer_order_request_stops", table: customerOrderRequestStops },
   { name: "customer_outbox", table: customerOutbox },
+  // CLM-0701: صندوقُ حذفِ حسابِ النواةِ — ملكُ الزبائنِ لا مجالٍ مجمَّدٍ.
+  { name: "core_account_deletion_inbox", table: coreAccountDeletionInbox },
 ] as const;
 
 describe("Drizzle projection ↔ canonical DDL", () => {

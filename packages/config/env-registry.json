@@ -262,8 +262,8 @@
       "owner_item": "M2-04",
       "readers": [
         {
-          "file": "packages/bot-runtime/src/config.ts",
-          "mode": "bag"
+          "file": "packages/billing-e2e/src/__tests__/m5-17q-delivery-billing.e2e.test.ts",
+          "mode": "direct"
         },
         {
           "file": "packages/bot-runtime/src/__tests__/database-health.integration.test.ts",
@@ -274,11 +274,19 @@
           "mode": "direct"
         },
         {
-          "file": "packages/channel-e2e/src/__tests__/m1-02-session-gate.e2e.test.ts",
-          "mode": "direct"
+          "file": "packages/bot-runtime/src/config.ts",
+          "mode": "bag"
         },
         {
           "file": "packages/channel-e2e/src/__tests__/clm-0519-identity-sessions.e2e.test.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "packages/channel-e2e/src/__tests__/clm-0701-core-incarnation-deletion.e2e.test.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "packages/channel-e2e/src/__tests__/m1-02-session-gate.e2e.test.ts",
           "mode": "direct"
         },
         {
@@ -294,6 +302,10 @@
           "mode": "direct"
         },
         {
+          "file": "packages/channel-postgres/src/__tests__/outbox-drain.integration.test.ts",
+          "mode": "direct"
+        },
+        {
           "file": "packages/channel-postgres/src/__tests__/port-conformance.integration.test.ts",
           "mode": "direct"
         },
@@ -302,15 +314,15 @@
           "mode": "direct"
         },
         {
-          "file": "packages/channel-postgres/src/__tests__/outbox-drain.integration.test.ts",
-          "mode": "direct"
-        },
-        {
           "file": "packages/delivery-e2e/src/harness.ts",
           "mode": "direct"
         },
         {
           "file": "packages/marketplace-e2e/src/harness.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "packages/partners-e2e/src/__tests__/phase14-exit-gate.e2e.test.ts",
           "mode": "direct"
         },
         {
@@ -330,6 +342,22 @@
           "mode": "direct"
         },
         {
+          "file": "services/audit/drizzle.config.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/audit/src/db/migrate-cli.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/audit/src/http/server.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/billing/src/__tests__/pg-harness.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/customers/drizzle.config.ts",
           "mode": "direct"
         },
@@ -339,6 +367,10 @@
         },
         {
           "file": "services/customers/src/__tests__/pg-harness.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/customers/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -386,6 +418,10 @@
           "mode": "direct"
         },
         {
+          "file": "services/dispatch/src/db/migrate-cli.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/dispatch/src/http/server.ts",
           "mode": "direct"
         },
@@ -398,7 +434,15 @@
           "mode": "direct"
         },
         {
+          "file": "services/drivers/src/__tests__/outbox-drain.integration.test.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/drivers/src/__tests__/pg-harness.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/drivers/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -410,7 +454,15 @@
           "mode": "direct"
         },
         {
+          "file": "services/geography/src/__tests__/migration-upgrade-with-data.integration.test.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/geography/src/__tests__/migrations.integration.test.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/geography/src/__tests__/outbox-drain.integration.test.ts",
           "mode": "direct"
         },
         {
@@ -419,6 +471,10 @@
         },
         {
           "file": "services/geography/src/__tests__/postgres-repository.integration.test.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/geography/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -434,11 +490,23 @@
           "mode": "direct"
         },
         {
+          "file": "services/identity/src/__tests__/migration-upgrade-with-data.integration.test.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/identity/src/__tests__/migrations.integration.test.ts",
           "mode": "direct"
         },
         {
+          "file": "services/identity/src/__tests__/outbox-drain.integration.test.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/identity/src/__tests__/postgres-repository.integration.test.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/identity/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -478,6 +546,10 @@
           "mode": "direct"
         },
         {
+          "file": "services/matching/src/db/migrate-cli.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/matching/src/http/server.ts",
           "mode": "direct"
         },
@@ -491,6 +563,10 @@
         },
         {
           "file": "services/negotiations/src/__tests__/pg-harness.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/negotiations/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -510,7 +586,19 @@
           "mode": "direct"
         },
         {
+          "file": "services/orders/src/db/migrate-cli.ts",
+          "mode": "direct"
+        },
+        {
           "file": "services/orders/src/http/server.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/partners/src/__tests__/pg-harness.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/partners/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -523,6 +611,10 @@
         },
         {
           "file": "services/reputation/src/__tests__/pg-harness.ts",
+          "mode": "direct"
+        },
+        {
+          "file": "services/reputation/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
@@ -570,99 +662,11 @@
           "mode": "direct"
         },
         {
-          "file": "services/customers/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/dispatch/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/drivers/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/geography/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/identity/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/matching/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/negotiations/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/orders/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/reputation/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/geography/src/__tests__/migration-upgrade-with-data.integration.test.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/identity/src/__tests__/migration-upgrade-with-data.integration.test.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/drivers/src/__tests__/outbox-drain.integration.test.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/geography/src/__tests__/outbox-drain.integration.test.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/identity/src/__tests__/outbox-drain.integration.test.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/audit/drizzle.config.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/audit/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/audit/src/http/server.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/billing/src/__tests__/pg-harness.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/partners/src/__tests__/pg-harness.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "services/partners/src/db/migrate-cli.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "packages/partners-e2e/src/__tests__/phase14-exit-gate.e2e.test.ts",
-          "mode": "direct"
-        },
-        {
           "file": "services/support/src/db/migrate-cli.ts",
           "mode": "direct"
         },
         {
           "file": "services/support/src/http/server.ts",
-          "mode": "direct"
-        },
-        {
-          "file": "packages/billing-e2e/src/__tests__/m5-17q-delivery-billing.e2e.test.ts",
           "mode": "direct"
         }
       ],

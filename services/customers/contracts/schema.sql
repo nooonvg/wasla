@@ -180,6 +180,30 @@ CREATE INDEX IF NOT EXISTS ix_customer_outbox_unpublished
     ON customer_outbox (id) WHERE published_at IS NULL;
 
 -- ─────────────────────────────────────────────────────────────────────
+-- 6) core_account_deletion_inbox — صندوقُ حذفِ حسابِ النواةِ (CLM-0701)
+--    استثناءُ ADR-076 المؤرّخُ 2026-10-25. نمطُ صندوقِ XR-3.5 القائمِ:
+--    الإغلاقُ المفردُ بمفتاحِ الحدثِ، وكلُّ رفضٍ مسمّى، والحسمُ النهائيُّ وحدَهُ
+--    يُغلقُ الصفَّ. disposition يُسجّلُ التصرّفَ الصريحَ لكلِّ فئةِ بياناتٍ (ما
+--    نُقّيَ وما أُبقِيَ ولماذا) — قرارُ المالكِ المعلّقُ مكتوبٌ لا مفترضٌ.
+-- ─────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS core_account_deletion_inbox (
+    event_id          UUID         PRIMARY KEY,
+    event_type        TEXT         NOT NULL CHECK (char_length(event_type) BETWEEN 3 AND 96),
+    core_identity_id  TEXT,
+    consumed_status   TEXT         NOT NULL CHECK (consumed_status IN (
+                                     'pending','applied','observed','poisoned','error')),
+    last_error        TEXT,
+    attempt_count     INTEGER      NOT NULL CHECK (attempt_count >= 1),
+    disposition       TEXT,
+    consumed_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_core_account_deletion_inbox_retryable
+    ON core_account_deletion_inbox (updated_at)
+    WHERE consumed_status IN ('pending', 'error');
+
+-- ─────────────────────────────────────────────────────────────────────
 -- updated_at triggers
 -- ─────────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION customer_set_updated_at() RETURNS TRIGGER AS $$

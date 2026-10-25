@@ -153,7 +153,12 @@
   (`CHANNEL_IDENTITY_SCOPES` — `identity:resolve:write` وحدَها؛ الاختبارُ
   `packages/bot-runtime/src/__tests__/identity-bootstrap.test.ts` يقرأُ الترويسةَ
   على السلكِ). ومنه تُبنى بوتاتُ العميلِ والسائقِ والشريكِ الثلاثةُ، وكذلك
-  `bots/customer-bot/src/customer-core.ts`.
+  `bots/customer-bot/src/customer-core.ts`. ورابعٌ صغيرٌ نطاقاً أُضيفَ في
+  CLM-0701 (استثناءُ ADR-076 المؤرّخُ 2026-10-25): **مستهلِكُ حدثِ حذفِ حسابِ
+  النواةِ** في `services/customers`
+  (`CUSTOMERS_IDENTITY_DELETION_SCOPES` — `identity:core-binding:read` و
+  `identity:core-deletion:write` وحدَهُما)؛ يقرأُ ربطَ الجيلِ ثمّ يطبّقُ الحذفَ
+  على هويّتِهِ بعدَ تنقيةِ بياناتِ الزبونِ، والحارسُ جدولُ الربطِ لا الرمزُ.
 - **السلسلةُ كاملةً عبرَ مقابسَ حقيقيّة:** بوّاباتُ الخروجِ التي تُشغّلُ خدمةَ
   الهويّةِ (`order-e2e` · `dispatch-e2e` · `driver-e2e` · `negotiation-e2e` ·
   `customer-e2e` · `channel-e2e` · بوّابةُ الطورِ الثاني في `services/geography`)
@@ -711,6 +716,7 @@ const ownerScoped = (...scopes: string[]) => ({
 | `services/search/src/infrastructure/http-marketplace-catalog.ts` | marketplace | موقَّع | `services/search/src/__tests__/store-search.test.ts` يتحقّقُ من الرمزِ نفسِه (`verifyServiceToken` بجمهورِ marketplace مربوطًا بـ`GET` والمسارِ حرفيًّا) لـ`/stores/{slug}` و`/products/{id}` · `SEARCH_MARKETPLACE_SCOPES` = `marketplace:product:read` + `marketplace:store:read` · منحةُ `PRODUCTION_GRANTS[search]` · **CLM-0649 (G-S9.19):** حلَّ محلَّ `catalog-read-port.ts` الذي كانَ يُنادي marketplace **بلا هويّةٍ** وبـ`this.fetchImpl(` فلم يرَه البابُ 7 (يقيسُ `fetch(`)؛ وmarketplace مفروضٌ، فكانَ كلُّ جلبٍ سيُرفَضُ 401 ويُعلِّقُ الحدثَ. **لا تركيبَ إنتاجيًّا للمُرحِّلِ بعدُ** (يُركَّبُ في الاختبارِ و`packages/search-e2e` فقط) — الموقِّعُ مُثبَتٌ وحدةً لا نشرًا |
 | `services/customers/src/infrastructure/http-geography.ts` | geography | موقَّع | `services/customers/src/__tests__` (عبر بوّاباتِ e2e) · `CUSTOMERS_GEOGRAPHY_SCOPES` |
 | `services/customers/src/infrastructure/http-identity-lookup.ts` | identity | موقَّع | `services/identity/src/__tests__/http/service-identity.test.ts` · `CUSTOMERS_IDENTITY_SCOPES` |
+| `services/customers/src/infrastructure/http-identity-deletion.ts` | identity | موقَّع | مستهلِكُ حذفِ حسابِ النواةِ (CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25): يوقّعُ نداءَي قراءةِ الربطِ وتطبيقِ الحذفِ · `CUSTOMERS_IDENTITY_DELETION_SCOPES` = **`identity:core-binding:read` + `identity:core-deletion:write` حصراً** (لا قراءةَ مستخدمٍ ولا ربطَ) — والاختبارُ في `packages/channel-e2e/src/__tests__/clm-0701-core-incarnation-deletion.e2e.test.ts` يمشي الرحلةَ كاملةً على PostgreSQL في CI |
 | `services/customers/src/infrastructure/http-order-intake.ts` | orders | موقَّع | `services/customers/src/__tests__/http-order-intake.test.ts` · `CUSTOMERS_ORDERS_SCOPES` |
 | `services/customers/src/infrastructure/http-dispatch-job.ts` | dispatch | موقَّع | `services/customers/src/__tests__/dispatch-job-wiring.test.ts` (D-03 · M5-13D · `CLM-0532`) يُثبِتُ المنفذَ بالتوقيعِ لا بلا · `CUSTOMERS_DISPATCH_SCOPES` = **`dispatch:job:write` حصراً** (لا قراءةَ ولا إلغاء)، وهوَ قياسٌ لا إعلانٌ: `HttpDispatchJobOptions.signRequest` إلزاميٌّ بلا قيمةٍ افتراضيّةٍ، و`server.ts` يُسقِطُ إلى `UnavailableDispatchJob` لا إلى بلا موقِّعٍ |
 | `services/dispatch/src/infrastructure/http-order-engine.ts` | orders | موقَّع | `services/dispatch/src/__tests__/http-order-engine.test.ts` · `DISPATCH_ORDERS_SCOPES` |
@@ -893,6 +899,8 @@ axios-retry، request-promise، isomorphic-fetch، cross-fetch) يجبُ أن ت
 | `POST /identity/sessions` | `identity:session:issue` | customer-bot و driver-bot فقط — حدّ قناة واعٍ بالمصادقة (ADR-069 المرحلة الأولى · CLM-0519)؛ الفاعل مشتق من `serviceIdentity.caller` لا من جسم الطلب |
 | `POST /identity/sessions/exchange` | `identity:session:exchange` | customer-bot و driver-bot فقط — يصدر `wua1` بعمر ≤ 60 ثانية لجمهور محدد (`ASSERTION_AUDIENCES_BY_ACTOR` — ADR-069 §2.2) |
 | `POST /identity/sessions/revoke` | `identity:session:revoke` | customer-bot و driver-bot فقط — سحب جلسة برمزها (404 `IDENTITY_SESSION_NOT_FOUND` إن لم توجد) |
+| `GET /identity/core-bindings/{coreIdentityId}` | `identity:core-binding:read` | customers وحدَها — قراءةُ ربطِ جيلِ نواةٍ بهويّةِ MARKET (CLM-0701 · استثناءُ ADR-076 المؤرّخُ 2026-10-25) |
+| `POST /identity/core-deletion` | `identity:core-deletion:write` | customers وحدَها — تطبيقُ حذفِ جيلِ حسابِ النواةِ (CLM-0701)؛ الحارسُ جدولُ الربطِ: الحذفُ لا يقعُ إلّا على الهويّةِ المرصودةِ لذلكَ الجيلِ |
 | `GET /health` | مفتوحٌ بتصنيفٍ صريح | — |
 
 <!-- identity-scopes:end -->
