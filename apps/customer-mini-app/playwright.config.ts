@@ -25,7 +25,11 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "bash -c 'VITE_E2E=true npx vite build && npx vite preview --port 4173'",
+    // CLM-0699: `VITE_CORE_URL` بذاتِ الأصلِ — نداءُ حذفِ الحسابِ (`/v1/me/deletion`)
+    // يُوجَّهُ إلى النواةِ مباشرةً كما في الإنتاجِ، وهنا تُحاكى استجابتُهُ على
+    // مسارِهِ الحقيقيِّ نفسِهِ (`page.route`).
+    command:
+      "bash -c 'VITE_E2E=true VITE_CORE_URL=http://localhost:4173 npx vite build && npx vite preview --port 4173'",
     port: 4173,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

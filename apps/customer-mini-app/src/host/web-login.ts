@@ -23,7 +23,7 @@
 import type { SessionCredential } from "./types";
 
 /** عنوانُ النواةِ — يُضبطُ بنشرِ النواةِ (قرارُ البيئةِ). يُقرأُ عندَ الاستدعاءِ لا عندَ الإقلاعِ — فالاختبارُ يبدّلُه. */
-function coreBaseUrl(): string {
+export function coreBaseUrl(): string {
   return (import.meta.env.VITE_CORE_URL ?? "").replace(/\/$/, "");
 }
 
@@ -85,6 +85,18 @@ export function currentWebCredential(): SessionCredential | null {
 /** مسحُ الجلسةِ في الذاكرةِ (الخروجُ). */
 export function clearWebCredential(): void {
   coreAccessToken = null;
+}
+
+/**
+ * بذرُ إثباتِ النواةِ لاختباراتِ E2E والوحدةِ — لا أثرَ لهُ في الإنتاجِ:
+ * يُسقِطُهُ البناءُ (MODE=production) أو يُعطِّلُهُ (لا يعملُ في الإقلاعِ).
+ * الدافعُ (CLM-0699): رحلةُ حذفِ الحسابِ في E2E تبدأُ بدخولِ ويبٍ مُكمَّلٍ،
+ * وتيليجرامُ OIDC نفسُهُ لا يُحاكى — فيُبذَرُ الرمزُ كما تُبذَرُ الجلسةُ
+ * عبرَ `__waslaE2ESession` (لا بابٌ خلفيٌّ في الإنتاجِ: مجمَّعٌ شرطيًّا).
+ */
+export function setWebCredentialForE2E(token: string | null): void {
+  if (import.meta.env.VITE_E2E !== "true") return;
+  coreAccessToken = token;
 }
 
 /**

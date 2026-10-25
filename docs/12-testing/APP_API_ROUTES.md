@@ -42,6 +42,7 @@
 | apps/customer-mini-app/src/session/session-init.ts |
 | apps/driver-mini-app/src/session/session-init.ts |
 | apps/customer-mini-app/src/host/web-login.ts |
+| apps/customer-mini-app/src/host/account-deletion.ts |
 <!-- app-api-transport:end -->
 
 جدولُ التوجيهِ (M3-09 · ADR-048) هو الملفُّ الوحيدُ الذي يحوِّلُ بادئةَ المسارِ إلى الخدمةِ الحيّةِ؛ تقرؤهُ terraform (لتوليدِ قواعدِ إعادةِ الكتابةِ على المواقعِ الثابتةِ) والبابُ السادسُ معًا — فلا يوجدَ مصدرُ توجيهٍ ثانٍ يُنسخُ أو يناقضُ:

@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
+import { logoutSession } from "../session/session-init";
+import { accountDeletionAvailable, requestAccountDeletion } from "../host/account-deletion";
 
 interface Profile {
   display_name?: string | null;
@@ -18,7 +20,16 @@ export function Profile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deletionError, setDeletionError] = useState<string | null>(null);
+  const [deletionAvailable, setDeletionAvailable] = useState(false);
   const loadedRef = useRef(false);
+
+  useEffect(() => {
+    // D-XR-13: الإتاحةُ تُقرأُ مرةً عندَ العرضِ — إثباتُ الويبِ في الذاكرةِ لا يتغيّرُ إلا بدخولٍ جديدٍ (إعادةُ تحميلٍ).
+    setDeletionAvailable(accountDeletionAvailable());
+  }, []);
 
   const loadProfile = useCallback(async () => {
     if (!token || !customerId) return;
@@ -59,6 +70,45 @@ export function Profile() {
     setProfile((prev) => ({ ...prev, [field]: value || null }));
     setSuccess(false);
   }, []);
+
+  /**
+   * D-XR-13 (CLM-0699): الحذفُ فعلُ الشخصِ عندَ النواةِ بجلستهِ هو — النجاحُ (204)
+   * يبدأُ الوداعَ: العلامةُ في المخزنِ أولًا (لا تومضُ شاشةُ دخولٍ)، ثمّ مسحُ
+   * جلسةِ السوقِ عبرَ الحدِّ (وفشلُ الطلبِ لا يُحيي الجلسةَ المحليّةَ — `logoutSession`
+   * يمسحُ محليًّا في كلِّ حالٍ ويمنعُ إعادةَ التهيئةِ التلقائيّةَ).
+   */
+  const handleDeleteAccount = useCallback(async () => {
+    setDeleting(true);
+    setDeletionError(null);
+    let outcome: Awaited<ReturnType<typeof requestAccountDeletion>>;
+    try {
+      outcome = await requestAccountDeletion();
+    } finally {
+      setDeleting(false);
+    }
+    if (outcome.status === "deleted") {
+      useSessionStore.getState().markAccountDeleted();
+      await logoutSession();
+      return;
+    }
+    if (outcome.status === "refused_admin") {
+      setDeletionError(
+        outcome.organizationIds.length > 0
+          ? t("deletion.refused_admin", { ids: outcome.organizationIds.join(" · ") })
+          : t("deletion.refused_admin_no_ids"),
+      );
+      return;
+    }
+    if (outcome.status === "unauthenticated") {
+      setDeletionError(t("deletion.unauthenticated"));
+      return;
+    }
+    if (outcome.status === "no_web_credential") {
+      setDeletionError(t("deletion.web_only"));
+      return;
+    }
+    setDeletionError(t("deletion.failed"));
+  }, [t]);
 
   if (loading) {
     return (
@@ -156,6 +206,55 @@ export function Profile() {
           <span aria-hidden="true">📍</span>
           <span>{t("places.title")}</span>
         </a>
+      </section>
+
+      {/* D-XR-13 (CLM-0699): حذفُ الحسابِ — فعلٌ نهائيٌّ يُطلَبُ من النواةِ بجلسةِ
+          الشخصِ؛ تأكيدٌ صريحٌ لا زرٌّ عابرٌ، وحدٌّ معلَنٌ لمستعملِ المصغّرِ. */}
+      <section className="profile-deletion" aria-labelledby="profile-deletion-heading">
+        <h2 id="profile-deletion-heading">{t("deletion.title")}</h2>
+        {deletionAvailable ? (
+          <>
+            <p data-testid="deletion-warning">{t("deletion.warning")}</p>
+            {confirmingDeletion ? (
+              <>
+                <p role="alert" data-testid="deletion-confirm-text">
+                  {t("deletion.confirm_text")}
+                </p>
+                <button
+                  type="button"
+                  data-testid="delete-account-confirm"
+                  onClick={() => void handleDeleteAccount()}
+                  disabled={deleting}
+                >
+                  {deleting ? t("common.submitting") : t("deletion.confirm_button")}
+                </button>
+                <button
+                  type="button"
+                  data-testid="delete-account-cancel"
+                  onClick={() => setConfirmingDeletion(false)}
+                  disabled={deleting}
+                >
+                  {t("common.cancel")}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                data-testid="delete-account-button"
+                onClick={() => setConfirmingDeletion(true)}
+              >
+                {t("deletion.button")}
+              </button>
+            )}
+            {deletionError && (
+              <div className="error-message" role="alert" data-testid="deletion-error">
+                {deletionError}
+              </div>
+            )}
+          </>
+        ) : (
+          <p data-testid="deletion-web-only">{t("deletion.web_only")}</p>
+        )}
       </section>
     </div>
   );

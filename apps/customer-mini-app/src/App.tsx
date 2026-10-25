@@ -48,7 +48,8 @@ function parseHash(): Route {
 export function App() {
   const { t } = useTranslation();
   const [route, setRoute] = useState<Route>(parseHash());
-  const { isAuthenticated, initStatus, initError } = useSessionStore();
+  const { isAuthenticated, initStatus, initError, accountDeleted, dismissAccountDeleted } =
+    useSessionStore();
   const [webSigningIn, setWebSigningIn] = useState(false);
 
   useEffect(() => {
@@ -62,6 +63,28 @@ export function App() {
   // G-S8 (CLM-0610): a failed init is shown with a retry — never an endless
   // loading screen. Loading is shown only while an init is (or may be) running.
   // XR-8.5: في المتصفّحِ بلا دخولٍ — زرُّ الدخولِ بجلسةِ النواةِ لا خطأٌ نهائيٌّ.
+  // D-XR-13 (CLM-0699): الوداعُ حالةٌ في المخزنِ لا وميضُ شاشةِ دخولٍ — لا تُعرَضُ
+  // شاشةُ الدخولِ قبلَ أن يقرّرَ الشخصُ البدءَ من جديدٍ (تسجيلٌ جديدٌ = حسابٌ
+  // جديدٌ عندَ النواةِ؛ الخيارُ لهُ لا للمسحِ العرضيِّ).
+  if (accountDeleted) {
+    return (
+      <>
+        <OfflineBanner />
+        <div className="screen account-deleted-screen" data-testid="account-deleted-screen">
+          <h1>{t("account_deleted.title")}</h1>
+          <p data-testid="account-deleted-message">{t("account_deleted.message")}</p>
+          <button
+            type="button"
+            data-testid="account-deleted-fresh-start"
+            onClick={dismissAccountDeleted}
+          >
+            {t("account_deleted.fresh_start")}
+          </button>
+        </div>
+      </>
+    );
+  }
+
   if (!isAuthenticated() && initStatus === "failed" && initError === "web_login_required") {
     const startWebLogin = async () => {
       setWebSigningIn(true);

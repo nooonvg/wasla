@@ -14,7 +14,7 @@ import { useSessionStore } from "../store/session";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  useSessionStore.setState({ token: null, customerId: null, expiresAt: null, initStatus: "idle", initError: null } as never);
+  useSessionStore.setState({ token: null, customerId: null, expiresAt: null, initStatus: "idle", initError: null, accountDeleted: false } as never);
 });
 
 describe("App session states", () => {
@@ -38,5 +38,27 @@ describe("App session states", () => {
     const { container } = render(<App />);
     expect(container.querySelector(".app-loading")).not.toBeNull();
     expect(screen.queryByTestId("session-retry")).toBeNull();
+  });
+});
+
+describe("Account deletion farewell (D-XR-13 · CLM-0699)", () => {
+  it("a deleted account shows the farewell screen, not the sign-in screen", () => {
+    useSessionStore.setState({ accountDeleted: true, token: null, initStatus: "failed", initError: "web_login_required" });
+    render(<App />);
+    expect(screen.getByTestId("account-deleted-screen")).toBeVisible();
+    // لا شاشةَ دخولٍ ولا زرَّ دخولٍ — الوداعُ أولًا.
+    expect(screen.queryByTestId("web-sign-in")).toBeNull();
+    expect(screen.getByTestId("account-deleted-message")).toHaveTextContent(
+      "حُذف حسابُك نهائيًا وانتُهيت جلساتُك كلُّها",
+    );
+  });
+
+  it("fresh start is the person's own choice — it returns to the normal logged-out screen", () => {
+    useSessionStore.setState({ accountDeleted: true, token: null, initStatus: "failed", initError: "web_login_required" });
+    render(<App />);
+    fireEvent.click(screen.getByTestId("account-deleted-fresh-start"));
+    // عادَ الوضعُ الطبيعيّ: شاشةُ الدخولِ ظاهرةٌ (البدءُ من جديدٍ = تسجيلٌ جديدٌ عندَ النواةِ).
+    expect(screen.queryByTestId("account-deleted-screen")).toBeNull();
+    expect(screen.getByTestId("web-sign-in")).toBeVisible();
   });
 });

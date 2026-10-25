@@ -185,6 +185,29 @@ const resources = {
         save_button: "حفظ",
         saved: "تم الحفظ",
       },
+      deletion: {
+        title: "حذف الحساب",
+        warning:
+          "حذفُ حسابِكَ نهائيٌّ: تُنهى هويتُك في النظامِ كلِّهِ وتُسحبُ كلُّ جلساتِك. تبقى طلباتُك السابقةُ في السجلِّ.",
+        button: "حذف حسابي نهائيًا",
+        confirm_text: "لا يمكن التراجعُ بعدَ الحذف. هل أنت متأكد؟",
+        confirm_button: "نعم، احذف حسابي",
+        refused_admin:
+          "لا يمكنُ الحذفُ الآن: أنتَ مسؤولٌ على منظماتٍ يجبُ نقلُ إدارتِها أو إغلاقُها أولًا ({{ids}}).",
+        refused_admin_no_ids:
+          "لا يمكنُ الحذفُ الآن: أنتَ مسؤولٌ على منظماتٍ يجبُ نقلُ إدارتِها أو إغلاقُها أولًا.",
+        unauthenticated:
+          "انتهت جلسةُ النواة — أعدِ الدخولَ من الويبِ ثمّ أعدِ المحاولة.",
+        failed: "تعذّر حذفُ الحساب — حاول لاحقًا.",
+        web_only:
+          "حذفُ الحسابِ يتمُّ من نسخةِ الويبِ: افتحِ التطبيقَ في متصفّحٍ، سجّل الدخولَ بحسابِ تيليجرام، ثمّ احذف من الملفِ الشخصي.",
+      },
+      account_deleted: {
+        title: "تم حذف حسابك",
+        message:
+          "حُذف حسابُك نهائيًا وانتُهيت جلساتُك كلُّها. إن رغبتَ بالعودةِ فتسجيلُ دخولٍ جديدٌ ينشئُ حسابًا جديدًا.",
+        fresh_start: "البدء من جديد",
+      },
     },
   },
   en: {
@@ -367,6 +390,29 @@ const resources = {
         save_button: "Save",
         saved: "Saved",
       },
+      deletion: {
+        title: "Delete Account",
+        warning:
+          "Deleting your account is permanent: your identity across the system is ended and all your sessions are revoked. Your past orders remain on record.",
+        button: "Delete my account permanently",
+        confirm_text: "This cannot be undone. Are you sure?",
+        confirm_button: "Yes, delete my account",
+        refused_admin:
+          "Cannot delete yet: you administer organizations that must be transferred or closed first ({{ids}}).",
+        refused_admin_no_ids:
+          "Cannot delete yet: you administer organizations that must be transferred or closed first.",
+        unauthenticated:
+          "Your CORE session has ended — sign in again on the web, then retry.",
+        failed: "Could not delete the account — try again later.",
+        web_only:
+          "Account deletion is done from the web version: open the app in a browser, sign in with your Telegram account, then delete from the profile.",
+      },
+      account_deleted: {
+        title: "Your account is deleted",
+        message:
+          "Your account was permanently deleted and all your sessions were revoked. Signing in again creates a new account.",
+        fresh_start: "Start fresh",
+      },
     },
   },
   ur: {
@@ -545,6 +591,29 @@ const resources = {
         language_none: "— منتخب کریں —",
         save_button: "محفوظ کریں",
         saved: "محفوظ ہو گیا",
+      },
+      deletion: {
+        title: "اکاؤنٹ حذف کریں",
+        warning:
+          "اکاؤنٹ کا حذف ہونا مستقل ہے: آپ کی پہچان ختم ہو جاتی ہے اور تمام سیشن منسوخ ہو جاتے ہیں۔ پرانے آرڈر ریکارڈ میں رہتے ہیں۔",
+        button: "میرا اکاؤنٹ ہمیشہ کے لیے حذف کریں",
+        confirm_text: "حذف کے بعد واپسی نہیں ہو سکتی۔ کیا آپ یقین رکھتے ہیں؟",
+        confirm_button: "ہاں، میرا اکاؤنٹ حذف کریں",
+        refused_admin:
+          "ابھی حذف نہیں ہو سکتا: آپ ایسی تنظیموں کے منتظم ہیں جنہیں پہلے منتقل یا بند کیا جانا چاہیے ({{ids}})۔",
+        refused_admin_no_ids:
+          "ابھی حذف نہیں ہو سکتا: آپ ایسی تنظیموں کے منتظم ہیں جنہیں پہلے منتقل یا بند کیا جانا چاہیے۔",
+        unauthenticated:
+          "کور سیشن ختم ہو گیا — ویب پر دوبارہ سائن ان کریں پھر دوبارہ کوشش کریں۔",
+        failed: "اکاؤنٹ حذف نہیں ہو سکا — بعد میں کوشش کریں۔",
+        web_only:
+          "اکاؤنٹ کا حذف ویب ورژن سے ہوتا ہے: براؤزر میں ایپ کھولیں، ٹیلیگرام اکاؤنٹ سے سائن ان کریں، پھر پروفائل سے حذف کریں۔",
+      },
+      account_deleted: {
+        title: "آپ کا اکاؤنٹ حذف ہو گیا",
+        message:
+          "آپ کا اکاؤنٹ مستقل حذف ہو گیا اور تمام سیشن منسوخ کر دیے گئے۔ دوبارہ سائن ان کرنے سے نیا اکاؤنٹ بنتا ہے۔",
+        fresh_start: "نیا آغاز کریں",
       },
     },
   },

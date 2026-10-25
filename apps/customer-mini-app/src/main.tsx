@@ -4,6 +4,7 @@ import { App } from "./App";
 import { useSessionStore } from "./store/session";
 import { startSessionLifecycle } from "./session/session-init";
 import { registerServiceWorker } from "./pwa/register-service-worker";
+import { setWebCredentialForE2E } from "./host/web-login";
 import "./i18n";
 import "./index.css";
 
@@ -39,6 +40,14 @@ if (import.meta.env.VITE_E2E === "true") {
       e2eSession.expiresAt
     );
   }
+  // CLM-0699: بذرُ إثباتِ النواةِ (دخولُ الويبِ) لرحلةِ الحذفِ — كما الجلسةُ،
+  // لا بابٌ خلفيٌّ: البناءُ الإنتاجيُّ يُسقِطُ الكتلةَ كلَّها (VITE_E2E).
+  const e2eWebCredential = (
+    window as unknown as { __waslaE2EWebCredential?: string }
+  ).__waslaE2EWebCredential;
+  if (e2eWebCredential) {
+    setWebCredentialForE2E(e2eWebCredential);
+  }
   // Expose runtime controls for E2E tests
   (
     window as unknown as { __waslaE2E?: unknown }
@@ -46,6 +55,7 @@ if (import.meta.env.VITE_E2E === "true") {
     setSession: (token: string, customerId: string, expiresAt: number) =>
       useSessionStore.getState().setSession(token, customerId, expiresAt),
     clearSession: () => useSessionStore.getState().clearSession(),
+    setWebCredential: (token: string | null) => setWebCredentialForE2E(token),
   };
 }
 
