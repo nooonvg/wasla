@@ -197,7 +197,20 @@ export function createIdentityApp(
           "no MARKET identity is bound to this CORE generation",
         );
       }
-      return reply.status(200).send(binding);
+      // عقدُ السلكِ snake_case (`CoreIdentityBinding` في api.openapi.yml) —
+      // الكائنُ الداخليُّ camelCase فلا يعبرُ كما هو.
+      return reply.status(200).send({
+        core_identity_id: binding.coreIdentityId,
+        user_internal_uuid: binding.userInternalUuid,
+        wasla_public_id: binding.waslaPublicId,
+        bound_at: binding.boundAt,
+        ...(binding.supersededAt === undefined
+          ? {}
+          : { superseded_at: binding.supersededAt }),
+        ...(binding.supersededByCoreIdentityId === undefined
+          ? {}
+          : { superseded_by_core_identity_id: binding.supersededByCoreIdentityId }),
+      });
     },
   );
 

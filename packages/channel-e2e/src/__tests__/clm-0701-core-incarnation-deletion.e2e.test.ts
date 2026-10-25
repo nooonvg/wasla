@@ -115,7 +115,7 @@ describe.skipIf(!DATABASE_URL)(
     let inbox: InMemoryCoreAccountDeletionInbox;
 
     function signFor(method: string, url: string): Record<string, string> {
-      return serviceAuthHeaders({
+      const headers = serviceAuthHeaders({
         serviceName: "customer-bot",
         audience: "identity",
         method: method.toUpperCase(),
@@ -124,6 +124,12 @@ describe.skipIf(!DATABASE_URL)(
         now: new Date(clock.now()),
         scopes: ALL_IDENTITY_SCOPES,
       });
+      // جسمُ الطلبِ JSON: fastify يرفضُ حزمةً بلا `Content-Type` بـ415 —
+      // والتوقيعُ يغطّي المسارَ لا الترويساتِ فلا يفسدُ إضافتُهُ شيئاً.
+      if (method.toUpperCase() !== "GET") {
+        headers["content-type"] = "application/json";
+      }
+      return headers;
     }
 
     /** منفذُ الهويّةِ كما ستبدو حقيقتُهُ في الإنتاجِ: نداءاتُ HTTP لا نداءاتٍ داخليةٍ. */
@@ -237,12 +243,27 @@ describe.skipIf(!DATABASE_URL)(
           replayGuard: new InMemoryServiceTokenReplayGuard({
             now: () => new Date(clock.now()),
           }),
+          // **ساعةُ فرضِ هويّةِ الخدمةِ يقودها الاختبارُ لا الجدارُ** (نمطُ
+          // clm-0519): التوقيعُ على `now: clock.now()` المجمدِ والتحقّقُ على
+          // `Date.now()` الحقيقيِّ في CI يُصدِرُ رمزاً «منتهياً» بفرقِ الساعاتِ
+          // فيُرفَضَ بـ401 — فتُربَطُ ساعةُ التحقّقِ بالساعةِ نفسِها.
+          now: () => new Date(clock.now()),
         },
         session: { sessions: sessionsRepo, repo, clock, idGen },
       });
 
       customersRepo = new InMemoryCustomerRepository();
       inbox = new InMemoryCoreAccountDeletionInbox();
+
+      // تشخيصٌ لبيئةِ CI وحدَها (لا قاعدةَ محليّةً): التطبيقُ يُغلِّفُ الأخطاءَ
+      // غيرَ المصنّفةِ بـ503 بلا سببٍ معادٍ (I-13) — وهذا الخطّافُ يُظهرُ الخطأَ
+      // نفسَهُ في سجلِّ الاختبارِ ليُشخَّصَ لا ليُخمَّنَ.
+      app.addHook("onError", async (request, _reply, error) => {
+        console.log(
+          `[clm-0701] swallowed error on ${request.method} ${request.url}:`,
+          error instanceof Error ? error.stack : error,
+        );
+      });
     });
 
     afterAll(async () => {
@@ -258,7 +279,7 @@ describe.skipIf(!DATABASE_URL)(
         telegram_user_id: telegramT,
         telegram_username: "alpha_user",
         core_identity_id: genA,
-        source: "channel_web",
+        source: "customer_bot",
       });
       expect(a.statusCode).toBe(201);
       const aBody = (await a.json()) as {
@@ -299,7 +320,7 @@ describe.skipIf(!DATABASE_URL)(
         telegram_user_id: telegramT,
         telegram_username: "alpha_user",
         core_identity_id: genB,
-        source: "channel_web",
+        source: "customer_bot",
       });
       expect(b.statusCode).toBe(201);
       const bBody = (await b.json()) as {
@@ -353,7 +374,7 @@ describe.skipIf(!DATABASE_URL)(
       const bAgain = await resolveViaHttp({
         telegram_user_id: telegramT,
         core_identity_id: genB,
-        source: "channel_web",
+        source: "customer_bot",
       });
       expect(bAgain.statusCode).toBe(200);
       const bAgainBody = (await bAgain.json()) as { wasla_public_id: string };
@@ -373,7 +394,7 @@ describe.skipIf(!DATABASE_URL)(
       const aGhost = await resolveViaHttp({
         telegram_user_id: telegramT,
         core_identity_id: genA,
-        source: "channel_web",
+        source: "customer_bot",
       });
       expect(aGhost.statusCode).toBe(403);
       const aGhostBody = (await aGhost.json()) as { code: string };
@@ -474,7 +495,7 @@ describe.skipIf(!DATABASE_URL)(
           identity: httpIdentityDeletionPort(),
         },
         {
-          event_id: "2e3d4c5b-6a49-4887-7665-5443322110bb",
+          event_id: "2e3d4c5b-6a49-4887-a665-5443322110bb",
           event_type: "core.identity.account.deleted",
           payload: {},
         },
