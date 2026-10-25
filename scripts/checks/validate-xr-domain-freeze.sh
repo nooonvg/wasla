@@ -85,6 +85,9 @@ evaluate() { # evaluate <changes-name-status> <messages> → rc 0 ok / 1 violati
 }
 
 self_test() {
+  # السجلُ الحقيقيُّ فارغٌ (استثناءُ CLM-0701 أزالَ نفسَهُ بدمجِهِ) — اختبارُ
+  # الآليّةِ يحتاجُ استثناءً حيًّا فيُزرَعُ تركيبيٌّ لهذهِ الحالاتِ وحدَها.
+  XR_FREEZE_EXCEPTIONS=("SELFTEST-0701|services/identity/")
   local fails=0 out
   check() { # check <expect-rc> <label> <changes> <messages>
     out="$(evaluate "$3" "$4" 2>&1)"; local rc=$?
@@ -103,9 +106,9 @@ self_test() {
   check 1 "SECURITYX is not the SECURITY tag" $'M\tservices/billing/src/a.ts' "SECURITYX"
   check 1 "SECURITY_RULES is not the SECURITY tag" $'M\tservices/billing/src/a.ts' "docs: SECURITY_RULES §11"
   # الاستثناءُ المؤرَّخُ: وسمُ XR-EX-<id> كلمةً مستقلّةً يُعفي مسارَ استثناءِهِ هو
-  check 0 "documented exception passes for its own path" $'M\tservices/identity/src/i.ts' "feat: CLM-0701 XR-EX-CLM-0701"
-  check 1 "exception token does not open other frozen domains" $'M\tservices/dispatch/src/a.ts' "feat: XR-EX-CLM-0701"
-  check 1 "exception id without the XR-EX- prefix is not the token" $'M\tservices/identity/src/i.ts' "feat: CLM-0701"
+  check 0 "documented exception passes for its own path" $'M\tservices/identity/src/i.ts' "feat: SELFTEST-0701 XR-EX-SELFTEST-0701"
+  check 1 "exception token does not open other frozen domains" $'M\tservices/dispatch/src/a.ts' "feat: XR-EX-SELFTEST-0701"
+  check 1 "exception id without the XR-EX- prefix is not the token" $'M\tservices/identity/src/i.ts' "feat: SELFTEST-0701"
   check 1 "no token, no exception — identity stays frozen" $'M\tservices/identity/src/i.ts' "feat: lifecycle"
   if (( fails )); then printf '✗ xr-domain-freeze self-test: %d failure(s)\n' "$fails"; return 1; fi
   printf '✓ xr-domain-freeze self-test: all cases\n'

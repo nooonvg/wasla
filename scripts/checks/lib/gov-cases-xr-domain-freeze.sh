@@ -17,6 +17,9 @@ _xr_repo() { # _xr_repo → يطبعُ مسارَ مستودعٍ صناعيٍّ 
   cp "$REPO_ROOT/scripts/checks/validate-xr-domain-freeze.sh" "$d/scripts/checks/"
   cp "$REPO_ROOT/scripts/checks/lib/xr-frozen-paths.sh" "$d/scripts/checks/lib/"
   cp "$REPO_ROOT/scripts/checks/lib/xr-freeze-exceptions.sh" "$d/scripts/checks/lib/"
+  # السجلُ الحقيقيُّ فارغٌ — آليّةُ الاستثناءِ تُختبرُ باستثناءٍ تركيبيٍّ مزروعٍ في
+  # المستودعِ الصناعيِّ وحدَه، لا باستثناءٍ حيٍّ في الحقيقيِّ.
+  printf 'XR_FREEZE_EXCEPTIONS=("SELFTEST-0701|services/identity/")\n' > "$d/scripts/checks/lib/xr-freeze-exceptions.sh"
   printf 'export const a = 1;\n' > "$d/services/dispatch/src/a.ts"
   printf 'export const s = 1;\n' > "$d/services/delivery/src/domain/store-order.ts"
   printf 'export const g = 1;\n' > "$d/services/delivery/src/use-cases/delegate-to-dispatch.ts"
@@ -80,17 +83,17 @@ t "store_order وservices/marketplace مفتوحانِ" pass _xr_run "$XR_D"
 rm -rf "$XR_D"
 
 XR_D="$(_xr_repo)"
-_xr_commit "$XR_D" "feat: CLM-0701 XR-EX-CLM-0701" sh -c 'echo "// lifecycle" >> services/identity/src/i.ts'
-t "الاستثناءُ المؤرَّخُ (XR-EX-CLM-0701 · services/identity) يمرّ لمسارِهِ هو" pass _xr_run "$XR_D"
+_xr_commit "$XR_D" "feat: SELFTEST-0701 XR-EX-SELFTEST-0701" sh -c 'echo "// lifecycle" >> services/identity/src/i.ts'
+t "الاستثناءُ التركيبيُّ المزروعُ (XR-EX-SELFTEST-0701 · services/identity) يمرّ لمسارِهِ هو" pass _xr_run "$XR_D"
 rm -rf "$XR_D"
 
 XR_D="$(_xr_repo)"
-_xr_commit "$XR_D" "feat: XR-EX-CLM-0701" sh -c 'echo "// x" >> services/dispatch/src/a.ts'
+_xr_commit "$XR_D" "feat: XR-EX-SELFTEST-0701" sh -c 'echo "// x" >> services/dispatch/src/a.ts'
 t "وسمُ الاستثناءِ لا يفتحُ مجالاً مجمَّداً آخرَ (services/dispatch)" pass _xr_reject "$XR_D" "services/dispatch/src/a.ts"
 rm -rf "$XR_D"
 
 XR_D="$(_xr_repo)"
-_xr_commit "$XR_D" "feat: CLM-0701 lifecycle" sh -c 'echo "// lifecycle" >> services/identity/src/i.ts'
+_xr_commit "$XR_D" "feat: SELFTEST-0701 lifecycle" sh -c 'echo "// lifecycle" >> services/identity/src/i.ts'
 t "بلا وسمِ XR-EX- يبقى services/identity مجمَّداً" pass _xr_reject "$XR_D" "services/identity/src/i.ts"
 rm -rf "$XR_D"
 
