@@ -13,6 +13,7 @@ export type SessionInitStatus = "idle" | "initializing" | "ready" | "failed";
 export type SessionInitError =
   | "not_in_telegram"
   | "web_login_required"
+  | "core_rejected"
   | "edge_rejected"
   | "network"
   | "invalid_response"

@@ -14,6 +14,7 @@ import {
 import {
   clearWebCredential,
   currentWebCredential,
+  exchangeMiniAppInitDataAtCore,
   setWebCredentialForE2E,
 } from "../host/web-login";
 
@@ -167,5 +168,66 @@ describe("requestAccountDeletion — العقدُ معَ النواةِ", () => 
     const outcome = await requestAccountDeletion();
 
     expect(outcome).toEqual({ status: "unknown", statusCode: 503 });
+  });
+});
+
+// ── جسرُ المصغّرِ (CLM-0703): الحذفُ منَ المصغّرِ بإثباتِ النواةِ نفسِهِ ────────────
+describe("جسرُ المصغّرِ — الحذفُ منَ المصغّرِ (CLM-0703)", () => {
+  const INIT_DATA = "query_id=1&user=%7B%22id%22:445566778%7D&signature=abc";
+
+  it("بعدَ تبادلِ الدليلِ عندَ النواةِ: الحذفُ متاحٌ للمصغّرِ كما للويبِ — الخانةُ نفسُها", async () => {
+    // التبادلُ يُخزِّنُ إثباتَ النواةِ في خانةِ الويبِ نفسِها (لا خانةً ثانيةً).
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          session_id: "core-s-1",
+          access_token: "mini-app-core-token",
+          token_type: "Bearer",
+          expires_at: "2026-10-23T13:00:00Z",
+          identity_id: "i-1",
+          identity_created: true,
+        }),
+        { status: 201, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(true);
+    expect(accountDeletionAvailable()).toBe(true);
+    expect(currentWebCredential()).toEqual({
+      kind: "web_core_session",
+      value: "mini-app-core-token",
+    });
+  });
+
+  it("رحلةُ الحذفِ كاملةً منَ المصغّرِ: نداءٌ واحدٌ بجلسةِ الشخصِ — 204 والخانةُ تُمسَحُ", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ access_token: "mini-app-core-token" }),
+        { status: 201, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    await exchangeMiniAppInitDataAtCore(INIT_DATA);
+    recorded.length = 0;
+
+    const outcome = await requestAccountDeletion();
+    expect(outcome).toEqual({ status: "deleted" });
+    // النداءُ على العنوانِ الحرفيِّ بترويسةِ الحاملِ — بجلسةِ الشخصِ التي فتحَها
+    // دليلُ المصغّرِ لا بجلسةِ خدمةٍ.
+    expect(recorded).toHaveLength(1);
+    expect(recorded[0].url).toBe(`${CORE_URL}/v1/me/deletion`);
+    expect(recorded[0].method).toBe("POST");
+    expect(recorded[0].headers.Authorization).toBe("Bearer mini-app-core-token");
+    // الخانةُ مُسِحتْ — الجلسةُ ماتتْ عندَ النواةِ بفعلِ الحذفِ نفسِهِ.
+    expect(currentWebCredential()).toBeNull();
+  });
+
+  it("فشلُ التبادلِ: الحذفُ لا يُفتَحُ بلا إثباتٍ — الحدُّ باقٍ كما كانَ (لا تخمينَ)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ code: "proof_already_used" }), { status: 401 }),
+    );
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(false);
+    expect(accountDeletionAvailable()).toBe(false);
+    expect((await requestAccountDeletion()).status).toBe("no_web_credential");
+    // ولا نداءَ للنواةِ — الحذفُ لا يُطلَبُ بلا إثباتِ شخصٍ.
+    expect(recorded).toHaveLength(0);
   });
 });

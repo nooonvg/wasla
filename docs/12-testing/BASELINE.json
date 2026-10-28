@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-25T10:07:06Z",
+  "generated_at": "2026-10-28T18:28:35Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "9ae861f4e24eeb4f22999e8a17236552f6675428",
-    "branch": "stage-zero/clm-0701-core-incarnation-keys",
+    "commit": "2b1d8616e18062cbde39200f5681fe0c7fdd8daa",
+    "branch": "stage-zero/clm-0703-mini-app-person-session-bridge",
     "dirty": true,
-    "dirty_files": 54,
-    "dirty_reason": "CLM-0701: ملفُّ اختبارِ قبولٍ جديدٌ (clm-0701-core-incarnation-deletion.e2e.test.ts) رفعَ test_files_tracked من 598 إلى 599، وبصمةُ القفلِ تغيّرت بإضافةِ @wasla/customers-service إلى channel-e2e (استهلاكُ منافذِ المستهلِكِ) — السجلُّ الحركيُّ داخلَ الشجرةِ: docs/12-testing/ci-evidence/2026-10-25T094500Z-clm-0701-core-incarnation-keys/raw/verify-full.txt (تشغيلٌ أخضرُ كاملًا)",
-    "tracked_files": 3680
+    "dirty_files": 18,
+    "dirty_reason": "CLM-0703: جسرُ المصغّرِ إلى جلسةِ الشخصِ — اختباراتُ الجسرِ (وحداتٌ + e2e + تركيبِ الحدِّ) وتوسيعُ عدَّاداتِ الأساسِ الحركيّةِ",
+    "tracked_files": 3693
   },
   "env": {
     "node": "v20.20.2",
@@ -34,8 +34,8 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-25T094500Z-clm-0701-core-incarnation-keys/raw/verify-full.txt",
-    "tests_passed": 6371,
+    "source": "docs/12-testing/ci-evidence/2026-10-28T180000Z-clm-0703-mini-app-person-session-bridge/raw/verify-full.txt",
+    "tests_passed": 6393,
     "test_files_executed": 450,
     "governance_suite_cases": 700,
     "governance_suite_failed": 0,

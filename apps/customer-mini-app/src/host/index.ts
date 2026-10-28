@@ -4,6 +4,7 @@
 
 import { browserHost } from "./browser";
 import { readTelegramWebApp, telegramHost } from "./telegram";
+import { exchangeMiniAppInitDataAtCore, currentWebCredential, miniAppBridgeConfigured } from "./web-login";
 import type { Host, SessionCredential, SessionRequest } from "./types";
 
 export type { Host, HostKind, SessionCredential, SessionRequest } from "./types";
@@ -11,6 +12,8 @@ export {
   beginTelegramWebLogin,
   clearWebCredential,
   currentWebCredential,
+  exchangeMiniAppInitDataAtCore,
+  miniAppBridgeConfigured,
   webLoginConfigured,
 } from "./web-login";
 
@@ -34,4 +37,37 @@ export function sessionRequest(credential: SessionCredential): SessionRequest {
       // المصغّرُ في الويبِ أصلًا، والتحققُّ من النواةِ عندَ مُصدِرِهِا في الحدّ.
       return { path: "/edge/session/web", body: { core_access_token: credential.value } };
   }
+}
+
+/**
+ * نتيجةُ صعودِ الإثباتِ إلى إثباتِ نواةٍ (جسرُ المصغّرِ · CLM-0703).
+ *
+ * - `"unconfigured"` — لا نواةَ موصولةً في هذهِ البيئةِ: المسارُ القديمُ
+ *   صريحٌ، لا فشلٌ ولا تراجعٌ.
+ * - `"rejected"` — الجسرُ مُهيّأٌ وفشلَ التبادلُ: فشلٌ ظاهرٌ لا يُسقِطُهُ
+ *   تراجعٌ صامتٌ إلى المسارِ القديمِ (لا يُستبدَلُ دليلٌ مرفوضٌ بدليلٍ لا
+ *   يُتحقَّقُ منهِ عندَ النواةِ).
+ * - `SessionCredential` — إثباتُ نواةٍ جاهزٌ للاستبدالِ عندَ الحدّ.
+ */
+export type CoreSessionExchange =
+  | "unconfigured"
+  | "rejected"
+  | { readonly credential: SessionCredential };
+
+/**
+ * يصعدُ إثباتَ المضيفِ إلى إثباتِ نواةٍ حينَ الجسرُ مُهيّأٌ (جسرُ المصغّرِ):
+ * دليلُ المصغّرِ يُتبادلُ عندَ النواةِ فيصيرُ إثباتَ نواةٍ في الذاكرةِ — نفسُ
+ * خانةِ الويبِ — ثمّ يُستبدلُ عندَ الحدِّ بجلسةِ السوقِ كما في الويبِ تمامًا.
+ * إثباتُ الويبِ جاهزٌ أصلًا فيُعادُ كما هو.
+ */
+export async function exchangeForCoreSession(
+  credential: SessionCredential,
+): Promise<CoreSessionExchange> {
+  if (credential.kind === "web_core_session") return { credential };
+  if (!miniAppBridgeConfigured()) return "unconfigured";
+  const exchanged = await exchangeMiniAppInitDataAtCore(credential.value);
+  if (!exchanged) return "rejected";
+  // الرمزُ خُزِنَ في خانةِ إثباتِ النواةِ — يُقرأُ منها لا يُمرَّرُ حرفيًّا.
+  const bridged = currentWebCredential();
+  return bridged === null ? "rejected" : { credential: bridged };
 }

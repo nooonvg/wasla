@@ -11,6 +11,8 @@ import {
   beginTelegramWebLogin,
   clearWebCredential,
   currentWebCredential,
+  exchangeMiniAppInitDataAtCore,
+  miniAppBridgeConfigured,
   webLoginConfigured,
 } from "../host/web-login";
 import { browserHost } from "../host/browser";
@@ -212,5 +214,74 @@ describe("beginTelegramWebLogin — العقدُ معَ النواةِ", () => {
     // لا سكربتَ يُحمَّلُ في الاختبارِ — `loadTelegramLoginLibrary` يرفعُ
     // فتُلتقَطُ في الداخلِ وتعودُ `false` (الرفعُ لا يُبرَّنُ هنا بل عدمُ الوصولِ).
     expect(await beginTelegramWebLogin()).toBe(false);
+  });
+});
+
+// ── جسرُ المصغّرِ (CLM-0703): تبادلُ دليلِ المصغّرِ عندَ النواةِ ──────────────────
+describe("جسرُ المصغّرِ — exchangeMiniAppInitDataAtCore (CLM-0703)", () => {
+  const INIT_DATA = "query_id=1&user=%7B%7D&signature=abc";
+
+  /** ردُّ النواةِ على التبادلِ الناجحِ — جلسةُ شخصٍ على قناةِ تيليجرامَ. */
+  const coreSessionResponse = () =>
+    new Response(
+      JSON.stringify({
+        session_id: "core-s-1",
+        access_token: CORE_TOKEN,
+        token_type: "Bearer",
+        expires_at: "2026-10-23T13:00:00Z",
+        identity_id: "i-1",
+        identity_created: true,
+      }),
+      { status: 201, headers: { "Content-Type": "application/json" } },
+    );
+
+  it("مُهيّأٌ بعنوانِ نواةٍ وحدَهُ — لا مُعرّفَ بوتِ هنا (الدليلُ يوقّعُهُ تيليجرامُ)", () => {
+    expect(miniAppBridgeConfigured()).toBe(true);
+    vi.stubEnv("VITE_CORE_URL", "");
+    expect(miniAppBridgeConfigured()).toBe(false);
+  });
+
+  it("نجاحُ التبادلِ: نداءٌ حرفيٌّ بجسمِ الدليلِ، والرمزُ في خانةِ إثباتِ النواةِ", async () => {
+    fetchMock.mockResolvedValueOnce(coreSessionResponse());
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe(`${CORE_URL}/v1/web-session/telegram/init-data`);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({ init_data: INIT_DATA });
+    // الرمزُ في الذاكرةِ — نفسُ خانةِ الويبِ، فيصيرُ المصغّرُ والويبُ وجهينِ
+    // لشخصٍ واحدٍ عندَ النواةِ.
+    expect(currentWebCredential()).toEqual({ kind: "web_core_session", value: CORE_TOKEN });
+  });
+
+  it("رفضُ النواةِ (401 إعادةُ دليلٍ مستهلَكٍ) → `false` ولا رمزَ في الذاكرةِ", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ code: "proof_already_used" }), { status: 401 }),
+    );
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(false);
+    expect(currentWebCredential()).toBeNull();
+  });
+
+  it("جسمٌ بلا access_token (تشوهٌ) → `false` ولا رمزَ يُختزَنُ", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ session_id: "s" }), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(false);
+    expect(currentWebCredential()).toBeNull();
+  });
+
+  it("سقوطُ الشبكةِ → `false` ظاهرٌ لا رفعٌ يُسقِطُ التهيئةَ", async () => {
+    fetchMock.mockRejectedValue(new TypeError("network down"));
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(false);
+    expect(currentWebCredential()).toBeNull();
+  });
+
+  it("بلا نواةٍ موصولةٍ: لا نداءَ أصلًا — المسارُ القديمُ قرارُ البيئةِ لا الاحتياطَ", async () => {
+    vi.stubEnv("VITE_CORE_URL", "");
+    expect(await exchangeMiniAppInitDataAtCore(INIT_DATA)).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

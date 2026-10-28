@@ -23,7 +23,7 @@
  */
 
 import { useSessionStore, type SessionInitError } from "../store/session";
-import { detectHost, sessionRequest } from "../host";
+import { detectHost, exchangeForCoreSession, sessionRequest } from "../host";
 
 /** ردُّ الحدِّ على `POST /edge/session` — لا يحملُ إلا ما يُخزَّنُ في الذاكرةِ. */
 interface EdgeSessionResponse {
@@ -73,7 +73,16 @@ async function runInit(): Promise<boolean> {
   }
   store.setInitState("initializing");
   host.ready();
-  const request = sessionRequest(credential);
+  // ── جسرُ المصغّرِ (CLM-0703): صعودُ الدليلِ إلى إثباتِ نواةٍ قبلَ الحدّ. ────
+  // لا نواةَ موصولةً (VITE_CORE_URL غيرُ مضبوطٍ) = المسارُ القديمُ صراحةً؛
+  // نواةٌ موصولةٌ وفشلَ التبادلُ = فشلٌ ظاهرٌ — لا تراجعَ صامتًا للمسارِ
+  // القديمِ ولا إصدارَ جلسةٍ من دليلٍ لم يتحقّقْ منهِ أحدٌ عندَ النواةِ.
+  const exchange = await exchangeForCoreSession(credential);
+  if (exchange === "rejected") {
+    return fail("core_rejected");
+  }
+  const effective = exchange === "unconfigured" ? credential : exchange.credential;
+  const request = sessionRequest(effective);
   const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
   let response: Response;
   try {
