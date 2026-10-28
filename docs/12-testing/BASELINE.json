@@ -1,13 +1,13 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-28T20:28:54Z",
+  "generated_at": "2026-10-28T21:15:27Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "052b068013bc6063a3ddbc90ad6b5118ad2d6f6b",
+    "commit": "3b7787f404580cb822d21cdadd47d8181521776d",
     "branch": "stage-zero/clm-0703-mini-app-person-session-bridge",
     "dirty": true,
-    "dirty_files": 11,
-    "dirty_reason": "CLM-0703: جسرُ المصغّرِ إلى جلسةِ الشخصِ — اختباراتُ الجسرِ (وحداتٌ + e2e + تركيبِ الحدِّ) وإعادةُ استعمالِ الرمزِ بعدَ فشلِ الحدِّ — تشغيلٌ أخضرُ كاملًا",
+    "dirty_files": 2,
+    "dirty_reason": "CLM-0703 (تتمة): ترقيةُ esbuild إلى 0.28.2 (CVE-2026-56857 — ثنائيُّ التطويرِ) فبصمةُ القفلِ تغيّرت؛ العدَّاداتُ كما هي (6394) — تشغيلٌ أخضرُ كاملًا",
     "tracked_files": 3695
   },
   "env": {
@@ -19,8 +19,8 @@
   },
   "lock": {
     "path": "pnpm-lock.yaml",
-    "sha256": "3be40176715a6c2f691661f8898bb23e264756af33e493aab43dcd179b474a77",
-    "lines": 5135
+    "sha256": "21b1ccc24a9edb12517c9023d50db45080dc012e45cdca3f26451ea1dc7b9231",
+    "lines": 5138
   },
   "static": {
     "packages": 74,
@@ -41,6 +41,6 @@
     "governance_suite_failed": 0,
     "verify_overall": "passed"
   },
-  "fingerprint": "sha256:a1961413b0a14cdb179adab9b04c50b8192037e4be05517fc910840e305e3ae8",
+  "fingerprint": "sha256:6381c5b507e90ca10fda7d83e37e4a87c303b2faabeef6ceb81a784b8212e2fe",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }
