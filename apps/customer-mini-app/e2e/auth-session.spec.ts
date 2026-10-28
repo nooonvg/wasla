@@ -19,34 +19,53 @@ test.describe("Session security", () => {
     await expect(page.locator(".app-loading")).toHaveCount(0);
   });
 
-  test("a rejected edge session is shown with retry, and retry recovers the app", async ({ page }) => {
+  // CLM-0703: inside Telegram the bridge is the path — a rejected core
+  // exchange is the visible failure (core_rejected), and the retry re-runs the
+  // exchange and recovers. The legacy /edge/session path is a unit-tested
+  // environment decision (VITE_CORE_URL unset) and cannot be exercised in
+  // this build, which always carries the bridge.
+  test("a rejected core exchange is shown with retry, and retry recovers the app", async ({ page }) => {
     await stubTelegramSdk(page, "query_id=e2e&hash=abc");
-    let calls = 0;
-    await page.route("**/edge/session", (route) => {
-      calls += 1;
-      if (calls === 1) {
-        route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: "EDGE_UNAVAILABLE", message: "x" }) });
+    let exchangeCalls = 0;
+    await page.route("**/v1/web-session/telegram/init-data", (route) => {
+      exchangeCalls += 1;
+      if (exchangeCalls === 1) {
+        route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: "CORE_UNAVAILABLE", message: "x" }) });
         return;
       }
+      route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          session_id: "core-e2e-retry",
+          access_token: "e2e-core-token",
+          token_type: "Bearer",
+          expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+          identity_id: "i-e2e",
+          identity_created: true,
+        }),
+      });
+    });
+    await page.route("**/edge/session/web", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          token: "e2e-edge-token",
+          token: "e2e-test-token",
           wasla_public_id: "WS-1234567890",
           expires_at: new Date(Date.now() + 3_600_000).toISOString(),
-          session_id: "s-e2e",
+          session_id: "market-e2e-retry",
         }),
-      });
-    });
+      }),
+    );
 
     await page.goto("http://localhost:4173/");
-    await expect(page.getByTestId("session-error")).toHaveText("تعذّر بدء الجلسة");
-    expect(calls).toBe(1);
+    await expect(page.getByTestId("session-error")).toHaveText("تعذّر إثبات الحساب عند النواة — أعد فتح التطبيق");
+    expect(exchangeCalls).toBe(1);
 
     await page.getByTestId("session-retry").click();
     await expect(page.locator(".app")).toBeVisible();
-    expect(calls).toBe(2);
+    expect(exchangeCalls).toBe(2);
   });
 
   test("no API calls are made without a session token", async ({ page }) => {
