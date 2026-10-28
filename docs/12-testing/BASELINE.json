@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-28T18:28:35Z",
+  "generated_at": "2026-10-28T20:28:54Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "2b1d8616e18062cbde39200f5681fe0c7fdd8daa",
+    "commit": "052b068013bc6063a3ddbc90ad6b5118ad2d6f6b",
     "branch": "stage-zero/clm-0703-mini-app-person-session-bridge",
     "dirty": true,
-    "dirty_files": 18,
-    "dirty_reason": "CLM-0703: جسرُ المصغّرِ إلى جلسةِ الشخصِ — اختباراتُ الجسرِ (وحداتٌ + e2e + تركيبِ الحدِّ) وتوسيعُ عدَّاداتِ الأساسِ الحركيّةِ",
-    "tracked_files": 3693
+    "dirty_files": 11,
+    "dirty_reason": "CLM-0703: جسرُ المصغّرِ إلى جلسةِ الشخصِ — اختباراتُ الجسرِ (وحداتٌ + e2e + تركيبِ الحدِّ) وإعادةُ استعمالِ الرمزِ بعدَ فشلِ الحدِّ — تشغيلٌ أخضرُ كاملًا",
+    "tracked_files": 3695
   },
   "env": {
     "node": "v20.20.2",
@@ -35,7 +35,7 @@
   "dynamic": {
     "measured": true,
     "source": "docs/12-testing/ci-evidence/2026-10-28T180000Z-clm-0703-mini-app-person-session-bridge/raw/verify-full.txt",
-    "tests_passed": 6393,
+    "tests_passed": 6394,
     "test_files_executed": 450,
     "governance_suite_cases": 700,
     "governance_suite_failed": 0,

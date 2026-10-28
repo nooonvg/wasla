@@ -63,6 +63,13 @@ export type CoreSessionExchange =
 export async function exchangeForCoreSession(
   credential: SessionCredential,
 ): Promise<CoreSessionExchange> {
+  // رمزُ نواةٍ صالحٌ في الذاكرةِ (تبادلٌ سابقٌ نجحَ) يُعادُ استعمالُه كما هو:
+  // الدليلُ أحاديُّ الاستعمالِ عندَ النواةِ (بصمةٌ تُستهلَكُ في أولِّ إتمامٍ)،
+  // فإعادةُ المحاولةِ بعدَ فشلِ الحدِّ تتعافى منَ الرمزِ الموجودِ لا منَ تبادلٍ
+  // جديدٍ لدليلٍ قد استُهلِكَ أصلًا (كانَ سيُرَدُّ `proof_already_used` فلا
+  // تعافيَ أبدًا داخلَ الفتحِ نفسِهِ).
+  const existing = currentWebCredential();
+  if (existing !== null) return { credential: existing };
   if (credential.kind === "web_core_session") return { credential };
   if (!miniAppBridgeConfigured()) return "unconfigured";
   const exchanged = await exchangeMiniAppInitDataAtCore(credential.value);

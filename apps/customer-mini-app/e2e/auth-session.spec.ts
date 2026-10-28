@@ -68,6 +68,61 @@ test.describe("Session security", () => {
     expect(exchangeCalls).toBe(2);
   });
 
+  // CLM-0703: the proof is single-use at the core — so retry after an edge
+  // failure must REUSE the in-memory core token instead of exchanging the
+  // consumed proof again (which the core would refuse with
+  // proof_already_used, making the open unrecoverable). One exchange, two
+  // market-session issuances, zero legacy calls.
+  test("retry after an edge failure reuses the in-memory core token — no second exchange of a consumed proof", async ({ page }) => {
+    await stubTelegramSdk(page, "query_id=e2e&hash=abc");
+    let exchangeCalls = 0;
+    await page.route("**/v1/web-session/telegram/init-data", (route) => {
+      exchangeCalls += 1;
+      route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          session_id: "core-e2e-reuse",
+          access_token: "e2e-core-token",
+          token_type: "Bearer",
+          expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+          identity_id: "i-e2e",
+          identity_created: true,
+        }),
+      });
+    });
+    let webCalls = 0;
+    await page.route("**/edge/session/web", (route) => {
+      webCalls += 1;
+      if (webCalls === 1) {
+        route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: "EDGE_UNAVAILABLE", message: "x" }) });
+        return;
+      }
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          token: "e2e-test-token",
+          wasla_public_id: "WS-1234567890",
+          expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+          session_id: "market-e2e-reuse",
+        }),
+      });
+    });
+
+    await page.goto("http://localhost:4173/");
+    // الفشلُ الأولُ منَ الحدِّ لا منَ النواةِ: خطأُ الحدِّ العامُّ ظاهرٌ.
+    await expect(page.getByTestId("session-error")).toHaveText("تعذّر بدء الجلسة");
+    expect(exchangeCalls).toBe(1);
+    expect(webCalls).toBe(1);
+
+    await page.getByTestId("session-retry").click();
+    await expect(page.locator(".app")).toBeVisible();
+    // التبادلُ لم يتكرّرْ — الدليلُ استُهلِكَ — والحدُّ سُئِلَ مرةً ثانيةً.
+    expect(exchangeCalls).toBe(1);
+    expect(webCalls).toBe(2);
+  });
+
   test("no API calls are made without a session token", async ({ page }) => {
     // Intercept all requests to verify no customer API calls happen
     const apiCalls: string[] = [];

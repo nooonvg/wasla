@@ -12,6 +12,7 @@ import {
   logoutSession,
 } from "../session/session-init";
 import { detectHost, exchangeForCoreSession, sessionRequest } from "../host";
+import { clearWebCredential } from "../host/web-login";
 import { currentWebCredential } from "../host/web-login";
 
 const T0 = new Date("2026-10-18T06:00:00.000Z").getTime();
@@ -47,6 +48,10 @@ beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   setTelegram("query_id=1&user=%7B%7D&hash=abc");
+  // جسرُ CLM-0703 يعيدُ استعمالَ رمزِ النواةِ منَ الذاكرةِ (الدليلُ أحاديُّ
+  // الاستعمالِ) — فكلُّ اختبارٍ يبدأُ بذاكرةٍ نظيفةٍ وإلّا تسربَ رمزُ سابقهِ
+  // إلى جارِهِ.
+  clearWebCredential();
 });
 
 afterEach(() => {
@@ -373,6 +378,31 @@ describe("جسرُ المصغّرِ — التهيئةُ عبرَ النواةِ
     expect(s.token).toBe("tok-1");
     expect(s.initStatus).toBe("ready");
     expect(currentWebCredential()).toEqual({ kind: "web_core_session", value: "core-tok-1" });
+  });
+
+  it("إعادةُ المحاولةِ بعدَ فشلِ الحدّ: رمزُ النواةِ في الذاكرةِ يُعادُ استعمالُه — لا تبادلَ ثانيًا لدليلٍ استُهلِكَ", async () => {
+    // التبادلُ الأولُ ينجحُ (الدليلُ استُهلِكَ عندَ النواةِ — أحاديُّ الاستعمالِ)
+    // ثمّ يُرفَضُ إصدارُ جلسةِ السوقِ عندَ الحدّ.
+    fetchMock
+      .mockResolvedValueOnce(coreExchangeResponse("core-tok-1"))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ code: "EDGE_UNAVAILABLE" }), { status: 503 }),
+      );
+    await expect(initSession()).resolves.toBe(false);
+    expect(useSessionStore.getState().initError).toBe("edge_rejected");
+    const callsAfterFirst = fetchMock.mock.calls.length;
+
+    // الإعادةُ اليدويّةُ: لا تبادلَ جديدَ — رمزُ النواةِ الموجودُ في الذاكرةِ
+    // يُستعمَلُ كما هو، والحدُّ يُسألُ مرةً ثانيةً فينجحُ. لو أُعيدَ التبادلُ
+    // لدليلٍ استُهلِكَ لَرُدَّتِ النواةُ `proof_already_used` ولم يتعافَ الفتحُ
+    // أبدًا — وهذا ما يمنعُهُ إعادةُ الاستعمالِ.
+    fetchMock.mockResolvedValueOnce(webBridgeResponse("tok-2"));
+    await expect(initSession()).resolves.toBe(true);
+    expect(fetchMock.mock.calls.length).toBe(callsAfterFirst + 1);
+    const [url, init] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]!;
+    expect(String(url)).toMatch(/\/edge\/session\/web$/);
+    expect(JSON.parse(String(init.body))).toEqual({ core_access_token: "core-tok-1" });
+    expect(useSessionStore.getState().token).toBe("tok-2");
   });
 
   it("رفضُ النواةِ للدليلِ: فشلٌ ظاهرٌ باسمٍ مسمًّى — ولا تراجعَ صامتًا للمسارِ القديمِ", async () => {
