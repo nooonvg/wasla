@@ -2,17 +2,18 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
+import { formatMoney, localizedTitle, type LocalizedTitle } from "../i18n/format";
 
-interface SearchResult {
+/** services/search `SearchResult` field names (domain/model.ts). */
+interface SearchResult extends LocalizedTitle {
   product_id: string;
-  name: string;
   store_slug: string;
-  price: number;
-  currency: string;
+  price_minor_units: number;
+  currency_code: string;
 }
 
 export function Search() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { token } = useSessionStore();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -80,7 +81,11 @@ export function Search() {
 
       {searched && !loading && !error && results.length === 0 && (
         <div className="empty-state" data-testid="search-empty">
-          {t("search.no_results")}
+          <p className="empty-state-title">{t("search.no_results")}</p>
+          <p className="empty-state-hint">{t("search.no_results_hint")}</p>
+          <a className="empty-state-action" href="#/marketplace" data-testid="search-empty-browse">
+            {t("search.browse_stores")}
+          </a>
         </div>
       )}
 
@@ -88,8 +93,10 @@ export function Search() {
         <ul className="search-results-list" data-testid="search-results-list">
           {results.map((item) => (
             <li key={item.product_id} className="search-result-item" data-testid={`result-${item.product_id}`}>
-              <span className="result-name">{item.name}</span>
-              <span className="result-price">{item.price} {item.currency}</span>
+              <span className="result-name">{localizedTitle(item, i18n.language)}</span>
+              <span className="result-price">
+                <bdi>{formatMoney({ amount_minor: item.price_minor_units, currency: item.currency_code }, i18n.language)}</bdi>
+              </span>
               <span className="result-store">{item.store_slug}</span>
             </li>
           ))}

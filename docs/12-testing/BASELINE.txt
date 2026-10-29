@@ -1,26 +1,26 @@
 أساسُ البيئةِ والاختبارات — WASLA
 الصيغةُ: wasla.baseline/v1
-التاريخ (UTC): 2026-10-24T14:31:30Z
-الالتزام: 36ec1db4b986c037f68bea944d513e1590faab9c  الفرع: fix/edge-proxy-routing  شجرةٌ مُعدَّلةٌ (2 ملفّاً)
+التاريخ (UTC): 2026-10-29T15:21:19Z
+الالتزام: 1db368f326eaa6d87e7a1364a9954d1edc81f4d7  الفرع: fix/clm-0707-customer-app-contract-and-layout  شجرةٌ مُعدَّلةٌ (28 ملفّاً)
 البيئة: node v20.20.2 · pnpm 9.15.9 · Linux/x86_64 · python 3.14.8
-القفل: pnpm-lock.yaml · 5132 سطراً · sha256 7c19b6942ae4d532…
+القفل: pnpm-lock.yaml · 5138 سطراً · sha256 21b1ccc24a9edb12…
 
 العدَّاداتُ الساكنةُ (مُبصَّمةٌ):
   packages                   74
   packages_with_typecheck    70
   packages_with_test         74
-  test_files_tracked         594
+  test_files_tracked         600
   ci_jobs                    13
   ci_allow_failure           0
   governance_checks          29
   risks_not_closed           27
 
-العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-24T133000Z-clm-0694-edge-proxy-fix/raw/verify-full.txt):
-  tests_passed               6439
-  test_files_executed        454
-  governance_suite_cases     696
-  governance_suite_failed    1
-  verify_overall             failed
+العدَّاداتُ الحركيّةُ (مقيسةٌ من docs/12-testing/ci-evidence/2026-10-29T120000Z-clm-0707-customer-app-contract-and-layout/raw/verify-full.txt):
+  tests_passed               6401
+  test_files_executed        451
+  governance_suite_cases     700
+  governance_suite_failed    0
+  verify_overall             passed
 
-البصمة: sha256:8f4deedb31663c2c82aeb50c877a8494ca5ccaab7a42652d87c398c08c8083df
+البصمة: sha256:1f9267ed4bc940ea2f9c53cc1741f2bb911f854701e8c65d640b729273d0128f
 المرجع: docs/12-testing/BASELINE_FORMAT.md

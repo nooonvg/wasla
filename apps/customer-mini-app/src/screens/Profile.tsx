@@ -192,6 +192,7 @@ export function Profile() {
         type="button"
         onClick={handleSave}
         disabled={saving || !token || !customerId}
+        className="primary-button"
         data-testid="save-profile-button"
       >
         {saving ? t("common.loading") : t("profile.save_button")}

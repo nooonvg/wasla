@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { formatMoney } from "../i18n/format";
 import { useOrderFormStore, buildOrderRequest, validateOrderForm, type VehicleClass, type PriceMode } from "../store/order-form";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
@@ -10,7 +11,7 @@ const VEHICLE_CLASSES: VehicleClass[] = ["sedan", "suv", "van", "pickup", "motor
 const PRICE_MODES: PriceMode[] = ["negotiable", "customer_offer"];
 
 export function RideOrder() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const store = useOrderFormStore();
   const { token, customerId } = useSessionStore();
   const [formError, setFormError] = useState<string | null>(null);
@@ -273,12 +274,13 @@ export function RideOrder() {
           <label htmlFor="offered-price">{t("ride_order.offered_price")}</label>
           <input
             id="offered-price"
-            type="number"
-            min="0"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            dir="ltr"
             value={store.offeredPrice}
             onChange={(e) => store.setOfferedPrice(e.target.value)}
-            placeholder="0.00"
+            placeholder="25.50"
             aria-label={t("ride_order.offered_price")}
             data-testid="offered-price-input"
           />
@@ -323,7 +325,7 @@ export function RideOrder() {
           <p>{t("ride_order.vehicle_label")}: {t(`ride_order.vehicle_${store.preview.vehicle_class}`)}</p>
           <p>{t("ride_order.stops_label")}: {store.preview.stops.length}</p>
           {store.preview.offered_price && (
-            <p>{t("ride_order.price_label")}: {store.preview.offered_price.amount} {store.preview.offered_price.currency}</p>
+            <p>{t("ride_order.price_label")}: <bdi>{formatMoney(store.preview.offered_price, i18n.language)}</bdi></p>
           )}
         </div>
       )}

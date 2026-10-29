@@ -223,12 +223,13 @@ export function DeliveryOrder() {
           <label htmlFor="d-offered-price">{t("ride_order.offered_price")}</label>
           <input
             id="d-offered-price"
-            type="number"
-            min="0"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            dir="ltr"
             value={store.offeredPrice}
             onChange={(e) => store.setOfferedPrice(e.target.value)}
-            placeholder="0.00"
+            placeholder="25.50"
             aria-label={t("ride_order.offered_price")}
             data-testid="d-offered-price-input"
           />

@@ -11,7 +11,7 @@ export interface MockOrderPreview {
   order_type: string;
   vehicle_class: string;
   stops: unknown[];
-  offered_price?: { amount: number; currency: string };
+  offered_price?: { amount_minor: number; currency: string };
 }
 
 export interface MockOrderResult {

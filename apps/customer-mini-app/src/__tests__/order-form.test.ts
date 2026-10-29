@@ -46,7 +46,8 @@ describe("order-form store", () => {
     expect(body.order_type).toBe("ride");
     expect(body.vehicle_class).toBe("suv");
     expect(body.price_mode).toBe("customer_offer");
-    expect(body.offered_price).toEqual({ amount: 25.5, currency: "SAR" });
+    // services/customers normalizeMoney accepts only integer minor units.
+    expect(body.offered_price).toEqual({ amount_minor: 2550, currency: "SAR" });
     expect(body.stops).toHaveLength(2);
     expect(body.stops[0].kind).toBe("pickup");
     expect(body.stops[0].zone_id).toBe("pickup-uuid");

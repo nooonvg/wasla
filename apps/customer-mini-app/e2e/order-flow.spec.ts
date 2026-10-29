@@ -86,6 +86,29 @@ test.describe("Order flow — ride order", () => {
     await expect(page.getByText("تم إرسال طلبك بنجاح")).toBeVisible();
   });
 
+  test("an offered price typed in Arabic digits reaches the service as integer minor units", async ({ page }) => {
+    // CLM-0707: services/customers normalizeMoney accepts only { amount_minor, currency }.
+    // The app used to send { amount: 25.5 }, refused with «المبلغ غير صالح».
+    let previewBody: Record<string, unknown> | null = null;
+    await page.route("**/customers/WS-1234567890/order-requests/preview", (route) => {
+      previewBody = route.request().postDataJSON() as Record<string, unknown>;
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PREVIEW, price_mode: "customer_offer", offered_price: { amount_minor: 2550, currency: "SAR" } }),
+      });
+    });
+    await gotoRoute(page, "ride");
+    await page.getByTestId("pickup-zone-input").fill("zone-1");
+    await page.getByTestId("dropoff-zone-input").fill("zone-2");
+    await page.getByTestId("price-mode-select").selectOption("customer_offer");
+    await page.getByTestId("offered-price-input").fill("٢٥٫٥٠");
+    await page.getByTestId("preview-button").click();
+    await expect(page.getByTestId("preview-result")).toBeVisible({ timeout: 10_000 });
+    expect(previewBody?.["offered_price"]).toEqual({ amount_minor: 2550, currency: "SAR" });
+    await expect(page.getByTestId("preview-result")).not.toContainText("undefined");
+  });
+
   test("submit error shows error message", async ({ page }) => {
     // Override the submit mock to return an error
     await page.route("**/customers/WS-1234567890/order-requests", (route) => {

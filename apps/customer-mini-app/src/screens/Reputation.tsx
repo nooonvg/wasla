@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
+import { formatDate } from "../i18n/format";
 
 interface ReputationScore {
   subject_public_id: string;
@@ -20,7 +21,7 @@ interface Rating {
 }
 
 export function Reputation() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { token, customerId } = useSessionStore();
   const [score, setScore] = useState<ReputationScore | null>(null);
   const [ratings, setRatings] = useState<Rating[]>([]);
@@ -110,7 +111,7 @@ export function Reputation() {
                 <span className="rating-comment">{rating.comment}</span>
               )}
               <span className="rating-order">{rating.order_public_id}</span>
-              <span className="rating-date">{new Date(rating.created_at).toLocaleDateString("ar-SA")}</span>
+              <span className="rating-date"><bdi>{formatDate(rating.created_at, i18n.language)}</bdi></span>
             </li>
           ))}
         </ul>
