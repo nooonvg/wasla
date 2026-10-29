@@ -11,7 +11,9 @@ import {
   startSessionLifecycle,
   logoutSession,
 } from "../session/session-init";
-import { detectHost, sessionRequest } from "../host";
+import { detectHost, exchangeForCoreSession, sessionRequest } from "../host";
+import { clearWebCredential } from "../host/web-login";
+import { currentWebCredential } from "../host/web-login";
 
 const T0 = new Date("2026-10-18T06:00:00.000Z").getTime();
 
@@ -46,6 +48,10 @@ beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   setTelegram("query_id=1&user=%7B%7D&hash=abc");
+  // جسرُ CLM-0703 يعيدُ استعمالَ رمزِ النواةِ منَ الذاكرةِ (الدليلُ أحاديُّ
+  // الاستعمالِ) — فكلُّ اختبارٍ يبدأُ بذاكرةٍ نظيفةٍ وإلّا تسربَ رمزُ سابقهِ
+  // إلى جارِهِ.
+  clearWebCredential();
 });
 
 afterEach(() => {
@@ -315,3 +321,126 @@ describe("host boundary guard", () => {
   });
 });
 
+// ── جسرُ المصغّرِ (CLM-0703): صعودُ الدليلِ إلى إثباتِ نواةٍ قبلَ الحدِّ ──────────
+describe("جسرُ المصغّرِ — التهيئةُ عبرَ النواةِ (CLM-0703)", () => {
+  /** ردُّ النواةِ على تبادلِ دليلِ المصغّرِ. */
+  const coreExchangeResponse = (token: string) =>
+    new Response(
+      JSON.stringify({
+        session_id: `core-${token}`,
+        access_token: token,
+        token_type: "Bearer",
+        expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+        identity_id: "i-1",
+        identity_created: true,
+      }),
+      { status: 201, headers: { "Content-Type": "application/json" } },
+    );
+
+  /** ردُّ الحدِّ على استبدالِ جلسةِ النواةِ بجلسةِ السوقِ. */
+  const webBridgeResponse = (token: string) =>
+    new Response(
+      JSON.stringify({
+        token,
+        wasla_public_id: "WS-1234567890",
+        expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+        session_id: `s-${token}`,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+
+  beforeEach(() => {
+    vi.stubEnv("VITE_CORE_URL", "https://core.test");
+    vi.stubEnv("VITE_API_BASE_URL", "");
+  });
+
+  it("التهيئةُ عبرَ الجسرِ: تبادلُ الدليلِ عندَ النواةِ ثمّ استبدالُهُ بجلسةِ سوقٍ — النداءانِ بالترتيبِ", async () => {
+    fetchMock
+      .mockResolvedValueOnce(coreExchangeResponse("core-tok-1"))
+      .mockResolvedValueOnce(webBridgeResponse("tok-1"));
+    await expect(initSession()).resolves.toBe(true);
+
+    // النداءُ الأولُ: تبادلُ الدليلِ عندَ النواةِ — بجسمِ الدليلِ كما هو.
+    const [firstUrl, firstInit] = fetchMock.mock.calls[0]!;
+    expect(String(firstUrl)).toBe("https://core.test/v1/web-session/telegram/init-data");
+    expect(firstInit.method).toBe("POST");
+    expect(JSON.parse(String(firstInit.body))).toEqual({
+      init_data: "query_id=1&user=%7B%7D&hash=abc",
+    });
+    // النداءُ الثاني: استبدالُ جلسةِ النواةِ بجلسةِ السوقِ عندَ الحدّ.
+    const [secondUrl, secondInit] = fetchMock.mock.calls[1]!;
+    expect(String(secondUrl)).toMatch(/\/edge\/session\/web$/);
+    expect(JSON.parse(String(secondInit.body))).toEqual({ core_access_token: "core-tok-1" });
+
+    // الجلسةُ في الذاكرةِ، وإثباتُ النواةِ في خانتِهِ — فالحذفُ صارَ متاحًا
+    // للمصغّرِ كما للويبِ (accountDeletionAvailable يقرأُ الخانةَ نفسَها).
+    const s = useSessionStore.getState();
+    expect(s.token).toBe("tok-1");
+    expect(s.initStatus).toBe("ready");
+    expect(currentWebCredential()).toEqual({ kind: "web_core_session", value: "core-tok-1" });
+  });
+
+  it("إعادةُ المحاولةِ بعدَ فشلِ الحدّ: رمزُ النواةِ في الذاكرةِ يُعادُ استعمالُه — لا تبادلَ ثانيًا لدليلٍ استُهلِكَ", async () => {
+    // التبادلُ الأولُ ينجحُ (الدليلُ استُهلِكَ عندَ النواةِ — أحاديُّ الاستعمالِ)
+    // ثمّ يُرفَضُ إصدارُ جلسةِ السوقِ عندَ الحدّ.
+    fetchMock
+      .mockResolvedValueOnce(coreExchangeResponse("core-tok-1"))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ code: "EDGE_UNAVAILABLE" }), { status: 503 }),
+      );
+    await expect(initSession()).resolves.toBe(false);
+    expect(useSessionStore.getState().initError).toBe("edge_rejected");
+    const callsAfterFirst = fetchMock.mock.calls.length;
+
+    // الإعادةُ اليدويّةُ: لا تبادلَ جديدَ — رمزُ النواةِ الموجودُ في الذاكرةِ
+    // يُستعمَلُ كما هو، والحدُّ يُسألُ مرةً ثانيةً فينجحُ. لو أُعيدَ التبادلُ
+    // لدليلٍ استُهلِكَ لَرُدَّتِ النواةُ `proof_already_used` ولم يتعافَ الفتحُ
+    // أبدًا — وهذا ما يمنعُهُ إعادةُ الاستعمالِ.
+    fetchMock.mockResolvedValueOnce(webBridgeResponse("tok-2"));
+    await expect(initSession()).resolves.toBe(true);
+    expect(fetchMock.mock.calls.length).toBe(callsAfterFirst + 1);
+    const [url, init] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]!;
+    expect(String(url)).toMatch(/\/edge\/session\/web$/);
+    expect(JSON.parse(String(init.body))).toEqual({ core_access_token: "core-tok-1" });
+    expect(useSessionStore.getState().token).toBe("tok-2");
+  });
+
+  it("رفضُ النواةِ للدليلِ: فشلٌ ظاهرٌ باسمٍ مسمًّى — ولا تراجعَ صامتًا للمسارِ القديمِ", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ code: "proof_already_used" }), { status: 401 }),
+    );
+    await expect(initSession()).resolves.toBe(false);
+    expect(useSessionStore.getState().initStatus).toBe("failed");
+    expect(useSessionStore.getState().initError).toBe("core_rejected");
+    // لا نداءَ للحدِّ أصلًا: الدليلُ المرفوضُ لا يُستبدَلُ بدليلٍ لا يتحققُ منهُ
+    // أحدٌ عندَ النواةِ.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]![0])).toMatch(/web-session\/telegram\/init-data/);
+  });
+
+  it("سقوطُ الشبكةِ في التبادلِ: `core_rejected` لا `network` — الجسرُ نصفُ الطريقِ", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    await expect(initSession()).resolves.toBe(false);
+    expect(useSessionStore.getState().initError).toBe("core_rejected");
+  });
+
+  it("إثباتُ الويبِ جاهزٌ أصلًا: لا تبادلَ — يُعادُ كما هو للاستبدالِ عندَ الحدّ", async () => {
+    const outcome = await exchangeForCoreSession({
+      kind: "web_core_session",
+      value: "already-here",
+    });
+    expect(outcome).toEqual({ credential: { kind: "web_core_session", value: "already-here" } });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("بلا نواةٍ موصولةٍ: المسارُ القديمُ (`/edge/session`) صراحةً — قرارُ البيئةِ لا الفشلُ", async () => {
+    vi.stubEnv("VITE_CORE_URL", "");
+    fetchMock.mockResolvedValueOnce(sessionResponse("tok-legacy", 3_600_000));
+    await expect(initSession()).resolves.toBe(true);
+    expect(String(fetchMock.mock.calls[0]![0])).toMatch(/\/edge\/session$/);
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1].body))).toEqual({
+      init_data: "query_id=1&user=%7B%7D&hash=abc",
+    });
+    expect(useSessionStore.getState().initError).toBeNull();
+  });
+});

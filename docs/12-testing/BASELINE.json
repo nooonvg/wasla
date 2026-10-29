@@ -1,14 +1,14 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-25T10:07:06Z",
+  "generated_at": "2026-10-28T21:15:27Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "9ae861f4e24eeb4f22999e8a17236552f6675428",
-    "branch": "stage-zero/clm-0701-core-incarnation-keys",
+    "commit": "3b7787f404580cb822d21cdadd47d8181521776d",
+    "branch": "stage-zero/clm-0703-mini-app-person-session-bridge",
     "dirty": true,
-    "dirty_files": 54,
-    "dirty_reason": "CLM-0701: ملفُّ اختبارِ قبولٍ جديدٌ (clm-0701-core-incarnation-deletion.e2e.test.ts) رفعَ test_files_tracked من 598 إلى 599، وبصمةُ القفلِ تغيّرت بإضافةِ @wasla/customers-service إلى channel-e2e (استهلاكُ منافذِ المستهلِكِ) — السجلُّ الحركيُّ داخلَ الشجرةِ: docs/12-testing/ci-evidence/2026-10-25T094500Z-clm-0701-core-incarnation-keys/raw/verify-full.txt (تشغيلٌ أخضرُ كاملًا)",
-    "tracked_files": 3680
+    "dirty_files": 2,
+    "dirty_reason": "CLM-0703 (تتمة): ترقيةُ esbuild إلى 0.28.2 (CVE-2026-56857 — ثنائيُّ التطويرِ) فبصمةُ القفلِ تغيّرت؛ العدَّاداتُ كما هي (6394) — تشغيلٌ أخضرُ كاملًا",
+    "tracked_files": 3695
   },
   "env": {
     "node": "v20.20.2",
@@ -19,8 +19,8 @@
   },
   "lock": {
     "path": "pnpm-lock.yaml",
-    "sha256": "3be40176715a6c2f691661f8898bb23e264756af33e493aab43dcd179b474a77",
-    "lines": 5135
+    "sha256": "21b1ccc24a9edb12517c9023d50db45080dc012e45cdca3f26451ea1dc7b9231",
+    "lines": 5138
   },
   "static": {
     "packages": 74,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-25T094500Z-clm-0701-core-incarnation-keys/raw/verify-full.txt",
-    "tests_passed": 6371,
+    "source": "docs/12-testing/ci-evidence/2026-10-28T180000Z-clm-0703-mini-app-person-session-bridge/raw/verify-full.txt",
+    "tests_passed": 6394,
     "test_files_executed": 450,
     "governance_suite_cases": 700,
     "governance_suite_failed": 0,
     "verify_overall": "passed"
   },
-  "fingerprint": "sha256:a1961413b0a14cdb179adab9b04c50b8192037e4be05517fc910840e305e3ae8",
+  "fingerprint": "sha256:6381c5b507e90ca10fda7d83e37e4a87c303b2faabeef6ceb81a784b8212e2fe",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

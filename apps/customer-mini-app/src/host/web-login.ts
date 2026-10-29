@@ -16,6 +16,17 @@
  *      ويعودُ بهِ `browserHost.sessionCredential()` فيُستبدَلُ عندَ الحدِّ
  *      بجلسةِ سوقٍ (`POST /edge/session/web` — XR-6.1).
  *
+ * **جسرُ المصغّرِ (CLM-0703 · D-XR-13):** دليلُ المصغّرِ نفسُهُ يُتبادلُ عندَ
+ * النواةِ (`POST /v1/web-session/telegram/init-data`) — تيليجرامُ يوقّعُهُ
+ * بتوقيعِ Ed25519 علنيٍّ تتحقّقُ منهُ النواةُ ضدَّ مفاتيحِهِ المنشورةِ، فلا
+ * سرَّ بوتٍ هنا ولا عندَ النواةِ. الجلسةُ الناتجةُ تُخزَّنُ في **نفسِ الخانةِ**
+ * (`coreAccessToken`) — فمستعملُ المصغّرِ يملكُ ما يملكُهُ مستعملُ الويبِ:
+ * إثباتَ شخصٍ عندَ النواةِ يفتحُ الحذفَ (`/v1/me/deletion`) وكلَّ مسارٍ
+ * للشخصِ، ثمّ يُستبدلُ عندَ الحدِّ بجلسةِ السوقِ كما في الويبِ تمامًا.
+ * **لا تراجعَ صامتًا:** إنْ فشلَ التبادلُ فالتهيئةُ تفشلُ ظاهرةً — المسارُ
+ * القديمُ (`/edge/session`) يُستعملُ فقط حينَ لا نواةَ موصولةً أصلًا
+ * (VITE_CORE_URL غيرُ مضبوطٍ) — قرارُ بيئةٍ صريحٌ لا احتياطٌ خفيّ.
+ *
  * **لا تُختلَطُ بالتحققِّ من `initData` المصغّرِ:** التحققُّ من مزوّدِ الهويّةِ
  * (التوقيعُ والمُصدِرُ والجمهورُ والصلاحيّةُ) كلُّهُ في النواةِ، لا هنا.
  */
@@ -75,6 +86,52 @@ interface TelegramLoginLibrary {
 /** هل دخولُ الويبِ مُهيّأٌ في هذهِ البيئةِ؟ (عنوانُ النواةِ ومُعرّفُ البوتِ) */
 export function webLoginConfigured(): boolean {
   return coreBaseUrl() !== "" && telegramClientId() !== 0;
+}
+
+/**
+ * هل جسرُ المصغّرِ مُهيّأٌ؟ (عنوانُ النواةِ وحدَهُ — لا مُعرّفَ بوتِ هنا: الدليلُ
+ * يوقّعُهُ تيليجرامُ نفسُهُ لا نحنْ). مُهيّأٌ = التبادلُ عندَ النواةِ واجبٌ
+ * وفشلُهُ ظاهرٌ؛ غيرُ مُهيّأٍ = المسارُ القديمُ (`/edge/session`) صراحةً.
+ */
+export function miniAppBridgeConfigured(): boolean {
+  return coreBaseUrl() !== "";
+}
+
+/**
+ * تبادلُ دليلِ المصغّرِ عندَ النواةِ (CLM-0703) — الوحدةُ المُعلَنةُ في
+ * APP_API_ROUTES §3. الدليلُ أحاديُّ الاستعمالِ عندَ النواةِ (بصمةٌ تُستهلَكُ
+ * في أولِّ إتمامٍ) فإعادةُ التحميلِ داخلَ الفتحِ نفسِهِ تُرفَضُ منهُ — وهذا
+ * حدٌّ مُعلَنٌ في دورةِ الحياةِ (G-S8): إعادةُ التهيئةِ التلقائيّةُ بميزانيّتِها
+ * قد تُقابِلُهُ بفشلٍ ظاهرٍ، لا بتراجعٍ للمسارِ القديمِ.
+ *
+ * يُرجعُ `true` عندَ نجاحِ التبادلِ (والرمزُ في الذاكرةِ في خانةِ إثباتِ
+ * النواةِ نفسِها)، و`false` عندَ أيِّ فشلٍ — لا يرفعُ ولا يُخزّنُ شيئًا.
+ */
+export async function exchangeMiniAppInitDataAtCore(initData: string): Promise<boolean> {
+  const baseUrl = coreBaseUrl();
+  if (baseUrl === "") return false;
+  try {
+    // وحدةُ نقلٍ مُعلَنةٌ (APP_API_ROUTES §3): العميلُ الذي يُركّبُ `${baseUrl}${path}`.
+    const response = await fetch(`${baseUrl}/v1/web-session/telegram/init-data`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ init_data: initData }),
+    });
+    if (!response.ok) return false;
+    const session = (await response.json().catch(() => null)) as
+      | { access_token?: unknown }
+      | null;
+    if (!session || typeof session.access_token !== "string" || session.access_token === "") {
+      return false;
+    }
+    // نفسُ خانةِ إثباتِ الويبِ — فالحذفُ وكلُّ مساراتِ الشخصِ ترى المصغّرَ
+    // والويبَ وجهينِ لشخصٍ واحدٍ عندَ النواةِ.
+    coreAccessToken = session.access_token;
+    return true;
+  } catch {
+    // فشلُ شبكةٍ أو جوابٌ غيرُ سليمٍ — ظاهرٌ بـ`false` لا برفعٍ يُسقِطُ التهيئةَ.
+    return false;
+  }
 }
 
 /** إثباتُ الويبِ الحاليُّ — أو `null` ما لم يُكمَلِ الدخولُ بعدُ. */

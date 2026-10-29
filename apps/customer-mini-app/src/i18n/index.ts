@@ -28,6 +28,7 @@ const resources = {
         expired: "انتهت الجلسة، يرجى إعادة الدخول",
         not_in_telegram: "افتح التطبيق من تلغرام لبدء الجلسة",
         web_login_required: "سجّل الدخول بحساب تيليجرام للمتابعة",
+        core_rejected: "تعذّر إثبات الحساب عند النواة — أعد فتح التطبيق",
         edge_rejected: "تعذّر بدء الجلسة",
         network: "تعذّر الاتصال لبدء الجلسة",
         invalid_response: "ردّ غير صالح عند بدء الجلسة",
@@ -233,6 +234,7 @@ const resources = {
         expired: "Session expired, please re-enter",
         not_in_telegram: "Open the app from Telegram to start a session",
         web_login_required: "Sign in with your Telegram account to continue",
+        core_rejected: "Could not verify your account with the core — reopen the app",
         edge_rejected: "Could not start the session",
         network: "Could not connect to start the session",
         invalid_response: "Invalid response while starting the session",
@@ -437,6 +439,7 @@ const resources = {
       session: {
         expired: "سیشن ختم ہو گیا، دوبارہ داخل ہوں",
         not_in_telegram: "سیشن شروع کرنے کے لیے ایپ ٹیلیگرام سے کھولیں",
+        core_rejected: "کور سے اکاؤنٹ کی تصدیق نہیں ہو سکی — ایپ دوبارہ کھولیں",
         edge_rejected: "سیشن شروع نہیں ہو سکا",
         network: "سیشن شروع کرنے کے لیے رابطہ نہیں ہو سکا",
         invalid_response: "سیشن شروع کرتے وقت غلط جواب",

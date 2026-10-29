@@ -361,4 +361,103 @@ describe("تركيبُ البوتِ — منافذُ الجلسةِ عبرَ ا�
       globalThis.fetch = originalFetch;
     }
   });
+
+});
+
+// ── CLM-0703 (جسرُ المصغّرِ): جيلُ النواةِ عبرَ التركيبِ الحقيقيِّ ──────────────
+//
+// الحفرةُ التي كشَفَها الفحصُ: `buildAppWithEdge` يركِّبُ جسرَ الويبِ لكنَّ
+// `coreIntrospect` فيهِ لا يمرِّرُ `identity_id` — فربطُ الجيلِ (CLM-0701)
+// لا يشتعلُ في الإنتاجِ أصلًا. هذا الاختبارُ يقيسُ المسارَ منَ الطلبِ حتى
+// نداءِ `/identity/resolve` عبرَ التركيبِ الحقيقيِّ (fetch مُحاكاةٌ عندَ
+// المنابعِ لا منفذٌ يُستبدَلُ) — فسقوطُ الحقلِ يُرى هنا حيثُ لا يُرى في
+// اختبارِ الحزمةِ وحدَها.
+describe("تركيبُ البوتِ — جسرُ الويبِ وربطُ جيلِ النواةِ (CLM-0703)", () => {
+  it("identity_id من جلسةِ النواةِ يصلُ تسويةَ الهويةِ — لا يُسقَطُ في التركيبِ", async () => {
+    const captured: CapturedCall[] = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
+      const url = String(input);
+      captured.push({
+        url,
+        method: String(init?.method ?? "GET"),
+        headers: (init?.headers ?? {}) as Record<string, string>,
+        ...(init?.body !== undefined ? { body: String(init.body) } : {}),
+      });
+      // النواةُ تجيبُ بجلسةٍ فيها الجيلُ ورابطُ تيليجرامٍ موثّقٌ — كما تعودُ
+      // منَ المسارِ الجديدِ (initData المصغّرِ) والمسارِ القديمِ (OIDC الويبِ).
+      if (url === "http://core.test/v1/sessions/current") {
+        return new Response(
+          JSON.stringify({
+            session_id: "core-sess-1",
+            identity_id: "core-gen-1",
+            channel_links: [
+              {
+                channel_type: "telegram",
+                external_id: "tg-111222333",
+                verified_at: "2026-10-28T00:00:00Z",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url === "http://identity.test/identity/resolve") {
+        return new Response(JSON.stringify({ wasla_public_id: "CUS-789", created: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url === "http://identity.test/identity/sessions") {
+        return new Response(
+          JSON.stringify({
+            token: "issued-session-token",
+            wasla_public_id: "CUS-789",
+            actor_type: "customer",
+            expires_at: "2026-12-31T23:59:59Z",
+            session_id: "sess-issued-1",
+          }),
+          { status: 201, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response("{}", { status: 404 });
+    }) as typeof fetch;
+
+    try {
+      const bot = buildAppWithEdge({
+        env: { ...ENV, WASLA_CORE_URL: "http://core.test" },
+        channel: new MockChannelAdapter(),
+        identity: new FakeIdentityBootstrap("WS-1000"),
+        logger: false,
+        edgeEnabled: true,
+        identityServiceUrl: "http://identity.test",
+        coreUrl: "http://core.test",
+      });
+      const response = await bot.app.inject({
+        method: "POST",
+        url: "/edge/session/web",
+        headers: { origin: "https://apps.wasla.test" },
+        payload: { core_access_token: "core-tok-1" },
+      });
+
+      // الجلسةُ صدرتْ عبرَ الجسرِ — لا رفضًا ولا 500.
+      expect(response.statusCode).toBe(201);
+      expect(response.json()).toMatchObject({
+        token: "issued-session-token",
+        wasla_public_id: "CUS-789",
+      });
+
+      // النواةُ سُئلتْ عنِ الرمزِ عندَ مُصدِرِهِ، والهويّةُ سُوّيتْ مرةً واحدةً.
+      expect(captured.some((c) => c.url === "http://core.test/v1/sessions/current")).toBe(true);
+      const resolve = captured.find((c) => c.url === "http://identity.test/identity/resolve");
+      expect(resolve).toBeDefined();
+      const body = JSON.parse(resolve!.body ?? "{}");
+      expect(body.telegram_user_id).toBe(111222333);
+      // جيلُ النواةِ يصلُ إلى تسويةِ الهويّةِ — هذا هوَ الربطُ الذي بلاهُ لا
+      // يُحسَمُ جيلٌ محجّرٌ ولا يُفتَحُ جيلٌ جديدٌ (CLM-0701).
+      expect(body.core_identity_id).toBe("core-gen-1");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });

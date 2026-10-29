@@ -229,10 +229,18 @@ export function buildAppWithEdge(overrides?: CustomerBotEdgeOverrides): BotApp {
             }
             const payload = (await response.json()) as {
               session_id?: unknown;
+              identity_id?: unknown;
               channel_links?: unknown;
             };
             return {
               session_id: String(payload.session_id ?? ""),
+              // جيلُ النواةِ (CLM-0701 · إصلاحُ CLM-0703): النواةُ تعودُ بهِ في
+              // كلِّ جلسةٍ مصادَقةٍ — إسقاطُهُ هنا أطفأَ ربطَ الجيلِ في الإنتاجِ
+              // كاملًا (اختبارُ التركيبِ الحقيقيِّ هو الذي كشفَهُ لا اختبارُ
+              // الحزمةِ). يُمرَّرُ كما جاءَ: حاضرًا أو غائبًا، لا مُخترَعًا.
+              ...(typeof payload.identity_id === "string" && payload.identity_id !== ""
+                ? { identity_id: payload.identity_id }
+                : {}),
               channel_links: Array.isArray(payload.channel_links)
                 ? (payload.channel_links as Array<Record<string, unknown>>).map((link) => ({
                     channel_type: String(link.channel_type ?? ""),
