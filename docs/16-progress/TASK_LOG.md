@@ -1,3 +1,14 @@
+# 2026-10-29 — CLM-0707 — تطبيقُ الزبونِ على عقدِ الخدماتِ الفعليِّ وعلى كلِّ الشاشاتِ (M0-54 · XR-8.3)
+
+- **Work Item(s):** M0-54 (XR-8.3 — تطبيقٌ واحدٌ لكلِّ الأجهزةِ؛ تيليجرامُ واجهةٌ منها) · M0-08 (إعادةُ توليدِ الأساسِ — ضمنَ الحجزِ).
+- **Kind:** fix + ui + tests — إصلاحُ عقدٍ وتنسيقٌ محليٌّ وتخطيطٌ متجاوبٌ.
+- **Units:** `apps/customer-mini-app/src/i18n/format.ts` (جديدٌ) · `src/i18n/index.ts` · `src/store/order-form.ts` · `src/screens/{RideOrder,DeliveryOrder,Marketplace,Search,MyOrders,Reputation,Profile,SavedPlaces}.tsx` · `src/components/WhatsAppShareButton.tsx` · `src/index.css` · اختباراتُ الوحدةِ وe2e · `docs/12-testing/BASELINE.{json,txt}`.
+- **Status:** Released — معَ الدفعةِ.
+- **Change:** (1) **عيبُ عقدٍ يمنعُ الطلبَ**: السعرُ المعروضُ أُرسِلَ `{amount: 25.5}` وخدمةُ الزبائنِ (`normalizeMoney`) لا تقبلُ إلا `amount_minor` صحيحًا — فكلُّ طلبٍ بسعرِ الزبونِ مرفوضٌ؛ صارَ `{amount_minor, currency}` ويُقبَلُ إدخالُ «٢٥٫٥٠». (2) المتاجرُ/المنتجاتُ/البحثُ تقرأُ حقولَ العقدِ (`title_*` · `price_minor_units` · `currency_code` · `store_slug`) لا حقولًا لا تُرسَلُ — والمحاكاةُ صُحِّحت لأنّها كانت تنسخُ الخطأَ. (3) عنوانُ المتجرِ باسمِهِ لا بـslug. (4) المالُ والتاريخُ والحالاتُ بـ`Intl` والـlocale. (5) عمودانِ ≥768px داخلَ عمودِ 720px (XR-8.3a محفوظٌ) · حالةُ بحثٍ فارغةٌ بمخرجٍ · أزرارٌ موحَّدةُ النمطِ. ([الدليل](../12-testing/ci-evidence/2026-10-29T120000Z-clm-0707-customer-app-contract-and-layout/README.md))
+- **Tests:** وحداتُ المصغّرِ **202/202** (+7) · e2e **51/51** (+1: أرقامٌ عربيةٌ ← `amount_minor`) · `tsc` نظيفٌ · لقطاتٌ 375/768/1280.
+- **Risk(s):** none جديدٌ — الجوّالُ وتيليجرامُ (<768px) بلا تغييرِ تخطيطٍ؛ العملةُ ثابتةٌ SAR (حدٌّ معلَنٌ).
+- **No-Test-Reason:** N/A.
+
 # 2026-10-28 — CLM-0706 — ترقيةُ سلسلةِ التوريدِ: esbuild 0.28.2 (M0-06)
 
 - **Work Item(s):** M0-06 (تحديثُ الاعتمادياتِ والثغراتِ — ثغرةٌ قابلةٌ للإصلاحِ تحجزُ الدمجَ).

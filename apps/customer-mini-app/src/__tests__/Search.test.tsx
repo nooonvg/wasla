@@ -63,13 +63,17 @@ describe("Search screen", () => {
     await waitFor(() => {
       expect(screen.getByTestId("search-empty")).toBeInTheDocument();
     });
+    // An empty result guides: a hint and a way onward, not a dead end.
+    await waitFor(() => {
+      expect(screen.getByTestId("search-empty-browse").getAttribute("href")).toBe("#/marketplace");
+    });
   });
 
   it("renders search results", async () => {
     mockedGet.mockResolvedValueOnce({
       items: [
-        { product_id: "p1", name: "Coffee Beans", store_slug: "store-1", price: 25, currency: "SAR" },
-        { product_id: "p2", name: "Coffee Maker", store_slug: "store-2", price: 150, currency: "SAR" },
+        { product_id: "p1", title_ar: "Coffee Beans", store_slug: "store-1", price_minor_units: 2500, currency_code: "SAR" },
+        { product_id: "p2", title_ar: "Coffee Maker", store_slug: "store-2", price_minor_units: 15000, currency_code: "SAR" },
       ],
       total: 2,
     });
@@ -83,6 +87,9 @@ describe("Search screen", () => {
     });
     expect(screen.getByTestId("result-p1")).toBeInTheDocument();
     expect(screen.getByTestId("result-p2")).toBeInTheDocument();
+    // services/search SearchResult: the title and the minor-unit price are what render.
+    expect(screen.getByTestId("result-p1").textContent).toContain("Coffee Beans");
+    expect(screen.getByTestId("result-p1").textContent).not.toContain("undefined");
   });
 
   it("shows error on failure", async () => {

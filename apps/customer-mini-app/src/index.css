@@ -654,3 +654,98 @@ video {
   flex-direction: column;
   gap: var(--wasla-space-3);
 }
+
+/* ── CLM-0707: الزرُّ الرئيسيُّ خارجَ `.form-actions` (حفظُ الملفِّ · إضافةُ مكانٍ) ── */
+.primary-button {
+  display: block;
+  width: 100%;
+  margin-top: var(--wasla-space-4);
+  padding: var(--wasla-space-3) var(--wasla-space-4);
+  min-height: 48px;
+  border: none;
+  border-radius: var(--wasla-radius);
+  background: var(--wasla-primary);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: var(--wasla-primary-dark);
+}
+
+.primary-button:focus-visible {
+  outline: 3px solid var(--wasla-primary-dark);
+  outline-offset: 2px;
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── CLM-0707: حالةٌ فارغةٌ تُرشِدُ لا تُخبِرُ فقط ── */
+.empty-state-title {
+  margin: 0 0 var(--wasla-space-2);
+  font-weight: 600;
+  color: var(--wasla-text);
+}
+
+.empty-state-hint {
+  margin: 0 0 var(--wasla-space-4);
+}
+
+.empty-state-action {
+  display: inline-block;
+  padding: var(--wasla-space-2) var(--wasla-space-4);
+  min-height: 44px;
+  line-height: 28px;
+  border-radius: var(--wasla-radius);
+  border: 1px solid var(--wasla-primary);
+  color: var(--wasla-primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ── CLM-0707: الجهازُ اللوحيُّ والحاسوبُ — العمودُ نفسُه (XR-8.3a) لكن تُستَغلُّ
+   مساحتُه: بطاقاتُ الرئيسيّةِ والقوائمُ في أعمدةٍ بدلَ شريطٍ طويلٍ واحدٍ.
+   الجوالُ وتيليجرام (< 768px) لا يتغيّران. ── */
+@media (min-width: 768px) {
+  .home nav ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--wasla-space-3);
+  }
+
+  .stores-list,
+  .products-list,
+  .search-results-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--wasla-space-3);
+  }
+}
+
+/* XR-8.3a: desktop stays one centred readable column (max 720px) — the
+   2-column grids above are the widest layout we allow (CLM-0707). */
+
+/* CLM-0707: store screen header — share link reads as an action, not raw text */
+.share-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wasla-space-2);
+  min-height: 44px;
+  margin-block: var(--wasla-space-2);
+  color: #128c7e; /* WhatsApp teal, 4.6:1 on white */
+  font-weight: 600;
+  text-decoration: none;
+}
+.share-link:hover,
+.share-link:focus-visible {
+  text-decoration: underline;
+}
+[data-testid="store-products-view"] > .back-button {
+  margin-block-end: var(--wasla-space-3);
+}

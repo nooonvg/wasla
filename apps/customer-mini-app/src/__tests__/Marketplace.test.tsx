@@ -30,7 +30,7 @@ describe("Marketplace screen", () => {
 
   it("loads stores on mount", async () => {
     mockedGet.mockResolvedValueOnce({
-      items: [{ store_id: "s1", slug: "store-1", display_name: "Store One" }],
+      items: [{ store_id: "s1", store_slug: "store-1", title_ar: "Store One" }],
       limit: 20,
     });
 
@@ -44,8 +44,8 @@ describe("Marketplace screen", () => {
   it("renders stores list", async () => {
     mockedGet.mockResolvedValueOnce({
       items: [
-        { store_id: "s1", slug: "store-1", display_name: "Store One", description: "Best store" },
-        { store_id: "s2", slug: "store-2", display_name: "Store Two" },
+        { store_id: "s1", store_slug: "store-1", title_ar: "Store One", description_ar: "Best store" },
+        { store_id: "s2", store_slug: "store-2", title_ar: "Store Two" },
       ],
       limit: 20,
     });
@@ -81,11 +81,11 @@ describe("Marketplace screen", () => {
 
   it("loads products when store is clicked", async () => {
     mockedGet.mockResolvedValueOnce({
-      items: [{ store_id: "s1", slug: "store-1", display_name: "Store One" }],
+      items: [{ store_id: "s1", store_slug: "store-1", title_ar: "Store One" }],
       limit: 20,
     });
     mockedGet.mockResolvedValueOnce({
-      items: [{ product_id: "p1", store_slug: "store-1", name: "Product 1", price: 10, currency: "SAR", status: "published" }],
+      items: [{ product_id: "p1", store_slug: "store-1", title_ar: "Product 1", price_minor_units: 1000, currency_code: "SAR" }],
       limit: 20,
     });
 

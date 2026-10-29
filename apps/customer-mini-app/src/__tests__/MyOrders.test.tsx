@@ -137,7 +137,7 @@ describe("MyOrders screen", () => {
       order_type: "ride",
       vehicle_class: "sedan",
       price_mode: "fixed",
-      offered_price: { amount: 25.5, currency: "SAR" },
+      offered_price: { amount_minor: 2550, currency: "SAR" },
       created_at: "2026-09-22T00:00:00Z",
       stops: [
         { kind: "pickup", sequence: 1, zone_id: "zone-a", zone_path: "المدينة المنورة / العزيزية", label: "المنزل" },
@@ -163,7 +163,11 @@ describe("MyOrders screen", () => {
     expect(screen.getByTestId("order-detail-status").textContent).toContain(
       "مُرسل",
     );
-    expect(screen.getByTestId("order-detail-price").textContent).toContain("25.5");
+    // Wire money is minor units (Money.amount_minor): 2550 halalas render as 25.50 SAR, in the
+    // active locale's digits, never as "undefined SAR".
+    const price = screen.getByTestId("order-detail-price").textContent ?? "";
+    expect(price).not.toContain("undefined");
+    expect(price.replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660)).replace(/\u066B/g, ".")).toMatch(/25[.,]50/);
     expect(screen.getByTestId("order-detail-stops")).toBeInTheDocument();
     expect(screen.getByTestId("order-detail-stop-1").textContent).toContain("الالتقاط");
     expect(screen.getByTestId("order-detail-stop-2").textContent).toContain("التسليم");

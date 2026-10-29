@@ -11,34 +11,34 @@ import { seedSession, gotoRoute, TEST_CUSTOMER_ID } from "./helpers";
  * الجلسةُ مُلقّاةٌ عبرَ hook الاختبارِ المُصرَّفِ زمنيًّا (window.__waslaE2E).
  */
 
+/** services/marketplace StoreResource / ProductResource and services/search SearchResult field names. */
 interface MockStore {
   store_id: string;
-  slug: string;
-  display_name: string;
-  description?: string;
+  store_slug: string;
+  title_ar: string;
+  description_ar?: string;
 }
 
 interface MockProduct {
   product_id: string;
   store_slug: string;
-  name: string;
-  price: number;
-  currency: string;
-  status: string;
+  title_ar: string;
+  price_minor_units: number;
+  currency_code: string;
 }
 
 const MOCK_STORES: MockStore[] = [
   {
     store_id: "store-1",
-    slug: "al-baik",
-    display_name: "مطعم البيك",
-    description: "وجبات سريعة",
+    store_slug: "al-baik",
+    title_ar: "مطعم البيك",
+    description_ar: "وجبات سريعة",
   },
   {
     store_id: "store-2",
-    slug: "tamimi",
-    display_name: "متجر التميمي",
-    description: "بقالة",
+    store_slug: "tamimi",
+    title_ar: "متجر التميمي",
+    description_ar: "بقالة",
   },
 ];
 
@@ -46,18 +46,16 @@ const MOCK_PRODUCTS: MockProduct[] = [
   {
     product_id: "prod-1",
     store_slug: "al-baik",
-    name: "وجبة البروست",
-    price: 25,
-    currency: "SAR",
-    status: "active",
+    title_ar: "وجبة البروست",
+    price_minor_units: 2500,
+    currency_code: "SAR",
   },
   {
     product_id: "prod-2",
     store_slug: "al-baik",
-    name: "وجبة الشاورما",
-    price: 20,
-    currency: "SAR",
-    status: "active",
+    title_ar: "وجبة الشاورما",
+    price_minor_units: 2000,
+    currency_code: "SAR",
   },
 ];
 
@@ -65,10 +63,10 @@ const MOCK_SEARCH_RESULTS = {
   items: [
     {
       product_id: "prod-1",
-      name: "وجبة البروست",
+      title_ar: "وجبة البروست",
       store_slug: "al-baik",
-      price: 25,
-      currency: "SAR",
+      price_minor_units: 2500,
+      currency_code: "SAR",
     },
   ],
   total: 1,
@@ -129,7 +127,7 @@ async function stubJourneyApis(page: import("@playwright/test").Page): Promise<v
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ items: MOCK_STORES.map((s) => ({ store_id: s.store_id, store_slug: s.slug, title: s.display_name })), total: MOCK_STORES.length }),
+      body: JSON.stringify({ items: MOCK_STORES.map((s) => ({ store_id: s.store_id, store_slug: s.store_slug, title: s.title_ar })), total: MOCK_STORES.length }),
     }),
   );
   // الأماكنُ المحفوظةُ (منتقي الأماكنِ في شاشةِ الطلبِ) — فارغةٌ: الرحلةُ تكتبُ المناطقَ يدويًّا.
@@ -200,7 +198,8 @@ test.describe("رحلة الزبون الكاملة على الويب (البن�
     await expect(page.locator("[data-testid='products-list']")).toBeVisible();
     await expect(page.getByText("وجبة البروست")).toBeVisible();
     await expect(page.getByText("وجبة الشاورما")).toBeVisible();
-    await expect(page.getByText("25 SAR")).toBeVisible();
+    // CLM-0707: price from price_minor_units 2500, localised (ar: ٢٥٫٠٠ ر.س.)
+    await expect(page.getByText(/٢٥٫٠٠/).first()).toBeVisible();
 
     // ── 3) بحث: ابحثْ عن منتجٍ فظهرت نتيجتُهُ ──
     await gotoRoute(page, "search");

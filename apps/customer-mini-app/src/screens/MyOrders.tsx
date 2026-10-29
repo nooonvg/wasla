@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "../api/client";
 import { useSessionStore } from "../store/session";
+import { enumLabel, formatDate, formatMoney, type Money } from "../i18n/format";
 
 /**
  * CMS §3.6 L86: the screen lists the customer's last five requests.
@@ -29,7 +30,7 @@ interface OrderStop {
 
 interface OrderRequestDetail extends OrderRequest {
   wasla_public_id: string;
-  offered_price?: { amount: number; currency: string } | null;
+  offered_price?: Money | null;
   stops: OrderStop[];
   notes?: string | null;
 }
@@ -45,7 +46,7 @@ export const LAST_ORDERS_LIMIT = 5;
 export const STATUS_POLL_INTERVAL_MS = 30_000;
 
 export function MyOrders() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { token, customerId } = useSessionStore();
   const [orders, setOrders] = useState<OrderRequest[]>([]);
   const [status, setStatus] = useState<string>("");
@@ -278,24 +279,22 @@ export function MyOrders() {
               <div>
                 <dt>{t("orders.detail_status")}</dt>
                 <dd data-testid="order-detail-status">
-                  {t(`orders.status_${detail.status}`)}
+                  {enumLabel(t, "orders.status_", detail.status)}
                 </dd>
               </div>
               <div>
                 <dt>{t("orders.detail_vehicle")}</dt>
-                <dd>{t(`ride_order.vehicle_${detail.vehicle_class}`)}</dd>
+                <dd>{enumLabel(t, "ride_order.vehicle_", detail.vehicle_class)}</dd>
               </div>
               <div>
                 <dt>{t("orders.detail_price")}</dt>
                 <dd data-testid="order-detail-price">
-                  {detail.offered_price
-                    ? `${detail.offered_price.amount} ${detail.offered_price.currency}`
-                    : "—"}
+                  <bdi>{formatMoney(detail.offered_price, i18n.language)}</bdi>
                 </dd>
               </div>
               <div>
                 <dt>{t("orders.detail_created_at")}</dt>
-                <dd>{new Date(detail.created_at).toLocaleDateString("ar-SA")}</dd>
+                <dd><bdi>{formatDate(detail.created_at, i18n.language)}</bdi></dd>
               </div>
               {detail.notes && (
                 <div>
@@ -341,10 +340,10 @@ export function MyOrders() {
                 aria-label={`${t("orders.detail_title")}: ${order.id}`}
               >
                 <span className="order-id">{order.id}</span>
-                <span className="order-type">{t(`orders.type_${order.order_type}`)}</span>
-                <span className="order-status">{t(`orders.status_${order.status}`)}</span>
-                <span className="order-vehicle">{t(`ride_order.vehicle_${order.vehicle_class}`)}</span>
-                <span className="order-date">{new Date(order.created_at).toLocaleDateString("ar-SA")}</span>
+                <span className="order-type">{enumLabel(t, "orders.type_", order.order_type)}</span>
+                <span className="order-status">{enumLabel(t, "orders.status_", order.status)}</span>
+                <span className="order-vehicle">{enumLabel(t, "ride_order.vehicle_", order.vehicle_class)}</span>
+                <span className="order-date"><bdi>{formatDate(order.created_at, i18n.language)}</bdi></span>
               </button>
             </li>
           ))}

@@ -115,6 +115,7 @@ export function SavedPlaces() {
         type="button"
         onClick={handleAddPlace}
         disabled={adding || !token || !customerId}
+        className="primary-button"
         data-testid="add-place-button"
       >
         {adding ? t("common.loading") : t("places.add_button")}

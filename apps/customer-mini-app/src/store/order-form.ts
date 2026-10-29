@@ -1,3 +1,4 @@
+import { parseAmountToMinor, type Money } from "../i18n/format";
 import { create } from "zustand";
 
 // Types matching the Customer HTTP API contract (OrderRequestInput schema)
@@ -19,7 +20,7 @@ export interface OrderRequestInput {
   order_type: OrderType;
   vehicle_class: VehicleClass;
   price_mode: PriceMode;
-  offered_price?: { amount: number; currency: string } | null;
+  offered_price?: Money | null;
   stops: [StopInput, StopInput];
   shipment?: {
     shipment_type?: "parcel" | "documents" | "food" | "goods" | "other" | null;
@@ -34,7 +35,7 @@ export interface OrderRequestPreview {
   order_type: OrderType;
   vehicle_class: VehicleClass;
   price_mode: PriceMode;
-  offered_price?: { amount: number; currency: string } | null;
+  offered_price?: Money | null;
   stops: Array<{
     kind: StopKind;
     zone_id: string;
@@ -141,10 +142,19 @@ export const useOrderFormStore = create<OrderFormState>((set) => ({
   resetForm: () => set({ ...initialState }),
 }));
 
+/** The launch currency (Saudi launch, ADR-016). One place, not a literal per call site. */
+export const OFFER_CURRENCY = "SAR";
+
+/** Wire money is `{ amount_minor, currency }` — services/customers rejects any other shape. */
+function toOfferedPrice(text: string): Money | null {
+  const amountMinor = parseAmountToMinor(text, OFFER_CURRENCY);
+  return amountMinor === null ? null : { amount_minor: amountMinor, currency: OFFER_CURRENCY };
+}
+
 // Build the API request body from form state
 export function buildOrderRequest(state: OrderFormState): OrderRequestInput {
   const offeredPrice = state.priceMode === "customer_offer" && state.offeredPrice
-    ? { amount: parseFloat(state.offeredPrice), currency: "SAR" }
+    ? toOfferedPrice(state.offeredPrice)
     : null;
 
   const stops: [StopInput, StopInput] = [
@@ -180,8 +190,7 @@ export function validateOrderForm(state: OrderFormState): string | null {
   if (!state.dropoffZoneId.trim()) return "dropoff_zone_required";
   if (state.pickupZoneId === state.dropoffZoneId) return "same_zone";
   if (state.priceMode === "customer_offer") {
-    const price = parseFloat(state.offeredPrice);
-    if (!state.offeredPrice || isNaN(price) || price <= 0) return "invalid_price";
+    if (parseAmountToMinor(state.offeredPrice, OFFER_CURRENCY) === null) return "invalid_price";
   }
   if (state.notes.length > 500) return "notes_too_long";
   return null;

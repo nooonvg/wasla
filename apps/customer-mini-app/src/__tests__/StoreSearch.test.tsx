@@ -133,6 +133,6 @@ describe("Marketplace — store-name search wiring (G-S9.7)", () => {
     fireEvent.click(screen.getByTestId("store-search-button"));
     fireEvent.click(await screen.findByTestId("store-search-result-baqala-noor"));
     await waitFor(() => expect(mockedGet).toHaveBeenCalledWith("/stores/baqala-noor/products"));
-    expect(screen.getByTestId("selected-store-name").textContent).toBe("baqala-noor");
+    expect(screen.getByTestId("selected-store-name").textContent).toBe("بقالة النور") // CLM-0707: the heading shows the store name, not its slug;
   });
 });

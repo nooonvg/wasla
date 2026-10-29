@@ -20,6 +20,7 @@ export function WhatsAppShareButton({
       href={whatsappShareUrl(storeShareText(storeName, t("appName")))}
       target="_blank"
       rel="noopener noreferrer"
+      className="share-link"
       data-testid={testId}
     >
       {t("share.whatsapp_store")}

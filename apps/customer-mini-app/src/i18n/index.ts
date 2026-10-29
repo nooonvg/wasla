@@ -23,6 +23,7 @@ const resources = {
         error: "حدث خطأ",
         retry: "إعادة المحاولة",
         cancel: "إلغاء",
+        unknown_value: "غير محدد",
       },
       session: {
         expired: "انتهت الجلسة، يرجى إعادة الدخول",
@@ -141,6 +142,8 @@ const resources = {
         placeholder: "ابحث عن منتج...",
         button: "بحث",
         no_results: "لا توجد نتائج",
+        no_results_hint: "جرّب كلمةً أقصر أو اسمًا آخر للمنتج، أو تصفّح المتاجر.",
+        browse_stores: "تصفّح المتاجر",
       },
       orders: {
         title: "طلباتي",
@@ -150,6 +153,7 @@ const resources = {
         status_accepted: "مقبول",
         status_completed: "مكتمل",
         status_cancelled: "ملغي",
+        status_submission_failed: "تعذّر الإرسال",
         type_ride: "طلب رحلة",
         type_delivery: "طلب توصيل",
         empty: "لا توجد طلبات",
@@ -229,6 +233,7 @@ const resources = {
         error: "An error occurred",
         retry: "Retry",
         cancel: "Cancel",
+        unknown_value: "Not specified",
       },
       session: {
         expired: "Session expired, please re-enter",
@@ -347,6 +352,8 @@ const resources = {
         placeholder: "Search for a product...",
         button: "Search",
         no_results: "No results found",
+        no_results_hint: "Try a shorter word or another product name, or browse the stores.",
+        browse_stores: "Browse stores",
       },
       orders: {
         title: "My Orders",
@@ -356,6 +363,7 @@ const resources = {
         status_accepted: "Accepted",
         status_completed: "Completed",
         status_cancelled: "Cancelled",
+        status_submission_failed: "Not sent",
         type_ride: "Ride Request",
         type_delivery: "Delivery Request",
         empty: "No orders found",
@@ -435,6 +443,7 @@ const resources = {
         error: "ایک خامی پیش آئی",
         retry: "دوبارہ کوشش کریں",
         cancel: "منسوخ کریں",
+        unknown_value: "غیر متعین",
       },
       session: {
         expired: "سیشن ختم ہو گیا، دوبارہ داخل ہوں",
@@ -550,6 +559,8 @@ const resources = {
         placeholder: "مصنوعات تلاش کریں...",
         button: "تلاش",
         no_results: "کوئی نتائج نہیں ملے",
+        no_results_hint: "چھوٹا لفظ یا کسی اور مصنوعات کا نام آزمائیں، یا دکانیں دیکھیں۔",
+        browse_stores: "دکانیں دیکھیں",
       },
       orders: {
         title: "میرے آرڈرز",
@@ -559,6 +570,7 @@ const resources = {
         status_accepted: "قبول",
         status_completed: "مکمل",
         status_cancelled: "منسوخ",
+        status_submission_failed: "بھیجا نہیں جا سکا",
         type_ride: "سواری کی درخواست",
         type_delivery: "ڈیلیوری کی درخواست",
         empty: "کوئی آرڈر نہیں",
