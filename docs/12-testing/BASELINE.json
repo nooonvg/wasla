@@ -1,13 +1,13 @@
 {
   "schema": "wasla.baseline/v1",
-  "generated_at": "2026-10-28T21:15:27Z",
+  "generated_at": "2026-10-30T05:00:01Z",
   "generator": "scripts/baseline.sh",
   "repo": {
-    "commit": "3b7787f404580cb822d21cdadd47d8181521776d",
-    "branch": "stage-zero/clm-0703-mini-app-person-session-bridge",
+    "commit": "1db368f326eaa6d87e7a1364a9954d1edc81f4d7",
+    "branch": "fix/clm-0708-market-core-live-wiring",
     "dirty": true,
-    "dirty_files": 2,
-    "dirty_reason": "CLM-0703 (تتمة): ترقيةُ esbuild إلى 0.28.2 (CVE-2026-56857 — ثنائيُّ التطويرِ) فبصمةُ القفلِ تغيّرت؛ العدَّاداتُ كما هي (6394) — تشغيلٌ أخضرُ كاملًا",
+    "dirty_files": 40,
+    "dirty_reason": "CLM-0708: regenerated from this tree's green full verify (evidence raw/verify-full.txt)",
     "tracked_files": 3695
   },
   "env": {
@@ -26,7 +26,7 @@
     "packages": 74,
     "packages_with_typecheck": 70,
     "packages_with_test": 74,
-    "test_files_tracked": 599,
+    "test_files_tracked": 601,
     "ci_jobs": 13,
     "ci_allow_failure": 0,
     "governance_checks": 29,
@@ -34,13 +34,13 @@
   },
   "dynamic": {
     "measured": true,
-    "source": "docs/12-testing/ci-evidence/2026-10-28T180000Z-clm-0703-mini-app-person-session-bridge/raw/verify-full.txt",
-    "tests_passed": 6394,
-    "test_files_executed": 450,
+    "source": "docs/12-testing/ci-evidence/2026-10-30T040000Z-clm-0708-market-core-live-wiring/raw/verify-full.txt",
+    "tests_passed": 6421,
+    "test_files_executed": 451,
     "governance_suite_cases": 700,
     "governance_suite_failed": 0,
     "verify_overall": "passed"
   },
-  "fingerprint": "sha256:6381c5b507e90ca10fda7d83e37e4a87c303b2faabeef6ceb81a784b8212e2fe",
+  "fingerprint": "sha256:98ab93b557075cf37d9f05473359df8977d90f31bfd5a689517a693a38ffe126",
   "reference": "docs/12-testing/BASELINE_FORMAT.md"
 }

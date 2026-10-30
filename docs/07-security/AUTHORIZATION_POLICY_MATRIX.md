@@ -43,7 +43,7 @@
 | الحدودُ المفروضةُ | `16` | `services/*/src/http/service-identity.ts` · `packages/bot-runtime/src/http/service-identity.ts` (CLM-0444: +1 partners) |
 | المساراتُ المُسجَّلةُ | `148` | `services/*/src/http/app.ts` · `packages/bot-runtime/src/http/app.ts` (CLM-0444: +10 partners routes؛ CLM-0519: +3 identity session routes) |
 | العملياتُ المفروضةُ | `ENFORCED_OPERATIONS = 173` | مساراتٌ تُعلِنُ `scoped(...)` (CLM-0649: +1 `GET /search/stores`؛ كانت 158؛ +8 في CLM-0444: حدُّ الشركاءِ يُفرَضُ بعدَ تصنيفِ مساراتِه؛ +3 في CLM-0519: `POST /identity/sessions` و`/exchange` و`/revoke` — ADR-069 المرحلةُ الأولى؛ +1 في CLM-0645: `GET /geo/zones/search` — G-S9.3؛ +2 في CLM-0701 — استثناءُ ADR-076 المؤرّخُ 2026-10-25: `GET /identity/core-bindings/:coreIdentityId` و`POST /identity/core-deletion` — حياةُ أجيالِ حسابِ النواةِ) |
-| المساراتُ المفتوحةُ | `OPEN_ROUTES = 23` | مساراتٌ تُعلِنُ `OPEN` (كانت 21؛ +2 في CLM-0444: `/partners/health` و`/partners/ready` بلا بياناتٍ مجاليّةٍ) |
+| المساراتُ المفتوحةُ | `OPEN_ROUTES = 24` | مساراتٌ تُعلِنُ `OPEN` (كانت 21؛ +2 في CLM-0444: `/partners/health` و`/partners/ready` بلا بياناتٍ مجاليّةٍ؛ +1 في CLM-0708: `POST /delivery/core/fulfillment-events` — مدخلُ CORE الموقَّعُ، هويّتُهُ توقيعُ HMAC-SHA256 للجسمِ الخامِ لا رمزُ خدمةِ وصلة · ADR-026 §4.30) |
 | المساراتُ بلا صلاحيّةٍ ولا `OPEN` | `0` | البابُ 2 من الفحصِ 16 |
 | الصلاحيّاتُ المفروضةُ | `ENFORCED_SCOPES = 139` | اتّحادُ صلاحيّاتِ العملياتِ (CLM-0649: +1 `search:stores:read`؛ كانت 125؛ +8 في CLM-0444: `partners:*` scopes؛ +3 في CLM-0519: `identity:session:issue/exchange/revoke`؛ +2 في CLM-0701: `identity:core-binding:read` و`identity:core-deletion:write`) |
 | صلاحيّاتٌ مُعرَّفةٌ بلا مسارٍ يفرضُها | `0` | البابُ 2 |

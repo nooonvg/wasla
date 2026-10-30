@@ -50,6 +50,7 @@ import {
   deliveryInventoryConflicts,
   deliveryInventoryObservations,
   coreEgressBlocked,
+  coreFulfillmentLink,
   coreEgressOutbox,
   coreFulfillmentInbox,
   deliveryInventoryRelayCheckpoint,
@@ -85,6 +86,7 @@ const MIRRORED = [
   coreFulfillmentInbox,
   coreEgressOutbox,
   coreEgressBlocked,
+  coreFulfillmentLink,
 ];
 
 const NAMEDATALEN = 64;
@@ -304,17 +306,18 @@ function mirrorConstraintNames(table: (typeof MIRRORED)[number]): ReadonlyArray<
 }
 
 describe("حارسُ الانحرافِ يقرأُ العقدَ فعلاً", () => {
-  it("العقدُ مقروءٌ وفيهِ سبعةَ عشرَ جدولاً ومتتالٌ واحدٌ", () => {
+  it("العقدُ مقروءٌ وفيهِ ثمانيةَ عشرَ جدولاً ومتتالٌ واحدٌ", () => {
     expect(DDL).toContain("CREATE TABLE IF NOT EXISTS store_orders");
-    expect([...DDL.matchAll(/CREATE TABLE IF NOT EXISTS/gu)]).toHaveLength(17);
+    expect([...DDL.matchAll(/CREATE TABLE IF NOT EXISTS/gu)]).toHaveLength(18);
     expect(DDL).toContain("CREATE SEQUENCE IF NOT EXISTS store_order_public_id_seq");
   });
 
-  it("والمرآةُ سبعةَ عشرَ جدولاً بأسمائِها", () => {
+  it("والمرآةُ ثمانيةَ عشرَ جدولاً بأسمائِها", () => {
     expect(MIRRORED.map((table) => getTableConfig(table).name).sort()).toEqual([
       "core_egress_blocked",
       "core_egress_outbox",
       "core_fulfillment_inbox",
+      "core_fulfillment_link",
       "delivery_idempotency_keys",
       "delivery_inventory_conflicts",
       "delivery_inventory_observations",

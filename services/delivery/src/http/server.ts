@@ -48,6 +48,13 @@ import { createServiceTokenReplayGuardFromEnv } from "@wasla/service-auth/replay
 import { buildDeliveryHttpApp } from "./app.js";
 import { resolveIdempotencyTtlSeconds } from "../domain/idempotency.js";
 import { StoreOrderStore } from "../infrastructure/store-order-store.js";
+import { PgCoreFulfillmentInbox } from "../infrastructure/pg-core-fulfillment-inbox.js";
+import {
+  PgCoreFulfillmentLinks,
+  relayCoreCancelsOnce,
+  relayCoreEgressOnce,
+} from "../infrastructure/pg-core-relays.js";
+import { CORE_WEBHOOK_SECRET_MIN_LENGTH } from "../domain/core-link.js";
 import { PostgresReadinessProbe } from "../infrastructure/readiness-probe.js";
 import { PostgresInventoryObservationStore } from "../infrastructure/inventory-observation-store.js";
 import { PostgresRelayDeadLetterStore } from "../infrastructure/relay-dead-letter-store.js";
@@ -180,6 +187,65 @@ function buildReservationPort(): { reservationPort: InventoryReservationPort; la
   };
 }
 
+/**
+ * The live MARKET ↔ CORE wiring (CLM-0708 · ADR-026 §4.30) — env-gated.
+ *
+ * - `CORE_EVENTS_URL` + `CORE_MARKET_TOKEN` → the egress relay (G-1) and the
+ *   cancel relay (G-6), each on `CORE_RELAY_INTERVAL_MS` (default 5000).
+ * - `CORE_FULFILLMENT_WEBHOOK_SECRET` (≥ 32 chars) → the signed intake (G-3).
+ *
+ * Absent ⇒ unwired, named in the boot log. Half-configured (a URL without a
+ * token, or a short secret) ⇒ the process refuses to start: a misconfiguration
+ * must be loud at boot, not a silent relay that never sends.
+ */
+function resolveCoreWiring(env: NodeJS.ProcessEnv): {
+  relay?: { coreUrl: string; token: string; intervalMs: number };
+  webhookSecret?: string;
+  relayLabel: string;
+  intakeLabel: string;
+} {
+  const coreUrl = env.CORE_EVENTS_URL?.trim() || undefined;
+  const token = env.CORE_MARKET_TOKEN?.trim() || undefined;
+  const secret = env.CORE_FULFILLMENT_WEBHOOK_SECRET || undefined;
+  if ((coreUrl === undefined) !== (token === undefined)) {
+    throw new Error("CORE_EVENTS_URL and CORE_MARKET_TOKEN must be set together (CLM-0708)");
+  }
+  if (coreUrl !== undefined && !/^https?:\/\//u.test(coreUrl)) {
+    throw new Error("CORE_EVENTS_URL must be an http(s) URL");
+  }
+  if (secret !== undefined && secret.length < CORE_WEBHOOK_SECRET_MIN_LENGTH) {
+    throw new Error(`CORE_FULFILLMENT_WEBHOOK_SECRET must be at least ${CORE_WEBHOOK_SECRET_MIN_LENGTH} characters`);
+  }
+  const intervalMs = readLenientIntEnv(env, "CORE_RELAY_INTERVAL_MS", { min: 250 }) ?? 5000;
+  return {
+    ...(coreUrl !== undefined && token !== undefined ? { relay: { coreUrl, token, intervalMs } } : {}),
+    ...(secret !== undefined ? { webhookSecret: secret } : {}),
+    relayLabel: coreUrl !== undefined ? `wired (every ${intervalMs}ms)` : "unwired (CORE_EVENTS_URL absent)",
+    intakeLabel: secret !== undefined ? "wired" : "unwired (CORE_FULFILLMENT_WEBHOOK_SECRET absent)",
+  };
+}
+
+/** One relay loop: never overlapping itself, errors logged not thrown. */
+function startRelayLoop(name: string, intervalMs: number, run: () => Promise<{ sent: number; refused: number; retried: number }>): () => void {
+  let busy = false;
+  const timer = setInterval(() => {
+    if (busy) return;
+    busy = true;
+    run()
+      .then((r) => {
+        if (r.sent + r.refused + r.retried > 0) {
+          console.log(`core ${name} relay: sent=${r.sent} refused=${r.refused} retried=${r.retried}`);
+        }
+      })
+      .catch((err: unknown) => console.error(`core ${name} relay failed`, err))
+      .finally(() => {
+        busy = false;
+      });
+  }, intervalMs);
+  timer.unref();
+  return () => clearInterval(timer);
+}
+
 async function main(): Promise<void> {
   if (!DATABASE_URL) {
     console.error("DATABASE_URL is required");
@@ -238,6 +304,15 @@ async function main(): Promise<void> {
   // Production default is `off` — no assertion verification, behavior unchanged.
   const userAssertion = userAssertionConfigFromEnv(process.env);
 
+  // CLM-0708 · ADR-026 §4.30: the live CORE wiring — refuses to boot half-configured.
+  let core: ReturnType<typeof resolveCoreWiring>;
+  try {
+    core = resolveCoreWiring(process.env);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
+
   const { fastify, close } = buildDeliveryHttpApp({
     serviceIdentity: {
       keys: keyRegistryFromEnv(process.env),
@@ -258,6 +333,15 @@ async function main(): Promise<void> {
     relayRequeuePort: relayRequeue,
     relayDeadLetterAcknowledgementPort: relayAcknowledgement,
     ...(catalog.catalogPort === undefined ? {} : { catalogPort: catalog.catalogPort }),
+    ...(core.webhookSecret === undefined
+      ? {}
+      : {
+          coreFulfillmentIntake: {
+            secret: core.webhookSecret,
+            inbox: new PgCoreFulfillmentInbox(pool),
+            links: new PgCoreFulfillmentLinks(pool),
+          },
+        }),
     ...(observation.observationPort === undefined
       ? {}
       : { marketplaceObservationPort: observation.observationPort }),
@@ -272,9 +356,25 @@ async function main(): Promise<void> {
     // RISK-0058 · ADR-059: health answers 503 with the real database state when a pool is down.
     attachDatabaseHealth(fastify, { paths: ["/delivery/health", "/health"], service: "delivery" });
     await fastify.listen({ port: PORT, host: "0.0.0.0" });
+    const stopRelays: Array<() => void> = [];
+    if (core.relay !== undefined) {
+      const relay = core.relay;
+      stopRelays.push(startRelayLoop("egress", relay.intervalMs, () => relayCoreEgressOnce(pool, relay)));
+      stopRelays.push(startRelayLoop("cancel", relay.intervalMs, () => relayCoreCancelsOnce(pool, relay)));
+    }
+    const shutdown = (signal: string): void => {
+      console.log(`delivery service: ${signal} — stopping core relays`);
+      for (const stop of stopRelays) stop();
+      void close().finally(() => {
+        stopTracing();
+        void pool.end().finally(() => process.exit(0));
+      });
+    };
+    process.once("SIGTERM", () => shutdown("SIGTERM"));
+    process.once("SIGINT", () => shutdown("SIGINT"));
     // يُطبَعُ عندَ الإقلاعِ لأنَّ «أيُّ تركيبٍ يعملُ الآنَ؟» أوّلُ سؤالٍ في أيِّ
     // حادثةٍ، وقراءتُهُ من السجلِّ أسرعُ من استنتاجِهِ من سلوكِ المسارات.
-    console.log(`delivery service listening on :${PORT} · inbound service identity: enforced (audience=delivery) · marketplace catalog: ${catalog.label} · reservation: ${reservation.label} · readiness probe: ${observation.label} · idempotency key ttl: ${idempotencyTtlSeconds}s · inventory conflict reads: wired · relay dead-letter metric: wired · relay dead-letter requeue: wired · relay dead-letter acknowledgement: wired`);
+    console.log(`delivery service listening on :${PORT} · inbound service identity: enforced (audience=delivery) · marketplace catalog: ${catalog.label} · reservation: ${reservation.label} · readiness probe: ${observation.label} · idempotency key ttl: ${idempotencyTtlSeconds}s · inventory conflict reads: wired · relay dead-letter metric: wired · relay dead-letter requeue: wired · relay dead-letter acknowledgement: wired · core relays: ${core.relayLabel} · core fulfillment intake: ${core.intakeLabel}`);
   } catch (err) {
     console.error("delivery service failed to start", err);
     await close();

@@ -60,6 +60,12 @@ export type CoreFulfillmentConsumeResult =
   | { readonly kind: "duplicate" }
   | { readonly kind: "order_not_found" }
   | { readonly kind: "out_of_order"; readonly from: string; readonly to: string; readonly reason: string }
+  /**
+   * §4.30: the event has no edge from a TERMINAL order state — nothing can ever
+   * change that, so it is recorded `out_of_order` terminally (named, visible)
+   * and the producer is told to stop retrying.
+   */
+  | { readonly kind: "stale"; readonly from: string; readonly to: string; readonly reason: string }
   | { readonly kind: "proof_missing" }
   | { readonly kind: "poisoned"; readonly error: string }
   | { readonly kind: "error"; readonly error: string };
@@ -243,6 +249,19 @@ export async function consumeCoreFulfillmentEvent(
     return { kind: "applied", order: settledOrder };
   }
 
+  if (decision.kind === "out_of_order" && TERMINAL_ORDER_STATES.has(order.fulfillmentState)) {
+    // §4.30: لا حافّةَ من حالةٍ نهائيّةٍ ولن تكونَ — الإعادةُ لا تُغيّرُ شيئًا،
+    // فالحسمُ نهائيٌّ مسمًّى (`out_of_order`) والمنتجُ يُبلَّغُ بالتوقّفِ.
+    await deps.inbox.recordTerminal({
+      eventId: envelope.event_id,
+      eventType: event.kind,
+      orderReference: event.payload.order_reference,
+      consumedStatus: "out_of_order",
+      lastError: `stale:${decision.reason}`.slice(0, 500),
+    });
+    return { kind: "stale", from: decision.from, to: decision.to, reason: decision.reason };
+  }
+
   if (decision.kind === "out_of_order") {
     // قابلٌ للإعادةِ عمدًا: الحالةُ تتغيّرُ وحدثٌ قبلَ أوانِهِ قد يصيرُ صالحًا.
     await deps.inbox.recordRetryable(envelope.event_id, decision.reason);
@@ -272,6 +291,8 @@ export async function consumeCoreFulfillmentEvent(
       decision.requiresProof ? proof : null,
       envelope.correlation_id,
       intent,
+      // §4.30: the CORE projection — the only caller allowed on core-only edges.
+      "core",
     );
     if (result.kind === "applied" || result.kind === "replayed") {
       await deps.inbox.recordTerminal({
@@ -312,10 +333,16 @@ export async function consumeCoreFulfillmentEvent(
   }
 }
 
+/** Order states with no outgoing fulfillment edge (ADR-026 §3.1). */
+const TERMINAL_ORDER_STATES: ReadonlySet<string> = new Set(["delivered", "cancelled", "rejected", "failed"]);
+
 /** الحسمُ النهائيُّ: ما لا تُعيدُهُ إعادةُ الإرسالِ. السمُّ وما وقعَ أثرُهُ. */
+
 function isTerminal(consumedStatus: string): boolean {
   return (
     consumedStatus === "applied" ||
+    // §4.30: recorded only for a stale event on a terminal order — final.
+    consumedStatus === "out_of_order" ||
     consumedStatus === "observed" ||
     consumedStatus === "poisoned"
   );

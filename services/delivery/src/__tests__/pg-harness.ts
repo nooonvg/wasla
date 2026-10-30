@@ -69,6 +69,7 @@ export const DELIVERY_TABLES = [
   "core_fulfillment_inbox",
   "core_egress_outbox",
   "core_egress_blocked",
+  "core_fulfillment_link",
   "delivery_relay_checkpoint",
   "delivery_relay_consumed_events",
   "delivery_outbox",

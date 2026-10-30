@@ -657,7 +657,10 @@ CREATE TABLE IF NOT EXISTS core_egress_outbox (
     published_at   TIMESTAMPTZ,
     attempts       INTEGER     NOT NULL DEFAULT 0 CHECK (attempts >= 0),
     last_error     TEXT,
-    created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- G-1 (0010 · ADR-026 §4.30): تراجعُ المُرحِّلِ والرفضُ النهائيُّ المرئيُّ.
+    last_attempt_at TIMESTAMPTZ,
+    refused_at      TIMESTAMPTZ
 );
 
 CREATE INDEX IF NOT EXISTS ix_core_egress_outbox_unpublished
@@ -680,3 +683,23 @@ CREATE TABLE IF NOT EXISTS core_egress_blocked (
 -- <<< RISK-0012 commit_sequence (delivery_outbox)
 
 COMMIT;
+
+-- ─────────────────────────────────────────────────────────────
+-- 18) core_fulfillment_link — رابطُ طلبِ المتجرِ بتنفيذِ CORE (G-6 · 0010 ·
+--     ADR-026 §4.30): يُسجَّلُ مرّةً من أوّلِ حدثِ `core.fulfillment.*` صحيحٍ،
+--     وهوَ المفتاحُ الوحيدُ الذي يقبلُهُ مسارُ الإلغاءِ في CORE.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS core_fulfillment_link (
+    order_public_id        TEXT        PRIMARY KEY CHECK (order_public_id ~ '^WS-[0-9]{10}$'),
+    fulfillment_id         UUID        NOT NULL,
+    closed_by_core         BOOLEAN     NOT NULL DEFAULT false,
+    cancel_attempts        INTEGER     NOT NULL DEFAULT 0 CHECK (cancel_attempts >= 0),
+    cancel_last_error      TEXT,
+    cancel_last_attempt_at TIMESTAMPTZ,
+    cancel_acknowledged_at TIMESTAMPTZ,
+    created_at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_core_fulfillment_link_cancel_pending
+    ON core_fulfillment_link (cancel_last_attempt_at)
+    WHERE closed_by_core = false AND cancel_acknowledged_at IS NULL;

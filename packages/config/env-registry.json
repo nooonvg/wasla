@@ -101,6 +101,80 @@
       ]
     },
     {
+      "name": "CORE_EVENTS_URL",
+      "type": "http_url",
+      "required": "optional",
+      "default": null,
+      "secret": false,
+      "scopes": [
+        "runtime"
+      ],
+      "description_ar": "عنوانُ CORE الأساسيُّ الذي ينشرُ إليهِ مُرحِّلا الصادرِ والإلغاءِ في التوصيلِ (G-1 · G-6 · ADR-026 §4.30).",
+      "owner_item": "M2-04",
+      "readers": [
+        {
+          "file": "services/delivery/src/http/server.ts",
+          "mode": "bag"
+        }
+      ],
+      "note_ar": "يُضبَطُ معَ `CORE_MARKET_TOKEN` معًا أو لا يُضبَطانِ؛ نصفُ التركيبِ يرفضُ الإقلاعَ (CLM-0708)."
+    },
+    {
+      "name": "CORE_FULFILLMENT_WEBHOOK_SECRET",
+      "type": "secret_material",
+      "required": "conditional",
+      "default": null,
+      "secret": true,
+      "scopes": [
+        "runtime"
+      ],
+      "description_ar": "السرُّ المشتركُ (≥ 32 حرفًا) الذي يوقِّعُ بهِ CORE تسليماتِ `core.fulfillment.*` إلى مدخلِ التوصيلِ الموقَّعِ (G-3).",
+      "owner_item": "M2-04",
+      "readers": [
+        {
+          "file": "services/delivery/src/http/server.ts",
+          "mode": "bag"
+        }
+      ]
+    },
+    {
+      "name": "CORE_MARKET_TOKEN",
+      "type": "secret_material",
+      "required": "conditional",
+      "default": null,
+      "secret": true,
+      "scopes": [
+        "runtime"
+      ],
+      "description_ar": "رمزُ حاملِ هويّةِ MARKET لدى CORE (منتجُ `wasla-market`) — يوقِّعُ نشرَ الأحداثِ وطلبَ الإلغاءِ.",
+      "owner_item": "M2-04",
+      "readers": [
+        {
+          "file": "services/delivery/src/http/server.ts",
+          "mode": "bag"
+        }
+      ]
+    },
+    {
+      "name": "CORE_RELAY_INTERVAL_MS",
+      "type": "positive_int",
+      "required": "optional",
+      "default": "5000",
+      "secret": false,
+      "scopes": [
+        "runtime"
+      ],
+      "description_ar": "دورةُ مُرحِّلَيْ CORE بالمللي ثانية (الحدُّ الأدنى 250).",
+      "owner_item": "M2-04",
+      "readers": [
+        {
+          "file": "services/delivery/src/http/server.ts",
+          "mode": "reader"
+        }
+      ],
+      "note_ar": "قيمةٌ غيرُ مقروءةٍ تسقطُ إلى الافتراضِ بقرارٍ مكتوبٍ في الجذرِ (ADR-020)."
+    },
+    {
       "name": "CUSTOMER_BOT_DEEP_LINK_TEMPLATE",
       "type": "string",
       "required": "optional",

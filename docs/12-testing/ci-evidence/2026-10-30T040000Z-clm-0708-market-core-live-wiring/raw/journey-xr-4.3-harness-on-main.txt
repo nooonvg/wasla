@@ -1,0 +1,37 @@
+== 1. fresh databases + migrations
+  migrated: core=25 market=ok move=ok
+== 2. CORE seed: organization + service credentials (wasla-market, wasla-move, operator)
+== 3. TLS for local webhooks (CORE refuses non-https subscribers)
+== 4. start CORE :18080, MARKET :18070, MOVE :18090
+  MARKET transports: harness
+== A. happy path: place -> CORE -> MOVE job -> accept -> complete -> proof -> delivered
+  PASS  CORE fulfillment created (coordinating)
+  PASS  MOVE job opened from core.fulfillment.created (coordinating)
+  PASS  CORE dispatched on move.job.accepted (dispatched)
+  PASS  MARKET refuses assignment before the store is ready (retryable) (out_of_order)
+  PASS  CORE retry lands once the store is ready: assigned (D-XR-31) (assigned)
+  PASS  CORE completed on move.job.completed (completed)
+  PASS  MARKET holds delivered without proof (G-4) (proof_missing)
+  PASS  order NOT delivered without proof (assigned)
+  PASS  delivered after proof, on CORE's own retry (delivered)
+== B. duplicates and forgery
+  PASS  replayed market.order.created makes no second fulfillment (1)
+  PASS  re-delivered signed webhook is a duplicate (duplicate)
+  PASS  forged signature refused (401)
+  PASS  MOVE credential cannot submit market.* (spoofing) (403)
+  PASS  no credential, no ingress (401)
+== C. MOVE rejects (no courier)
+  PASS  CORE closes failed (failed)
+  PASS  MARKET has no edge ready_for_delivery->failed (G-7): stuck, retried (out_of_order)
+  PASS  order left in ready_for_delivery (ready_for_delivery)
+== D. customer cancels
+  PASS  MARKET cancelled (cancelled)
+  PASS  MOVE job still open: MARKET cancel never reaches CORE (G-6) (coordinating)
+  PASS  with the missing call made: MOVE job cancelled (cancelled)
+== E. store with no CORE organization (XR-6.1 not bound)
+  PASS  held durably, nothing sent (organization_not_linked)
+== F. CORE down at relay time
+  PASS  relay records the failure, keeps the row (1)
+  PASS  after CORE returns the same order reaches MOVE (coordinating)
+
+RESULT: 23 passed, 0 failed
