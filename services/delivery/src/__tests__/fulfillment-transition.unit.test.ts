@@ -113,3 +113,41 @@ describe("decideFulfillmentTransition — domain decision (review 11/N)", () => 
     expect(decision.consumesInventory).toBe(false);
   });
 });
+
+describe("G-7 core-only failure edges (ADR-026 §4.30 · CLM-0708)", () => {
+  const PRE_ASSIGNMENT = ["placed", "confirmed", "picking", "picked", "ready_for_delivery"] as const;
+
+  it("the CORE consumer may close a pre-assignment order as failed — and the reservation is released", () => {
+    for (const from of PRE_ASSIGNMENT) {
+      const decision = decideFulfillmentTransition(makeOrder({ fulfillmentState: from }), "failed", null, "T-G7", "core");
+      expect(decision.toFulfillmentState).toBe("failed");
+      expect(decision.reasonCode).toBe("CORE_FULFILLMENT_FAILED");
+      expect(decision.releasesInventory).toBe(true);
+      expect(decision.consumesInventory).toBe(false);
+    }
+  });
+
+  it("the public route (origin http — the default) can NOT take a core-only edge", () => {
+    for (const from of PRE_ASSIGNMENT) {
+      for (const origin of [undefined, "http"] as const) {
+        try {
+          decideFulfillmentTransition(makeOrder({ fulfillmentState: from }), "failed", null, "T-G7", origin);
+          expect.fail(`${from} → failed must be refused from the public route`);
+        } catch (e) {
+          expect(e).toBeInstanceOf(DeliveryError);
+          expect((e as DeliveryError).code).toBe("DELIVERY_TRANSITION_NOT_ALLOWED");
+        }
+      }
+    }
+  });
+
+  it("assigned → failed stays a public edge (unchanged) and now releases a still-reserved reservation", () => {
+    const decision = decideFulfillmentTransition(makeOrder({ fulfillmentState: "assigned" }), "failed", null);
+    expect(decision.reasonCode).toBe("DELIVERY_ATTEMPTS_EXHAUSTED");
+    expect(decision.releasesInventory).toBe(true);
+  });
+
+  it("draft → failed is not an edge even for CORE", () => {
+    expect(() => decideFulfillmentTransition(makeOrder({ fulfillmentState: "draft" }), "failed", null, "T", "core")).toThrow(DeliveryError);
+  });
+});

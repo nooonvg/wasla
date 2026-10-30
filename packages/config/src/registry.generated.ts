@@ -32,7 +32,7 @@ export interface EnvVarSpec {
   readonly ownerItem: string;
 }
 
-/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 98 متغيّراً. */
+/** كلُّ متغيّرٍ مقروءٍ في الشجرةِ: 102 متغيّراً. */
 export const ENV_REGISTRY: readonly EnvVarSpec[] = [
   {
     name: "BILLING_DATABASE_URL",
@@ -70,6 +70,46 @@ export const ENV_REGISTRY: readonly EnvVarSpec[] = [
     required: "optional",
     secret: false,
     default: null,
+    scopes: ["runtime"],
+    readerCount: 1,
+    ownerItem: "M2-04",
+  },
+  {
+    name: "CORE_EVENTS_URL",
+    type: "http_url",
+    required: "optional",
+    secret: false,
+    default: null,
+    scopes: ["runtime"],
+    readerCount: 1,
+    ownerItem: "M2-04",
+  },
+  {
+    name: "CORE_FULFILLMENT_WEBHOOK_SECRET",
+    type: "secret_material",
+    required: "conditional",
+    secret: true,
+    default: null,
+    scopes: ["runtime"],
+    readerCount: 1,
+    ownerItem: "M2-04",
+  },
+  {
+    name: "CORE_MARKET_TOKEN",
+    type: "secret_material",
+    required: "conditional",
+    secret: true,
+    default: null,
+    scopes: ["runtime"],
+    readerCount: 1,
+    ownerItem: "M2-04",
+  },
+  {
+    name: "CORE_RELAY_INTERVAL_MS",
+    type: "positive_int",
+    required: "optional",
+    secret: false,
+    default: "5000",
     scopes: ["runtime"],
     readerCount: 1,
     ownerItem: "M2-04",
@@ -1022,6 +1062,10 @@ export const ENV_VAR_NAMES = [
   "BILLING_DELIVERY_EVENTS_DATABASE_URL",
   "CI",
   "COMMUNITY_GROUP_CHAT_IDS",
+  "CORE_EVENTS_URL",
+  "CORE_FULFILLMENT_WEBHOOK_SECRET",
+  "CORE_MARKET_TOKEN",
+  "CORE_RELAY_INTERVAL_MS",
   "CUSTOMER_BOT_DEEP_LINK_TEMPLATE",
   "CUSTOMER_BOT_MINI_APP_LABEL",
   "CUSTOMER_BOT_MINI_APP_URL",

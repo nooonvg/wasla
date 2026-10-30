@@ -71,6 +71,13 @@
       "when": 1792700000000,
       "tag": "0009_assigned_state",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793300000000,
+      "tag": "0010_core_fulfillment_link",
+      "breakpoints": true
     }
   ]
 }

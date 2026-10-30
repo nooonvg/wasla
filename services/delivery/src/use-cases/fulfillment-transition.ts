@@ -22,7 +22,7 @@ import {
   type EventContext,
 } from "../domain/events.js";
 import type { ProofOfDelivery, StoreOrder } from "../domain/model.js";
-import { decideFulfillmentTransition } from "../domain/store-order-fulfillment-transition.js";
+import { decideFulfillmentTransition, type FulfillmentTransitionOrigin } from "../domain/store-order-fulfillment-transition.js";
 import { resolveIdempotentReplay } from "./idempotency-guard.js";
 import type {
   FulfillmentTransitionWrite,
@@ -72,7 +72,8 @@ export async function settleCancellationInventory(
     });
   }
   // ليست إلغاءً محجوزًا — لا تسويةَ (المحفوظُ بعدَ consumed لا يُفرَّجُ · §2.3).
-  if (order.fulfillmentState !== "cancelled" || order.inventoryState !== "reserved") {
+  // §4.30: `failed` is terminal too — its reservation can never be consumed.
+  if ((order.fulfillmentState !== "cancelled" && order.fulfillmentState !== "failed") || order.inventoryState !== "reserved") {
     return { kind: "not_needed", order };
   }
   if (!deps.reservationPort || !deps.reservationStore) {
@@ -145,6 +146,7 @@ export async function fulfillmentTransition(
   proof: ProofOfDelivery | null,
   traceId: string | null,
   idempotency?: IdempotencyIntent,
+  origin: FulfillmentTransitionOrigin = "http",
 ): Promise<FulfillmentTransitionResult> {
   const replay = await resolveIdempotentReplay(deps.readPort, idempotency, traceId);
   if (replay !== null) {
@@ -165,7 +167,7 @@ export async function fulfillmentTransition(
     });
   }
 
-  const decision = decideFulfillmentTransition(order, toState, proof, traceId ?? undefined);
+  const decision = decideFulfillmentTransition(order, toState, proof, traceId ?? undefined, origin);
 
   const transitionedOrder: StoreOrder = {
     ...order,

@@ -148,6 +148,11 @@ import { cancelStoreOrder } from "../use-cases/cancel-store-order.js";
 import { mirrorPayment } from "../use-cases/mirror-payment.js";
 import { confirmStoreOrder } from "../use-cases/confirm-store-order.js";
 import { fulfillmentTransition } from "../use-cases/fulfillment-transition.js";
+import { consumeCoreFulfillmentEvent } from "../use-cases/consume-core-fulfillment.js";
+import { classifyCoreFulfillmentEvent } from "../domain/core-fulfillment-events.js";
+import { closesFulfillment, intakeHttpStatus, verifyCoreSignature } from "../domain/core-link.js";
+import type { CoreFulfillmentInboxStore } from "../ports.js";
+import type { CoreFulfillmentLinkStore } from "../infrastructure/pg-core-relays.js";
 import { sweepExpiredIdempotencyKeys } from "../use-cases/sweep-expired-idempotency-keys.js";
 import { canonicalJson } from "./canonical-json.js";
 
@@ -238,6 +243,17 @@ export interface DeliveryHttpDeps {
     readonly mode: UserAssertionMode;
     readonly publicKeys: UserAssertionPublicKeys;
     readonly skewSeconds?: number;
+  };
+  /**
+   * G-3 (CLM-0708 · ADR-026 §4.30): the signed intake for CORE's
+   * `core.fulfillment.*` deliveries. Absent → `POST /delivery/core/fulfillment-events`
+   * answers 503 (fail-closed — never an unsigned door).
+   */
+  readonly coreFulfillmentIntake?: {
+    /** The shared HMAC secret CORE's subscription signs with (≥ 32 chars). */
+    readonly secret: string;
+    readonly inbox: CoreFulfillmentInboxStore;
+    readonly links: CoreFulfillmentLinkStore;
   };
   /** Injected for determinism in tests; defaults to the real clock/uuid. */
   readonly newUuid?: () => string;
@@ -640,6 +656,9 @@ export function buildDeliveryHttpApp(deps: DeliveryHttpDeps): DeliveryHttpApp {
     "application/json",
     { parseAs: "string" },
     (request, payload, done) => {
+      // G-3 (§4.30): the signed intake verifies HMAC over the EXACT bytes CORE
+      // sent — so the untouched body is kept beside the parsed one.
+      (request as { rawBody?: string }).rawBody = typeof payload === "string" ? payload : "";
       const raw = typeof payload === "string" ? payload.trim() : "";
       if (raw === "") {
         done(null, undefined);
@@ -927,6 +946,61 @@ export function buildDeliveryHttpApp(deps: DeliveryHttpDeps): DeliveryHttpApp {
       }
     }
     return reply.status(200).send(toDeliveryTaskResponse(task));
+  });
+
+  /*
+   * G-3 (CLM-0708 · ADR-026 §4.30): CORE's signed `core.fulfillment.*` intake.
+   * Open to service identity (CORE holds no WASLA service key) — its identity
+   * is the HMAC-SHA256 of the raw body under the shared subscription secret,
+   * verified in constant time BEFORE the body is trusted at all.
+   *   not wired → 503 · bad signature → 401 · settled result → 200 ·
+   *   retryable result → 503 (CORE retries 5xx and stops on other 4xx).
+   */
+  app.post("/delivery/core/fulfillment-events", { config: OPEN }, async (request, reply) => {
+    const traceId = String(request.id);
+    const intake = deps.coreFulfillmentIntake;
+    if (!intake) {
+      return reply.status(503).send({ result: "not_wired", trace_id: traceId });
+    }
+    const raw = (request as { rawBody?: string }).rawBody ?? "";
+    const signature = request.headers["x-wasla-signature"];
+    if (!verifyCoreSignature(intake.secret, raw, typeof signature === "string" ? signature : undefined)) {
+      return reply.status(401).send({ error_code: "AUTHN_UNAUTHENTICATED", message: "invalid CORE signature", trace_id: traceId });
+    }
+    const body = request.body as { event_id?: unknown } | undefined;
+    if (typeof body !== "object" || body === null || Array.isArray(body) || typeof body.event_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(body.event_id)) {
+      // Signed but not an envelope at all — no inbox row can name it, and a
+      // retry cannot fix it: a non-retryable 400 stops CORE's delivery.
+      return reply.status(400).send({ result: "not_an_envelope", trace_id: traceId });
+    }
+    const envelope = body as Parameters<typeof consumeCoreFulfillmentEvent>[1];
+    // The link is recorded from every well-formed event (all carry
+    // fulfillment_id + order_reference); a malformed one is left to the
+    // consumer, which poisons it in the inbox.
+    try {
+      const event = classifyCoreFulfillmentEvent(envelope);
+      await intake.links.record(event.payload.order_reference, event.payload.fulfillment_id, closesFulfillment(event.kind));
+    } catch {
+      /* malformed → the consumer records it poisoned below */
+    }
+    // §4.30-9: proof of delivery is G-4 (still open) — never invented here.
+    const result = await consumeCoreFulfillmentEvent(
+      {
+        inbox: intake.inbox,
+        orders: deps.readPort,
+        transition: {
+          readPort: deps.readPort,
+          writePort: deps.writePort,
+          reservationPort: deps.reservationPort,
+          reservationStore: deps.reservationStore,
+          newUuid,
+          now,
+        },
+      },
+      envelope,
+      null,
+    );
+    return reply.status(intakeHttpStatus(result.kind)).send({ result: result.kind, trace_id: traceId });
   });
 
   // Liveness: no dependency, no DB. Never fails while the process runs.

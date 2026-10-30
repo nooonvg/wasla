@@ -19,7 +19,7 @@
 import { illegalTransition } from "./errors.js";
 import type { StoreOrder } from "./model.js";
 import type { ProofOfDelivery } from "./model.js";
-import { isFulfillmentTransitionAllowed } from "./state-machine.js";
+import { isCoreOnlyFulfillmentTransition, isFulfillmentTransitionAllowed } from "./state-machine.js";
 import type { FulfillmentReasonCode, FulfillmentState } from "@wasla/contracts-delivery";
 
 /** ما يحتاجُهُ المخزنُ ليكتبَ انتقالَ التنفيذِ. */
@@ -53,7 +53,20 @@ const REASON_CODES: Record<string, FulfillmentReasonCode> = {
   "assigned→failed": "DELIVERY_ATTEMPTS_EXHAUSTED",
   "assigned→cancelled": "CORE_FULFILLMENT_CANCELLED",
   "handed_to_courier→delivered": "DELIVERED_WITH_PROOF",
+  // G-7 (ADR-026 §4.30): CORE closed `failed` before MOVE accepted the job.
+  "placed→failed": "CORE_FULFILLMENT_FAILED",
+  "confirmed→failed": "CORE_FULFILLMENT_FAILED",
+  "picking→failed": "CORE_FULFILLMENT_FAILED",
+  "picked→failed": "CORE_FULFILLMENT_FAILED",
+  "ready_for_delivery→failed": "CORE_FULFILLMENT_FAILED",
 };
+
+/**
+ * Who asks for the transition. `http` = the public fulfillment-transition route
+ * (a trusted service, but NOT the CORE projection); `core` = the CORE consumer.
+ * Core-only edges (ADR-026 §4.30) are illegal from `http`.
+ */
+export type FulfillmentTransitionOrigin = "http" | "core";
 
 /**
  * @param order - The order as read from the store.
@@ -66,10 +79,15 @@ export function decideFulfillmentTransition(
   toState: FulfillmentState,
   proof: ProofOfDelivery | null,
   traceId?: string,
+  origin: FulfillmentTransitionOrigin = "http",
 ): FulfillmentTransitionDecision {
   const from = order.fulfillmentState;
 
   if (!isFulfillmentTransitionAllowed(from, toState)) {
+    throw illegalTransition(from, toState, traceId);
+  }
+  // §4.30: a core-only edge is never callable from the public route.
+  if (origin !== "core" && isCoreOnlyFulfillmentTransition(from, toState)) {
     throw illegalTransition(from, toState, traceId);
   }
 
@@ -86,7 +104,9 @@ export function decideFulfillmentTransition(
   const consumesInventory = toState === "delivered";
   // §4.29: every edge into `cancelled` releases the reservation — إلغاءٌ بلا
   // إفراجٍ يتركُ رفًّا محجوزًا لطلبٍ ميتٍ (مرآةُ مسارِ إلغاءِ العميلِ · §2.3).
-  const releasesInventory = toState === "cancelled";
+  // §4.30: and every edge into `failed` too — a terminal order can never reach
+  // `delivered`, so a still-`reserved` reservation could never be consumed.
+  const releasesInventory = toState === "cancelled" || toState === "failed";
 
   return {
     fromFulfillmentState: from,

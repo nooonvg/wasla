@@ -51,10 +51,16 @@ export interface FulfillmentTransitionRule {
   readonly expectedActor: "system" | "customer" | "store" | "courier" | "admin";
   /** The typical reason code. `null` where the edge is the happy default. */
   readonly typicalReason: string | null;
+  /**
+   * Only the CORE projection may take this edge (ADR-026 §4.30). `expectedActor`
+   * is documentation; THIS flag is enforced: the public fulfillment-transition
+   * route refuses a core-only edge as an illegal transition.
+   */
+  readonly coreOnly?: true;
 }
 
 /**
- * The 18 allowed fulfillment transitions (ADR-026 §3.1: 12 states).
+ * The 23 allowed fulfillment transitions (ADR-026 §3.1: 12 states).
  * Grouped by source state, in ADR order.
  */
 export const FULFILLMENT_TRANSITIONS: readonly FulfillmentTransitionRule[] = [
@@ -62,23 +68,27 @@ export const FULFILLMENT_TRANSITIONS: readonly FulfillmentTransitionRule[] = [
   { from: "draft", to: "placed", expectedActor: "customer", typicalReason: "CART_CONFIRMED" },
   { from: "draft", to: "cancelled", expectedActor: "customer", typicalReason: "CUSTOMER_CHANGED_MIND" },
 
-  // placed (2) — the composite gate lives here (§2.2).
+  // placed (3) — the composite gate lives here (§2.2).
   { from: "placed", to: "confirmed", expectedActor: "system", typicalReason: "PAYMENT_AUTHORIZED" },
   { from: "placed", to: "cancelled", expectedActor: "customer", typicalReason: "CUSTOMER_CHANGED_MIND" },
+  { from: "placed", to: "failed", expectedActor: "system", typicalReason: "CORE_FULFILLMENT_FAILED", coreOnly: true },
 
-  // confirmed (3)
+  // confirmed (4)
   { from: "confirmed", to: "picking", expectedActor: "store", typicalReason: "PICKING_STARTED" },
   { from: "confirmed", to: "rejected", expectedActor: "store", typicalReason: "OUT_OF_STOCK" },
   { from: "confirmed", to: "cancelled", expectedActor: "customer", typicalReason: "CUSTOMER_CHANGED_MIND" },
+  { from: "confirmed", to: "failed", expectedActor: "system", typicalReason: "CORE_FULFILLMENT_FAILED", coreOnly: true },
 
-  // picking (2) — substitution happens INSIDE this state only (§2.5).
+  // picking (3) — substitution happens INSIDE this state only (§2.5).
   { from: "picking", to: "picked", expectedActor: "store", typicalReason: "PICKING_COMPLETED" },
   { from: "picking", to: "rejected", expectedActor: "store", typicalReason: "ITEM_UNAVAILABLE" },
+  { from: "picking", to: "failed", expectedActor: "system", typicalReason: "CORE_FULFILLMENT_FAILED", coreOnly: true },
 
-  // picked (1)
+  // picked (2)
   { from: "picked", to: "ready_for_delivery", expectedActor: "store", typicalReason: "READY_FOR_HANDOVER" },
+  { from: "picked", to: "failed", expectedActor: "system", typicalReason: "CORE_FULFILLMENT_FAILED", coreOnly: true },
 
-  // ready_for_delivery (3) — the last point a customer may cancel.
+  // ready_for_delivery (4) — the last point a customer may cancel.
   // The legacy local edge keeps COURIER_ACCEPTED (its historical, ambiguous
   // semantics — §4.29); the CORE projection's dispatched event now lands on
   // `assigned` instead: it proves MOVE accepted the task, not physical
@@ -86,6 +96,10 @@ export const FULFILLMENT_TRANSITIONS: readonly FulfillmentTransitionRule[] = [
   { from: "ready_for_delivery", to: "handed_to_courier", expectedActor: "system", typicalReason: "COURIER_ACCEPTED" },
   { from: "ready_for_delivery", to: "assigned", expectedActor: "system", typicalReason: "MOVE_JOB_ACCEPTED" },
   { from: "ready_for_delivery", to: "cancelled", expectedActor: "customer", typicalReason: "CUSTOMER_CHANGED_MIND" },
+  // G-7 (ADR-026 §4.30): CORE closed the fulfillment `failed` BEFORE any MOVE
+  // acceptance (e.g. MOVE rejected the job) — without these five core-only
+  // edges the completed(outcome=failed) event stayed out_of_order forever.
+  { from: "ready_for_delivery", to: "failed", expectedActor: "system", typicalReason: "CORE_FULFILLMENT_FAILED", coreOnly: true },
 
   // assigned (3) — MOVE accepted the task (assignment, NOT physical pickup —
   // §4.29). delivered REQUIRES proof (§2.4); cancelled because CORE can close
@@ -199,6 +213,14 @@ export function isFulfillmentTransitionAllowed(
   to: FulfillmentState,
 ): boolean {
   return FULFILLMENT_TRANSITIONS.some((r) => r.from === from && r.to === to);
+}
+
+/** Is from → to an edge only the CORE projection may take (ADR-026 §4.30)? */
+export function isCoreOnlyFulfillmentTransition(
+  from: FulfillmentState,
+  to: FulfillmentState,
+): boolean {
+  return FULFILLMENT_TRANSITIONS.some((r) => r.from === from && r.to === to && r.coreOnly === true);
 }
 
 export function isPaymentTransitionAllowed(from: PaymentState, to: PaymentState): boolean {

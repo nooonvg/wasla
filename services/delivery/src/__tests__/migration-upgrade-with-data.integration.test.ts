@@ -430,10 +430,37 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
   it("الترجعُ طريقُ خروجٍ لا مِحرقةُ بياناتٍ: الصفوفُ تنجو بعدَ التراجعِ خطوةً", async () => {
     // آخرُ أربعِ ترحيلاتٍ (0009 ثمّ 0008 ثمّ 0007 ثمّ 0006): التراجعُ يُختبرُ
     // خطوةً خطوةً لا قفزةً — فكلُّ down.sql يعرفُ حدَّهُ وحدَهُ.
-    const last = upgrades[upgrades.length - 1];
-    const beforeLast = upgrades[upgrades.length - 2];
-    const beforeBeforeLast = upgrades[upgrades.length - 3];
-    const beforeBeforeBeforeLast = upgrades[upgrades.length - 4];
+    const newest = upgrades[upgrades.length - 1];
+    const last = upgrades[upgrades.length - 2];
+    const beforeLast = upgrades[upgrades.length - 3];
+    const beforeBeforeLast = upgrades[upgrades.length - 4];
+    const beforeBeforeBeforeLast = upgrades[upgrades.length - 5];
+    expect(newest.up).toMatch(/0010_core_fulfillment_link\.sql$/u);
+
+    // 0010 (G-1 · G-6 · CLM-0708 · ADR-026 §4.30): إضافيٌّ خالصٌ — رابطٌ يُكتَبُ
+    // وعمودا التراجعِ والرفضِ يُقرآنِ، والترجعُ يحذفُ ما أضافَهُ وحدَهُ.
+    const egressBefore = await db.query(`SELECT count(*)::int AS n FROM core_egress_outbox`);
+    await db.query(
+      `INSERT INTO core_fulfillment_link (order_public_id, fulfillment_id) VALUES ('WS-0000000999', '99999999-0000-4000-8000-0000000000aa')`,
+    );
+    const linkCols = await db.query(
+      `SELECT closed_by_core, cancel_attempts FROM core_fulfillment_link WHERE order_public_id = 'WS-0000000999'`,
+    );
+    expect(linkCols.rows[0]).toEqual({ closed_by_core: false, cancel_attempts: 0 });
+    await expect(
+      db.query(`INSERT INTO core_fulfillment_link (order_public_id, fulfillment_id) VALUES ('bad', '99999999-0000-4000-8000-0000000000ab')`),
+    ).rejects.toMatchObject({ code: "23514" });
+    await db.query(`SELECT last_attempt_at, refused_at FROM core_egress_outbox LIMIT 1`);
+    await applySqlFile(db, newest.down);
+    const linkGone = await db.query(`SELECT to_regclass('core_fulfillment_link') AS t`);
+    expect(linkGone.rows[0].t).toBeNull();
+    const egressCols = await db.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_name = 'core_egress_outbox' AND column_name IN ('last_attempt_at', 'refused_at')`,
+    );
+    expect(egressCols.rowCount).toBe(0);
+    const egressAfter = await db.query(`SELECT count(*)::int AS n FROM core_egress_outbox`);
+    expect(egressAfter.rows[0].n).toBe(egressBefore.rows[0].n);
+
     await applySqlFile(db, last.down);
 
     // 0009 (§4.29 · CLM-0689): تراجعُهُ يُعيدُ قيدَ الحالةِ إلى أحدَ عشرةَ حالةً
@@ -520,6 +547,7 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
     await applySqlFile(db, beforeBeforeLast.up);
     await applySqlFile(db, beforeLast.up);
     await applySqlFile(db, last.up);
+    await applySqlFile(db, newest.up);
     const after = await db.query("SELECT count(*)::int AS n FROM delivery_idempotency_keys");
     expect(after.rows[0].n).toBe(1);
   });
@@ -528,7 +556,8 @@ describe.skipIf(!PG_ENABLED)("برهانُ الترقيةِ على قاعدةٍ 
     // القاعدةُ الآنَ على الترقيةِ الكاملةِ (12 حالةً). نُحاكي عالمًا فيهِ طلبٌ حيٌّ
     // في `assigned` — فالترجعُ يَجِبُ أن يرفضَ لا أن يعيدَ تصنيفَ الصفِّ الحيِّ ليَمرَّ
     // القيدَ الأحدَ عشريَّ.
-    const last = upgrades[upgrades.length - 1];
+    const last = upgrades.find((m) => /0009_assigned_state\.sql$/u.test(m.up))!;
+    expect(last, "0009 مفقودٌ من الترقياتِ").toBeDefined();
     await db.query(`UPDATE store_orders SET fulfillment_state = 'assigned' WHERE public_id = 'WS-0000000034'`);
     // الرفضُ مسمّى برسالتِهِ **وبرمزِ PostgreSQL القياسيِّ** معًا (23514 = check_violation)
     // — لا نصًّا وحدَهُ. والحارسُ يمنعُ عباراتِ الملفِّ بعدَهُ فلا يُمسُّ القيدُ.

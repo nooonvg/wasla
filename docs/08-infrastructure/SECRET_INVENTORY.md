@@ -57,10 +57,20 @@ This inventory catalogs every secret used across the WASLA system. It is the fir
 | `TLS_PRIVATE_KEY_ARN` | TLS termination | staging, prod | cloud cert mgr | BLOCKED — EXTERNAL/PAID FEATURE REQUIRED |
 | `DNS_API_TOKEN` | DNS automation | staging, prod | env only | BLOCKED — EXTERNAL/PAID FEATURE REQUIRED |
 
+### 6. CORE integration (2 secrets — BLOCKED until the owner provisions them · CLM-0708)
+
+| Secret | Consumers | Environments | Storage | Rotation | Status |
+|---|---|---|---|---|---|
+| `CORE_MARKET_TOKEN` | delivery (CORE egress + cancel relays) | dev, staging, prod | env var (Render) | on compromise / quarterly | BLOCKED — OWNER PROVISIONING REQUIRED |
+| `CORE_FULFILLMENT_WEBHOOK_SECRET` | delivery (signed CORE fulfillment intake) | dev, staging, prod | env var (Render) | on compromise / semi-annually | BLOCKED — OWNER PROVISIONING REQUIRED |
+
+Both are optional at boot: absent ⇒ the relays/intake are unwired and named in the boot log; half-configured ⇒ the process refuses to start (ADR-026 §4.30).
+
 ## Summary
 
 - **15 active secrets** (database URLs, bot tokens, webhook secrets, auth keys)
 - **7 blocked secrets** (infrastructure credentials pending cloud/KMS/TLS decisions)
+- **2 blocked CORE integration secrets** (`CORE_MARKET_TOKEN`, `CORE_FULFILLMENT_WEBHOOK_SECRET` — owner provisioning, CLM-0708)
 - **22 total secrets** in the inventory
 - **0 secrets stored in Git** (all via environment variables or cloud KMS)
 - **0 secret values in this inventory** (names and metadata only)

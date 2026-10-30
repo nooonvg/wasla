@@ -865,6 +865,9 @@ export const coreEgressOutbox = pgTable(
     attempts: integer("attempts").notNull().default(0),
     lastError: text("last_error"),
     createdAt: instant("created_at").notNull().defaultNow(),
+    // G-1 (0010 · ADR-026 §4.30)
+    lastAttemptAt: instant("last_attempt_at"),
+    refusedAt: instant("refused_at"),
   },
   (table) => [
     check("core_egress_outbox_event_type_check", sql`char_length(${table.eventType}) BETWEEN 3 AND 96`),
@@ -891,6 +894,31 @@ export const coreEgressBlocked = pgTable(
   (table) => [
     check("core_egress_blocked_order_public_id_check", sql`${table.orderPublicId} ~ '^WS-[0-9]{10}$'`),
     check("core_egress_blocked_reason_check", sql`char_length(${table.reason}) BETWEEN 3 AND 96`),
+  ],
+);
+
+/**
+ * 18) core_fulfillment_link — رابطُ طلبِ المتجرِ بتنفيذِ CORE (G-6 · 0010 ·
+ * ADR-026 §4.30): مفتاحُ مسارِ الإلغاءِ، و`closed_by_core` يمنعُ إلغاءَ مغلقٍ.
+ */
+export const coreFulfillmentLink = pgTable(
+  "core_fulfillment_link",
+  {
+    orderPublicId: text("order_public_id").primaryKey(),
+    fulfillmentId: uuid("fulfillment_id").notNull(),
+    closedByCore: boolean("closed_by_core").notNull().default(false),
+    cancelAttempts: integer("cancel_attempts").notNull().default(0),
+    cancelLastError: text("cancel_last_error"),
+    cancelLastAttemptAt: instant("cancel_last_attempt_at"),
+    cancelAcknowledgedAt: instant("cancel_acknowledged_at"),
+    createdAt: instant("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    check("core_fulfillment_link_order_public_id_check", sql`${table.orderPublicId} ~ '^WS-[0-9]{10}$'`),
+    check("core_fulfillment_link_cancel_attempts_check", sql`${table.cancelAttempts} >= 0`),
+    index("ix_core_fulfillment_link_cancel_pending")
+      .on(table.cancelLastAttemptAt)
+      .where(sql`${table.closedByCore} = false AND ${table.cancelAcknowledgedAt} IS NULL`),
   ],
 );
 

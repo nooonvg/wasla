@@ -325,7 +325,7 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
     expect(projectCoreFulfillmentEvent(event, "ready_for_delivery").kind).toBe("out_of_order");
   });
 
-  it("completed بالفشلِ ينتقلُ إلى failed من assigned أو handed_to_courier", () => {
+  it("completed بالفشلِ ينتقلُ إلى failed من assigned أو handed_to_courier — ومن حالاتِ ما قبلَ الإسنادِ (G-7 · §4.30)", () => {
     const event = classifyCoreFulfillmentEvent(
       envelope("core.fulfillment.completed", {
         ...basePayload(),
@@ -346,7 +346,16 @@ describe("projectCoreFulfillmentEvent — الخريطةُ خاضعةٌ لآلة
       to: "failed",
       requiresProof: false,
     });
-    expect(projectCoreFulfillmentEvent(event, "placed").kind).toBe("out_of_order");
+    // G-7 (ADR-026 §4.30): MOVE rejected the job before accepting it — CORE
+    // closes `failed` while MARKET is still pre-assignment. Those five edges
+    // exist now (core-only), so the event lands instead of sticking forever.
+    for (const pre of ["placed", "confirmed", "picking", "picked", "ready_for_delivery"] as const) {
+      expect(projectCoreFulfillmentEvent(event, pre)).toEqual({ kind: "transition", to: "failed", requiresProof: false });
+    }
+    // draft is not a placed order — still out of order; terminal states never move.
+    expect(projectCoreFulfillmentEvent(event, "draft").kind).toBe("out_of_order");
+    expect(projectCoreFulfillmentEvent(event, "cancelled").kind).toBe("out_of_order");
+    expect(projectCoreFulfillmentEvent(event, "delivered").kind).toBe("out_of_order");
   });
 
   it("cancelled ينتقلُ إلى cancelled من حالاتِ العميلِ القابلةِ للإلغاءِ وحدَها", () => {
